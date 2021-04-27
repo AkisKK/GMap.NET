@@ -33,11 +33,23 @@ namespace GMap.NET.WindowsForms
                     {
                         if (_isVisibile)
                         {
+                            // Save the current value in order to avoid resetting it inadvertently if we call Refresh() below.
+                            bool oldHoldInvalidation = Control.HoldInvalidation;
                             Control.HoldInvalidation = true;
                             {
                                 ForceUpdate();
                             }
-                            Control.Refresh();
+
+                            if (oldHoldInvalidation == false)
+                            {
+                                // Only call Refresh() if the HoldInvalidation was previously set to false. We do this because the
+                                // call to Refresh() will reset the HoldInvalidation flag to false. If the HoldInvalidation was set
+                                // to true we should not call Refresh(). I.e. Setting the Visible property of an overlay should respect
+                                // current HoldInvalidation setting, while performing its required job.
+                                Control.Refresh();
+                            }
+                            // Restore the original value to the HoldInvalidation flag.
+                            Control.HoldInvalidation = oldHoldInvalidation;
                         }
                         else
                         {
