@@ -19,24 +19,22 @@ namespace GMap.NET.WindowsForms.ToolTips
             TextPadding = new Size((int)Radius, (int)Radius);
         }
 
-        public void DrawRoundRectangle(Graphics g, Pen pen, float h, float v, float width, float height, float radius)
+        public new void DrawRoundRectangle(Graphics g, Pen pen, float h, float v, float width, float height, float radius)
         {
-            using (var gp = new GraphicsPath())
-            {
-                gp.AddLine(h + radius, v, h + width - radius * 2, v);
-                gp.AddArc(h + width - radius * 2, v, radius * 2, radius * 2, 270, 90);
-                gp.AddLine(h + width, v + radius, h + width, v + height - radius * 2);
-                gp.AddArc(h + width - radius * 2, v + height - radius * 2, radius * 2, radius * 2, 0, 90); // Corner
-                gp.AddLine(h + width - radius * 2, v + height, h + radius, v + height);
-                gp.AddArc(h, v + height - radius * 2, radius * 2, radius * 2, 90, 90);
-                gp.AddLine(h, v + height - radius * 2, h, v + radius);
-                gp.AddArc(h, v, radius * 2, radius * 2, 180, 90);
+            using var gp = new GraphicsPath();
+            gp.AddLine(h + radius, v, h + width - radius * 2, v);
+            gp.AddArc(h + width - radius * 2, v, radius * 2, radius * 2, 270, 90);
+            gp.AddLine(h + width, v + radius, h + width, v + height - radius * 2);
+            gp.AddArc(h + width - radius * 2, v + height - radius * 2, radius * 2, radius * 2, 0, 90); // Corner
+            gp.AddLine(h + width - radius * 2, v + height, h + radius, v + height);
+            gp.AddArc(h, v + height - radius * 2, radius * 2, radius * 2, 90, 90);
+            gp.AddLine(h, v + height - radius * 2, h, v + radius);
+            gp.AddArc(h, v, radius * 2, radius * 2, 180, 90);
 
-                gp.CloseFigure();
+            gp.CloseFigure();
 
-                g.FillPath(Fill, gp);
-                g.DrawPath(pen, gp);
-            }
+            g.FillPath(Fill, gp);
+            g.DrawPath(pen, gp);
         }
 
         public override void OnRender(Graphics g)
@@ -49,7 +47,7 @@ namespace GMap.NET.WindowsForms.ToolTips
                 st.Height + TextPadding.Height);
             rect.Offset(Offset.X, Offset.Y);
 
-            var lineOffset = 0;
+            int lineOffset = 0;
             if (!g.VisibleClipBounds.Contains(rect))
             {
                 var clippingOffset = new Point();
