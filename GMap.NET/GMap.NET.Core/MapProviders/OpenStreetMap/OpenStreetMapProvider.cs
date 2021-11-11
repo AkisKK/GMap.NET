@@ -136,12 +136,14 @@ namespace GMap.NET.MapProviders
                         "/sm:kml/sm:Document/sm:Folder/sm:Placemark/sm:LineString/sm:coordinates",
                         xmlnsManager);
 
-                    var coordinates = coordNode.InnerText.Split('\n');
+                    string[] coordinates = coordNode.InnerText.Split('\n');
 
                     if (coordinates != null && coordinates.Length > 0)
                     {
-                        ret = new MapRoute("Route");
-                        ret.Status = RouteStatusCode.OK;
+                        ret = new MapRoute("Route")
+                        {
+                            Status = RouteStatusCode.OK
+                        };
 
                         if (GMaps.Instance.UseRouteCache && cache)
                         {
@@ -152,7 +154,7 @@ namespace GMap.NET.MapProviders
                         {
                             if (coordinate != string.Empty)
                             {
-                                var xy = coordinate.Split(',');
+                                string[] xy = coordinate.Split(',');
 
                                 if (xy.Length == 2)
                                 {
@@ -175,7 +177,7 @@ namespace GMap.NET.MapProviders
 
                         if (instructionsNode != null && instructionsNode.InnerText.Length > 0)
                         {
-                            var instructions = instructionsNode.InnerText.Split(new string[1] {"<br>"},
+                            string[] instructions = instructionsNode.InnerText.Split(new string[1] {"<br>"},
                                 StringSplitOptions.RemoveEmptyEntries);
 
                             if (instructions != null && instructions.Length > 0)
@@ -204,8 +206,8 @@ namespace GMap.NET.MapProviders
         static readonly string TravelTypeFoot = "foot";
         static readonly string TravelTypeMotorCar = "motorcar";
 
-        static readonly string WalkingStr = "Walking";
-        static readonly string DrivingStr = "Driving";
+        //static readonly string WalkingStr = "Walking";
+        //static readonly string DrivingStr = "Driving";
 
         #endregion
 
@@ -233,8 +235,7 @@ namespace GMap.NET.MapProviders
 
         public PointLatLng? GetPoint(string keywords, out GeoCoderStatusCode status)
         {
-            List<PointLatLng> pointList;
-            status = GetPoints(keywords, out pointList);
+            status = GetPoints(keywords, out var pointList);
             return pointList != null && pointList.Count > 0 ? pointList[0] : (PointLatLng?)null;
         }
 
@@ -255,8 +256,7 @@ namespace GMap.NET.MapProviders
 
         public PointLatLng? GetPoint(Placemark placemark, out GeoCoderStatusCode status)
         {
-            List<PointLatLng> pointList;
-            status = GetPoints(placemark, out pointList);
+            status = GetPoints(placemark, out var pointList);
             return pointList != null && pointList.Count > 0 ? pointList[0] : (PointLatLng?)null;
         }
 
@@ -385,8 +385,7 @@ namespace GMap.NET.MapProviders
                                 {
                                     var nn = n.Attributes["place_rank"];
 
-                                    int rank;
-                                    if (nn != null && int.TryParse(nn.Value, out rank))
+                                    if (nn != null && int.TryParse(nn.Value, out int rank))
                                     {
                                         if (rank < MinExpectedRank)
                                             continue;
@@ -597,7 +596,7 @@ namespace GMap.NET.MapProviders
 
         #endregion
 
-        string MakeTileImageUrl(GPoint pos, int zoom, string language)
+        string MakeTileImageUrl(GPoint pos, int zoom, string _)
         {
             char letter = ServerLetters[GetServerNum(pos, 3)];
             return string.Format(UrlFormat, letter, zoom, pos.X, pos.Y);

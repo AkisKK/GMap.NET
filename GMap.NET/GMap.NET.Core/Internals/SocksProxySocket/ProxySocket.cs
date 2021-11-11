@@ -154,7 +154,7 @@ namespace Org.Mentalis.Network.ProxySocket
         ///     If you use this method with a SOCKS4 server, it will let the server resolve the hostname. Not all SOCKS4
         ///     servers support this 'remote DNS' though.
         /// </remarks>
-        public void Connect(string host, int port)
+        public new void Connect(string host, int port)
         {
             if (host == null)
                 throw new ArgumentNullException("<host> cannot be null.");
@@ -218,13 +218,13 @@ namespace Org.Mentalis.Network.ProxySocket
         /// <param name="host">The host to connect to.</param>
         /// <param name="port">The port on the remote host to connect to.</param>
         /// <param name="callback">The AsyncCallback delegate.</param>
-        /// <param name="state">An object that contains state information for this request.</param>
+        /// <param name="_">An object that contains state information for this request.</param>
         /// <returns>An IAsyncResult that references the asynchronous connection.</returns>
         /// <exception cref="ArgumentNullException">The host parameter is a null reference (Nothing in Visual Basic).</exception>
         /// <exception cref="ArgumentException">The port parameter is invalid.</exception>
         /// <exception cref="SocketException">An operating system error occurs while creating the Socket.</exception>
         /// <exception cref="ObjectDisposedException">The Socket has been closed.</exception>
-        public IAsyncResult BeginConnect(string host, int port, AsyncCallback callback, object state)
+        public new IAsyncResult BeginConnect(string host, int port, AsyncCallback callback, object _)
         {
             if (host == null || callback == null)
                 throw new ArgumentNullException();
@@ -286,10 +286,10 @@ namespace Org.Mentalis.Network.ProxySocket
         ///     instance.
         /// </summary>
         /// <param name="host">The host to resolve.</param>
-        /// <param name="callback">The method to call when the hostname has been resolved.</param>
+        /// <param name="_">The method to call when the hostname has been resolved.</param>
         /// <returns>An IAsyncResult instance that references the asynchronous request.</returns>
         /// <exception cref="SocketException">There was an error while trying to resolve the host.</exception>
-        internal IAsyncProxyResult BeginDns(string host, HandShakeComplete callback)
+        internal IAsyncProxyResult BeginDns(string host, HandShakeComplete _)
         {
             try
             {
@@ -348,8 +348,7 @@ namespace Org.Mentalis.Network.ProxySocket
                 Close();
             ToThrow = error;
             AsyncResult.Reset();
-            if (_callBack != null)
-                _callBack(AsyncResult);
+            _callBack?.Invoke(AsyncResult);
         }
 
         /// <summary>
@@ -383,9 +382,7 @@ namespace Org.Mentalis.Network.ProxySocket
             }
             set
             {
-                if (value == null)
-                    throw new ArgumentNullException();
-                _proxyUser = value;
+                _proxyUser = value ?? throw new ArgumentNullException();
             }
         }
 
@@ -402,9 +399,7 @@ namespace Org.Mentalis.Network.ProxySocket
             }
             set
             {
-                if (value == null)
-                    throw new ArgumentNullException();
-                _proxyPass = value;
+                _proxyPass = value ?? throw new ArgumentNullException();
             }
         }
 
