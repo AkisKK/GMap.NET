@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -49,7 +49,7 @@ namespace Demo.WindowsPresentation
             //
 
             // set cache mode only if no internet avaible
-            if (!Stuff.PingNetwork("pingtest.com"))
+            if (!Stuff.PingNetwork("google.com"))
             {
                 MainMap.Manager.Mode = AccessMode.CacheOnly;
                 MessageBox.Show("No internet connection available, going to CacheOnly mode.",
@@ -64,6 +64,9 @@ namespace Demo.WindowsPresentation
             MainMap.MapProvider = GMapProviders.OpenStreetMap;
             MainMap.Position = new PointLatLng(54.6961334816182, 25.2985095977783);
 
+            MainMap.TouchEnabled = false;
+            MainMap.MultiTouchEnabled = true;
+            
             //// 20200313 (jokubokla): Demo of the new Sweden Map with Mercator instead of SWEREF99
             //MainMap.MapProvider = GMapProviders.SwedenMapAlternative;
             //MainMap.Position = new PointLatLng(58.406298501604, 15.5825614929199); // Linköping
@@ -761,7 +764,7 @@ namespace Demo.WindowsPresentation
                 dlg.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
 
                 // Show save file dialog box
-                var result = dlg.ShowDialog();
+                bool? result = dlg.ShowDialog();
 
                 // Process save file dialog box results
                 if (result == true)
