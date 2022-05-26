@@ -2000,6 +2000,11 @@ namespace GMap.NET.WindowsForms
                                 #endregion
                             }
                         }
+                        if (true == overlayObjet)
+                        {
+                            // Already found an object, exit the outer loop.
+                            break;
+                        }
 
                         foreach (var m in o.Routes)
                         {
@@ -2023,6 +2028,11 @@ namespace GMap.NET.WindowsForms
                                 #endregion
                             }
                         }
+                        if (true == overlayObjet)
+                        {
+                            // Already found an object, exit the outer loop.
+                            break;
+                        }
 
                         foreach (var m in o.Polygons)
                         {
@@ -2040,12 +2050,17 @@ namespace GMap.NET.WindowsForms
                                 #endregion
                             }
                         }
+                        if (true == overlayObjet)
+                        {
+                            // Already found an object, exit the outer loop.
+                            break;
+                        }
                     }
                 }
 
                 if (!overlayObjet && Core.MouseDown != GPoint.Empty)
                     OnMapClick?.Invoke(FromLocalToLatLng(e.X, e.Y), e);
-            }                       
+            }
         }
 
         protected override void OnMouseDoubleClick(MouseEventArgs e)
@@ -2244,6 +2259,8 @@ namespace GMap.NET.WindowsForms
                 {
                     for (int i = Overlays.Count - 1; i >= 0; i--)
                     {
+                        // This variable tracks whether the mouse is over an object, so as to facilitate loop exits.
+                        bool isMouseOverObject = false;
                         var o = Overlays[i];
                         if (o != null && o.IsVisibile && o.IsHitTestVisible)
                         {
@@ -2271,6 +2288,9 @@ namespace GMap.NET.WindowsForms
 
                                             Invalidate();
                                         }
+                                        // Found an object, exit the loop.
+                                        isMouseOverObject = true;
+                                        break;
                                     }
                                     else if (m.IsMouseOver)
                                     {
@@ -2281,9 +2301,13 @@ namespace GMap.NET.WindowsForms
 
                                         Invalidate();
                                     }
-
                                     #endregion
                                 }
+                            }
+                            if (true == isMouseOverObject)
+                            {
+                                // Already found an object, exit the outer loop.
+                                break;
                             }
 
                             foreach (var m in o.Routes)
@@ -2310,6 +2334,9 @@ namespace GMap.NET.WindowsForms
 
                                             Invalidate();
                                         }
+                                        // Found an object, exit the loop.
+                                        isMouseOverObject = true;
+                                        break;
                                     }
                                     else
                                     {
@@ -2323,9 +2350,13 @@ namespace GMap.NET.WindowsForms
                                             Invalidate();
                                         }
                                     }
-
                                     #endregion
                                 }
+                            }
+                            if (true == isMouseOverObject)
+                            {
+                                // Already found an object, exit the outer loop.
+                                break;
                             }
 
                             foreach (var m in o.Polygons)
@@ -2353,6 +2384,9 @@ namespace GMap.NET.WindowsForms
 
                                             Invalidate();
                                         }
+                                        // Found an object, exit the loop.
+                                        isMouseOverObject = true;
+                                        break;
                                     }
                                     else
                                     {
@@ -2366,9 +2400,13 @@ namespace GMap.NET.WindowsForms
                                             Invalidate();
                                         }
                                     }
-
                                     #endregion
                                 }
+                            }
+                            if (true == isMouseOverObject)
+                            {
+                                // Already found an object, exit the outer loop.
+                                break;
                             }
                         }
                     }

@@ -373,6 +373,7 @@ namespace GMap.NET.WindowsForms
                                  m.ToolTipMode == MarkerTooltipMode.OnMouseOver && m.IsMouseOver))
                             {
                                 m.ToolTip.OnRender(g);
+                                break;
                             }
                         }
                     }
