@@ -630,6 +630,17 @@ namespace GMap.NET.ObjectModel
 
         public void RemoveAt(int index) => RemoveItem(index);
 
+        public void Insert(int index, T item)
+        {
+            InsertItem(index, item);
+        }
+
+        public int IndexOf(T item)
+        {
+            lock (_lock)
+                return _inner.IndexOf(item);
+        }
+
         public IEnumerator<T> GetEnumerator()
         {
             // instead of returning an usafe enumerator,
@@ -639,8 +650,8 @@ namespace GMap.NET.ObjectModel
         }
 
         IEnumerator IEnumerable.GetEnumerator()
-        {
-            throw new NotImplementedException();
+        {                         
+            return GetEnumerator();
         }
 
         // Nested Types
