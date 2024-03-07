@@ -194,7 +194,7 @@ namespace GMap.NET.Internals
 
         #region -- etc cache --
 
-        static readonly SHA1CryptoServiceProvider HashProvider = new SHA1CryptoServiceProvider();
+        static readonly SHA1 HashProvider = SHA1.Create();
 
         void ConvertToHash(ref string s)
         {

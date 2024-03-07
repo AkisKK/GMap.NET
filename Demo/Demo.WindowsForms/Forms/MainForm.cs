@@ -18,6 +18,8 @@ using GMap.NET.WindowsForms;
 using GMap.NET.WindowsForms.Markers;
 using GMap.NET.WindowsForms.ToolTips;
 using System.Reflection;
+using MessagePack;
+using MessagePack.Resolvers;
 
 namespace Demo.WindowsForms
 {
@@ -290,18 +292,11 @@ namespace Demo.WindowsForms
             
         }
 
-        public T DeepClone<T>(T obj)
+        public static T DeepClone<T>(T obj)
         {
-            using (var ms = new MemoryStream())
-            {
-                var formatter = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
-
-                formatter.Serialize(ms, obj);
-
-                ms.Position = 0;
-
-                return (T)formatter.Deserialize(ms);
-            }
+            var options = MessagePackSerializerOptions.Standard.WithResolver(ContractlessStandardResolver.Instance);
+            byte[] bytes = MessagePackSerializer.Serialize(obj, options);
+            return MessagePackSerializer.Deserialize<T>(bytes, options);
         }
 
         void Markers_CollectionChanged(object sender, GMap.NET.ObjectModel.NotifyCollectionChangedEventArgs e)
@@ -624,7 +619,7 @@ namespace Demo.WindowsForms
 
             if (!IsDisposed)
             {
-                MethodInvoker m = delegate
+                System.Windows.Forms.MethodInvoker m = delegate
                 {
                     //textBoxCacheSize.Text = string.Format(CultureInfo.InvariantCulture, "{0} db in {1:00} MB", db, size / (1024.0 * 1024.0));
                     progressBar1.Visible = false;
@@ -650,7 +645,7 @@ namespace Demo.WindowsForms
 
             if (!IsDisposed)
             {
-                MethodInvoker m = delegate
+                System.Windows.Forms.MethodInvoker m = delegate
                 {
                     progressBar1.Visible = true;
                     progressBar1.Value = progressBar1.Minimum;
@@ -664,7 +659,7 @@ namespace Demo.WindowsForms
         {
             if (!IsDisposed)
             {
-                MethodInvoker m = delegate
+                System.Windows.Forms.MethodInvoker m = delegate
                 {
                     progressBar1.Visible = true;
                     progressBar1.Value = (progressBar1.Value < progressBar1.Maximum) ?  (progressBar1.Value + 1) : progressBar1.Minimum;
@@ -863,7 +858,7 @@ namespace Demo.WindowsForms
         // loader start loading tiles
         void MainMap_OnTileLoadStart()
         {
-            MethodInvoker m = delegate ()
+            System.Windows.Forms.MethodInvoker m = delegate ()
             {
                 // HACK JKU CLEAN
                 //panelMenu.Text = "Menu: loading tiles...";
@@ -883,7 +878,7 @@ namespace Demo.WindowsForms
             // HACK JKU CLEAN
             //MainMap.ElapsedMilliseconds = elapsedMilliseconds;
 
-            MethodInvoker m = delegate ()
+            System.Windows.Forms.MethodInvoker m = delegate ()
             {
                 
                 // HACK JKU CLEAN

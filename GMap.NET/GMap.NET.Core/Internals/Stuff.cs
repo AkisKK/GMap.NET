@@ -113,12 +113,12 @@ namespace GMap.NET.Internals
         {
             byte[] results;
 
-            using (var hashProvider = new SHA1CryptoServiceProvider())
+            using (var hashProvider = SHA1.Create())
             {
                 byte[] tdesKey = hashProvider.ComputeHash(Encoding.UTF8.GetBytes(passphrase));
                 Array.Resize(ref tdesKey, 16);
 
-                using (var tdesAlgorithm = new TripleDESCryptoServiceProvider())
+                using (var tdesAlgorithm = TripleDES.Create())
                 {
                     tdesAlgorithm.Key = tdesKey;
                     tdesAlgorithm.Mode = CipherMode.ECB;
@@ -151,36 +151,34 @@ namespace GMap.NET.Internals
         {
             byte[] results;
 
-            using (var hashProvider = new SHA1CryptoServiceProvider())
+            using (var hashProvider = SHA1.Create())
             {
                 byte[] tdesKey = hashProvider.ComputeHash(Encoding.UTF8.GetBytes(passphrase));
                 Array.Resize(ref tdesKey, 16);
 
                 // Step 2. Create a new TripleDESCryptoServiceProvider object
-                using (var tdesAlgorithm = new TripleDESCryptoServiceProvider())
+                using var tdesAlgorithm = TripleDES.Create();
+                // Step 3. Setup the decoder
+                tdesAlgorithm.Key = tdesKey;
+                tdesAlgorithm.Mode = CipherMode.ECB;
+                tdesAlgorithm.Padding = PaddingMode.PKCS7;
+
+                // Step 4. Convert the input string to a byte[]
+                byte[] dataToDecrypt = Convert.FromBase64String(message);
+
+                // Step 5. Attempt to decrypt the string
+                try
                 {
-                    // Step 3. Setup the decoder
-                    tdesAlgorithm.Key = tdesKey;
-                    tdesAlgorithm.Mode = CipherMode.ECB;
-                    tdesAlgorithm.Padding = PaddingMode.PKCS7;
-
-                    // Step 4. Convert the input string to a byte[]
-                    byte[] dataToDecrypt = Convert.FromBase64String(message);
-
-                    // Step 5. Attempt to decrypt the string
-                    try
+                    using (var decryptor = tdesAlgorithm.CreateDecryptor())
                     {
-                        using (var decryptor = tdesAlgorithm.CreateDecryptor())
-                        {
-                            results = decryptor.TransformFinalBlock(dataToDecrypt, 0, dataToDecrypt.Length);
-                        }
+                        results = decryptor.TransformFinalBlock(dataToDecrypt, 0, dataToDecrypt.Length);
                     }
-                    finally
-                    {
-                        // Clear the TripleDes and Hashprovider services of any sensitive information
-                        tdesAlgorithm.Clear();
-                        hashProvider.Clear();
-                    }
+                }
+                finally
+                {
+                    // Clear the TripleDes and Hashprovider services of any sensitive information
+                    tdesAlgorithm.Clear();
+                    hashProvider.Clear();
                 }
             }
 
