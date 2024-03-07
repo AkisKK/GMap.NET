@@ -3323,6 +3323,55 @@ namespace GMap.NET.WindowsForms
         }
 
         #endregion
+
+        #region Serialization
+
+        //static readonly BinaryFormatter BinaryFormatter = new BinaryFormatter();
+
+        /// <summary>
+        ///     Serializes the overlays.
+        /// </summary>
+        /// <param name="stream">The stream.</param>
+        //public void SerializeOverlays(Stream stream)
+        //{
+        //    if (stream == null)
+        //    {
+        //        throw new ArgumentNullException("stream");
+        //    }
+
+        //    // Create an array from the overlays
+        //    var overlayArray = new GMapOverlay[Overlays.Count];
+        //    Overlays.CopyTo(overlayArray, 0);
+
+        //    // Serialize the overlays
+        //    BinaryFormatter.Serialize(stream, overlayArray);
+        //}
+
+        /// <summary>
+        ///     De-serializes the overlays.
+        /// </summary>
+        /// <param name="stream">The stream.</param>
+        //public void DeserializeOverlays(Stream stream)
+        //{
+        //    if (stream == null)
+        //    {
+        //        throw new ArgumentNullException("stream");
+        //    }
+
+        //    // De-serialize the overlays
+        //    var overlayArray = BinaryFormatter.Deserialize(stream) as GMapOverlay[];
+
+        //    // Populate the collection of overlays.
+        //    foreach (var overlay in overlayArray)
+        //    {
+        //        overlay.Control = this;
+        //        Overlays.Add(overlay);
+        //    }
+
+        //    ForceUpdateOverlays();
+        //}
+
+        #endregion
     }
 
     public enum ScaleModes

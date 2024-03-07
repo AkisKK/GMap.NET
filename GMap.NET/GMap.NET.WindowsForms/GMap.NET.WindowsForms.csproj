@@ -4,21 +4,28 @@
     <PackageId>GMap.NET.WinForms</PackageId>
     <Product>GMap.NET.WindowsForms</Product>
     <AssemblyTitle>GMap.NET.WindowsForms</AssemblyTitle>
-    
-    <TargetFrameworks>net6.0-windows</TargetFrameworks>
+    <TargetFrameworks>net8.0-windows</TargetFrameworks>
     <UseWindowsForms>true</UseWindowsForms>
     <DefineConstants>ContinuesMapNo;$(DefineConstants)</DefineConstants>
     
     <PackageReleaseNotes>
-- .Net Core 3.1 support added
-- .Net 6.0 support added
-- New GMap.NET.WinAvalonia library
+- Insert and IndexOf are implemented in ObservableCollection
 
 History Release Notes
 https://github.com/judero01col/GMap.NET/blob/master/README.md#release-notes
     </PackageReleaseNotes>
   </PropertyGroup>
 
+    <PropertyGroup Condition="$([System.Text.RegularExpressions.Regex]::IsMatch('$(TargetFramework)', '^net\d'))">
+        <DefineConstants>NETFRAMEWORK;ContinuesMapNo;$(DefineConstants)</DefineConstants>
+    </PropertyGroup>
+    <PropertyGroup Condition="$([System.Text.RegularExpressions.Regex]::IsMatch('$(TargetFramework)', '^netstandard\d'))">
+        <DefineConstants>NETSTANDARD;ContinuesMapNo;$(DefineConstants)</DefineConstants>
+    </PropertyGroup>
+    <PropertyGroup Condition="$([System.Text.RegularExpressions.Regex]::IsMatch('$(TargetFramework)', '^netcoreapp\d'))">
+        <DefineConstants>NETCORE;ContinuesMapNo;$(DefineConstants)</DefineConstants>
+    </PropertyGroup>
+    
   <ItemGroup>
     <ProjectReference Include="..\GMap.NET.Core\GMap.NET.Core.csproj" />
   </ItemGroup>

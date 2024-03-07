@@ -75,6 +75,9 @@ namespace Demo.WindowsForms
                 //----------------------------------------
                 MainMap.MapProvider = GMapProviders.GoogleMap;
 
+                OpenStreetMapGraphHopperProvider.Instance.ApiKey = Stuff.OpenStreetMapsGraphHopperApiKey;
+                GoogleMapProvider.Instance.ApiKey = Stuff.GoogleMapsApiKey;
+
                 // Custom Map Provider
                 //MainMap.MapProvider = GMapProviders.CustomMap;
                 //GMapProviders.CustomMap.CustomServerUrl = "https://{l}.tile.openstreetmap.org/{z}/{x}/{y}.png";
@@ -91,8 +94,7 @@ namespace Demo.WindowsForms
                 textBoxLat.Text = MainMap.Position.Lat.ToString(CultureInfo.InvariantCulture);
                 textBoxLng.Text = MainMap.Position.Lng.ToString(CultureInfo.InvariantCulture);
                 textBoxGeo.Text = "Lithuania, Vilnius";
-
-                GoogleMapProvider.Instance.ApiKey = Stuff.GoogleMapsApiKey;
+              
 
                 MainMap.ScaleMode = ScaleModes.Fractional;
 
@@ -195,7 +197,7 @@ namespace Demo.WindowsForms
                 // add my city location for demo
                 // [jokubokla]: The stuff down below doesn't work anymore either, but I leave it in case someone wants to fix it
                 GeoCoderStatusCode status;
-                var pos = GMapProviders.GoogleMap.GetPoint("Lithuania, Vilnius", out status);
+                var pos = MainMap.GeocodingProvider.GetPoint("Lithuania, Vilnius", out status);
 
                 if (pos != null && status == GeoCoderStatusCode.OK)
                 {
@@ -519,7 +521,7 @@ namespace Demo.WindowsForms
         void AddLocationLithuania(string place)
         {
             GeoCoderStatusCode status;
-            var pos = GMapProviders.GoogleMap.GetPoint("Lithuania, " + place, out status);
+            var pos = MainMap.GeocodingProvider.GetPoint("Lithuania, " + place, out status);
             if (pos != null && status == GeoCoderStatusCode.OK)
             {
                 var m = new GMarkerGoogle(pos.Value, GMarkerGoogleType.green);
@@ -832,7 +834,7 @@ namespace Demo.WindowsForms
                 if (item is GMapMarkerRect)
                 {
                     GeoCoderStatusCode status;
-                    var pos = GMapProviders.GoogleMap.GetPlacemark(item.Position, out status);
+                    var pos = MainMap.GeocodingProvider.GetPlacemark(item.Position, out status);
                     if (status == GeoCoderStatusCode.OK && pos != null)
                     {
                         var v = item as GMapMarkerRect;
@@ -1015,11 +1017,7 @@ namespace Demo.WindowsForms
         // add test route
         private void btnAddRoute_Click(object sender, EventArgs e)
         {
-            var rp = MainMap.MapProvider as RoutingProvider;
-            if (rp == null)
-            {
-                rp = GMapProviders.OpenStreetMap; // use OpenStreetMap if provider does not implement routing
-            }
+            var rp = MainMap.RoutingProvider;
 
             var route = rp.GetRoute(_start, _end, false, false, (int)MainMap.Zoom);
             if (route != null)
@@ -1042,6 +1040,8 @@ namespace Demo.WindowsForms
                 Objects.Markers.Add(m2);
 
                 MainMap.ZoomAndCenterRoute(r);
+
+                //MainMap.Position = _start;
             }
         }
 
@@ -1063,7 +1063,7 @@ namespace Demo.WindowsForms
             if (checkBoxPlacemarkInfo.Checked)
             {
                 GeoCoderStatusCode status;
-                var ret = GMapProviders.GoogleMap.GetPlacemark(_currentMarker.Position, out status);
+                var ret = MainMap.GeocodingProvider.GetPlacemark(_currentMarker.Position, out status);
                 if (status == GeoCoderStatusCode.OK && ret != null)
                 {
                     p = ret;
