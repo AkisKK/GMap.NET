@@ -1,7 +1,7 @@
 ﻿using System;
-using System.Data.SqlClient;
 using System.Diagnostics;
 using GMap.NET.MapProviders;
+using Microsoft.Data.SqlClient;
 
 namespace GMap.NET.CacheProviders
 {
