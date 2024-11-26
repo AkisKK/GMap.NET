@@ -372,7 +372,7 @@ namespace GMap.NET.Internals
 
                 if (x == 1)
                 {
-                    GMaps.Instance.NoMapInstances = false;
+                    GMaps.Instance.m_NoMapInstances = false;
                 }
 
                 GoToCurrentPosition();
@@ -1381,8 +1381,8 @@ namespace GMap.NET.Internals
 #if DEBUG
                     GMaps.Instance.CancelTileCaching();
 #endif
-                    GMaps.Instance.NoMapInstances = true;
-                    GMaps.Instance.WaitForCache.Set();
+                    GMaps.Instance.m_NoMapInstances = true;
+                    GMaps.Instance.m_WaitForCache.Set();
                     if (disposing)
                     {
                         GMaps.Instance.MemoryCache.Clear();

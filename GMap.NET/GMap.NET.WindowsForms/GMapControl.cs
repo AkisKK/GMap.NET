@@ -590,7 +590,7 @@ namespace GMap.NET.WindowsForms
             if (!IsDesignerHosted)
             {
                 GMapImageProxy.Enable();
-                GMaps.Instance.SQLitePing();
+                GMaps.SQLitePing();
             }
         }
 
@@ -2678,7 +2678,7 @@ namespace GMap.NET.WindowsForms
 
                 if (dlg.ShowDialog() == DialogResult.OK)
                 {
-                    bool ok = GMaps.Instance.ExportToGMDB(dlg.FileName);
+                    bool ok = GMaps.ExportToGMDB(dlg.FileName);
                     if (ok)
                     {
                         MessageBox.Show("Complete!", "GMap.NET", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -2717,7 +2717,7 @@ namespace GMap.NET.WindowsForms
 
                 if (dlg.ShowDialog() == DialogResult.OK)
                 {
-                    bool ok = GMaps.Instance.ImportFromGMDB(dlg.FileName);
+                    bool ok = GMaps.ImportFromGMDB(dlg.FileName);
                     if (ok)
                     {
                         MessageBox.Show("Complete!", "GMap.NET", MessageBoxButtons.OK, MessageBoxIcon.Information);

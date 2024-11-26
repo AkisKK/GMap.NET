@@ -6,6 +6,7 @@ using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using GMap.NET.Internals;
+using GMap.NET.Internals.SocksProxySocket;
 using GMap.NET.Projections;
 
 namespace GMap.NET.MapProviders
