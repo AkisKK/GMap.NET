@@ -235,9 +235,9 @@ namespace GMap.NET.CacheProviders
                             byte[] tile = (byte[])odata;
                             if (tile != null && tile.Length > 0)
                             {
-                                if (GMapProvider.TileImageProxy != null)
+                                if (GMapProvider.m_TileImageProxy != null)
                                 {
-                                    ret = GMapProvider.TileImageProxy.FromArray(tile);
+                                    ret = GMapProvider.m_TileImageProxy.FromArray(tile);
                                 }
                             }
                         }

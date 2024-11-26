@@ -42,7 +42,7 @@ namespace GMap.NET.WindowsForms
 
         public static void Enable()
         {
-            GMapProvider.TileImageProxy = Instance;
+            GMapProvider.m_TileImageProxy = Instance;
         }
 
         public static readonly GMapImageProxy Instance = new GMapImageProxy();

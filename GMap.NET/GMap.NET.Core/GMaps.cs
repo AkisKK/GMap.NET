@@ -140,7 +140,7 @@ public class GMaps
 
     static GMaps()
     {
-        if (GMapProvider.TileImageProxy == null)
+        if (GMapProvider.m_TileImageProxy == null)
         {
             try
             {
@@ -696,9 +696,9 @@ public class GMaps
                 byte[] m = MemoryCache.GetTileFromMemoryCache(rtile);
                 if (m != null)
                 {
-                    if (GMapProvider.TileImageProxy != null)
+                    if (GMapProvider.m_TileImageProxy != null)
                     {
-                        ret = GMapProvider.TileImageProxy.FromArray(m);
+                        ret = GMapProvider.m_TileImageProxy.FromArray(m);
                         if (ret == null)
                         {
 #if DEBUG

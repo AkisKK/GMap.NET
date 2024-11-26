@@ -53,9 +53,9 @@ namespace GMap.NET.MapProviders
                             byte[] tile = new byte[length];
                             rd.GetBytes(0, 0, tile, 0, tile.Length);
                             {
-                                if (GMapProvider.TileImageProxy != null)
+                                if (GMapProvider.m_TileImageProxy != null)
                                 {
-                                    ret = GMapProvider.TileImageProxy.FromArray(tile);
+                                    ret = GMapProvider.m_TileImageProxy.FromArray(tile);
                                 }
                             }
                         }

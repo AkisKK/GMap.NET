@@ -518,9 +518,9 @@ namespace GMap.NET.WindowsForms
             set
             {
                 _colorMatrix = value;
-                if (GMapProvider.TileImageProxy != null && GMapProvider.TileImageProxy is GMapImageProxy)
+                if (GMapProvider.m_TileImageProxy != null && GMapProvider.m_TileImageProxy is GMapImageProxy)
                 {
-                    (GMapProvider.TileImageProxy as GMapImageProxy).ColorMatrix = value;
+                    (GMapProvider.m_TileImageProxy as GMapImageProxy).ColorMatrix = value;
                     if (Core.IsStarted)
                     {
                         ReloadMap();
