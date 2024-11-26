@@ -5,7 +5,7 @@
     <Product>GMap.NET.Core</Product>
     <AssemblyTitle>GMap.NET.Core</AssemblyTitle>
     <RootNamespace>GMap.NET</RootNamespace>
-    <TargetFrameworks>net8.0-windows</TargetFrameworks>
+    <TargetFrameworks>net9.0-windows</TargetFrameworks>
     <PackageReleaseNotes>
 - New Provider OpenStreetMapGraphHopper
 - Fix OpenStreetMap GetRoute

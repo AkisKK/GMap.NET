@@ -407,7 +407,7 @@ namespace System.IO.Compression
             // check signature
             byte[] signature = new byte[4];
             _zipFileStream.Seek(zfe.HeaderOffset, SeekOrigin.Begin);
-            _zipFileStream.Read(signature, 0, 4);
+            _zipFileStream.ReadExactly(signature, 0, 4);
             if (BitConverter.ToUInt32(signature, 0) != 0x04034b50)
                 return false;
 
@@ -506,9 +506,9 @@ namespace System.IO.Compression
             byte[] buffer = new byte[2];
 
             _zipFileStream.Seek(headerOffset + 26, SeekOrigin.Begin);
-            _zipFileStream.Read(buffer, 0, 2);
+            _zipFileStream.ReadExactly(buffer, 0, 2);
             ushort filenameSize = BitConverter.ToUInt16(buffer, 0);
-            _zipFileStream.Read(buffer, 0, 2);
+            _zipFileStream.ReadExactly(buffer, 0, 2);
             ushort extraSize = BitConverter.ToUInt16(buffer, 0);
 
             return (uint)(30 + filenameSize + extraSize + headerOffset);
@@ -793,9 +793,9 @@ namespace System.IO.Compression
                         _existingFiles = entries;
                         _centralDirImage = new byte[centralSize];
                         _zipFileStream.Seek(centralDirOffset, SeekOrigin.Begin);
-                        _zipFileStream.Read(_centralDirImage, 0, centralSize);
+                        _zipFileStream.ReadExactly(_centralDirImage, 0, centralSize);
 
-                        // Leave the pointer at the begining of central dir, to append new files
+                        // Leave the pointer at the beginning of central dir, to append new files
                         _zipFileStream.Seek(centralDirOffset, SeekOrigin.Begin);
                         return true;
                     }

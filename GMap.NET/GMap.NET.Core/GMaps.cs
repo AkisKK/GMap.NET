@@ -210,7 +210,6 @@ namespace GMap.NET
 
         private GMaps()
         {
-            ServicePointManager.DefaultConnectionLimit = 5;
         }
 
         /// <summary>

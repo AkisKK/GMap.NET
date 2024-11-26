@@ -142,28 +142,26 @@ namespace GMap.NET.CacheProviders
 
                 lock (this)
                 {
-                    using (var dbf = File.Open(_db, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-                    {
-                        dbf.Seek(16, SeekOrigin.Begin);
+                    using var dbf = File.Open(_db, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                    dbf.Seek(16, SeekOrigin.Begin);
 
 #if !MONO
-                        dbf.Lock(16, 2);
-                        dbf.Read(pageSizeBytes, 0, 2);
-                        dbf.Unlock(16, 2);
+                    dbf.Lock(16, 2);
+                    dbf.ReadExactly(pageSizeBytes, 0, 2);
+                    dbf.Unlock(16, 2);
 
-                        dbf.Seek(36, SeekOrigin.Begin);
+                    dbf.Seek(36, SeekOrigin.Begin);
 
-                        dbf.Lock(36, 4);
-                        dbf.Read(freePagesBytes, 0, 4);
-                        dbf.Unlock(36, 4);
+                    dbf.Lock(36, 4);
+                    dbf.ReadExactly(freePagesBytes, 0, 4);
+                    dbf.Unlock(36, 4);
 #else
                         dbf.Read(pageSizeBytes, 0, 2);
                         dbf.Seek(36, SeekOrigin.Begin);
                         dbf.Read(freePagesBytes, 0, 4);
 #endif
 
-                        dbf.Close();
-                    }
+                    dbf.Close();
                 }
 
                 if (BitConverter.IsLittleEndian)
