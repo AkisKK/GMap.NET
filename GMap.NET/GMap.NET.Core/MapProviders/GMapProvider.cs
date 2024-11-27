@@ -416,11 +416,9 @@ public abstract class GMapProvider
     {
         PureImage ret = null;
 
-        //var request = IsSocksProxy ? SocksHttpWebRequest.Create(url) :
-        //    WebRequestFactory != null ? WebRequestFactory(this, url) : WebRequest.Create(url);
-
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
 
+        #region Populate request headers
         if (!string.IsNullOrEmpty(m_Authorization))
         {
             request.Headers.Authorization = new AuthenticationHeaderValue(m_AuthorizationType, m_Authorization);
@@ -442,39 +440,69 @@ public abstract class GMapProvider
         }
 
         InitializeWebRequest(request);
+        #endregion
 
-        var httpClient = HttpClientFactory.CreateClient();
-        using var response = httpClient.Send(request);
-
-        if (CheckTileImageHttpResponse(response.Content.Headers))
+        if (!IsSocksProxy)
         {
-            using var responseStream = response.Content.ReadAsStream();
+            // Use HttpClient.
+            var httpClient = HttpClientFactory.CreateClient();
+            using var response = httpClient.Send(request);
 
-            var data = Stuff.CopyStream(responseStream, false);
-
-            Debug.WriteLine("Response[" + data.Length + " bytes]: " + url);
-
-            if (data.Length > 0)
+            if (CheckTileImageHttpResponse(response.Content.Headers))
             {
-                ret = m_TileImageProxy.FromStream(data);
+                // Get stream.
+                using var responseStream = response.Content.ReadAsStream();
 
-                if (ret != null)
-                {
-                    ret.Data = data;
-                    ret.Data.Position = 0;
-                }
-                else
-                {
-                    data.Dispose();
-                }
+                // Get image.
+                ret = ExtractPureImageFromStream(url, responseStream);
             }
         }
         else
         {
+            // Use Socks proxy.
+            var socksRequest = new SocksHttpWebRequest(request);
+            var socksResponse = socksRequest.GetResponse();
+
+            if (CheckTileImageHttpResponse(socksResponse.Headers))
+            {
+                // Get stream.
+                using var responseStream = socksResponse.GetResponseStream();
+
+                // Get image.
+                ret = ExtractPureImageFromStream(url, responseStream);
+            }
+        }
+
+        if (ret is null)
+        {
+            // Could not retrieve image.
             Debug.WriteLine("CheckTileImageHttpResponse[false]: " + url);
         }
 
-        // response.Close();
+        return ret;
+    }
+
+    private static PureImage ExtractPureImageFromStream(string url, Stream responseStream)
+    {
+        PureImage ret = null;
+        var data = Stuff.CopyStream(responseStream, false);
+
+        Debug.WriteLine("Response[" + data.Length + " bytes]: " + url);
+
+        if (data.Length > 0)
+        {
+            ret = m_TileImageProxy.FromStream(data);
+
+            if (ret != null)
+            {
+                ret.Data = data;
+                ret.Data.Position = 0;
+            }
+            else
+            {
+                data.Dispose();
+            }
+        }
 
         return ret;
     }
@@ -483,11 +511,9 @@ public abstract class GMapProvider
     {
         string ret = string.Empty;
 
-        //var request = IsSocksProxy ? SocksHttpWebRequest.Create(url) :
-        //    WebRequestFactory != null ? WebRequestFactory(this, url) : WebRequest.Create(url);
-
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
 
+        #region Populate request headers
         if (!string.IsNullOrEmpty(m_Authorization))
         {
             request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue(m_AuthorizationType, m_Authorization);
@@ -509,18 +535,31 @@ public abstract class GMapProvider
         }
 
         InitializeWebRequest(request);
-
-        var httpClient = HttpClientFactory.CreateClient();
-        HttpResponseMessage response;
+        #endregion
 
         try
         {
-            response = httpClient.Send(request);
-            response.EnsureSuccessStatusCode();
+            if (!IsSocksProxy)
+            {
+                // Use HttpClient.
+                var httpClient = HttpClientFactory.CreateClient();
+                var response = httpClient.Send(request);
+                response.EnsureSuccessStatusCode();
 
-            using var responseStream = response.Content.ReadAsStream();
-            using var read = new StreamReader(responseStream, Encoding.UTF8);
-            ret = read.ReadToEnd();
+                using var responseStream = response.Content.ReadAsStream();
+                using var read = new StreamReader(responseStream, Encoding.UTF8);
+                ret = read.ReadToEnd();
+            }
+            else
+            {
+                // Use Socks proxy.
+                var socksRequest = new SocksHttpWebRequest(request);
+                var socksResponse = socksRequest.GetResponse();
+
+                using var responseStream = socksResponse.GetResponseStream();
+                using var read = new StreamReader(responseStream, Encoding.UTF8);
+                ret = read.ReadToEnd();
+            }
         }
         catch (WebException ex)
         {
