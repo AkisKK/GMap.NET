@@ -2,6 +2,8 @@
 using System.Collections.Specialized;
 using System.IO;
 using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Net.Sockets;
 using System.Text;
 
@@ -12,10 +14,10 @@ namespace GMap.NET.Internals.SocksProxySocket;
 /// <summary>
 ///     http://ditrans.blogspot.com/2009/03/making-witty-work-with-socks-proxy.html
 /// </summary>
-internal class SocksHttpWebRequest : WebRequest
+internal class SocksHttpWebRequest
 {
     #region Member Variables
-    private WebHeaderCollection m_RequestHeaders;
+    private readonly HttpRequestMessage m_HttpRequestMessage = new();
     private string m_Method;
     private SocksHttpWebResponse m_Response;
     private string m_RequestMessage;
@@ -35,14 +37,22 @@ internal class SocksHttpWebRequest : WebRequest
     #endregion
 
     #region Constructor
-    private SocksHttpWebRequest(Uri requestUri)
+    public SocksHttpWebRequest(HttpRequestMessage request)
     {
-        RequestUri = requestUri;
+        RequestUri = request.RequestUri;
+        //m_RequestHeaders = new();
+        foreach (var header in request.Headers)
+        {
+            foreach (string headerValue in header.Value)
+            {
+                m_HttpRequestMessage.Headers.Add(header.Key, headerValue);
+            }
+        }
     }
     #endregion
 
-    #region WebRequest Members
-    public override WebResponse GetResponse()
+    #region Members
+    public SocksHttpWebResponse GetResponse()
     {
         if (Proxy == null)
         {
@@ -64,33 +74,33 @@ internal class SocksHttpWebRequest : WebRequest
         return m_Response;
     }
 
-    public override Uri RequestUri { get; }
+    public Uri RequestUri { get; }
 
-    public override IWebProxy Proxy { get; set; }
+    public IWebProxy Proxy { get; set; }
 
-    public override WebHeaderCollection Headers
-    {
-        get
-        {
-            m_RequestHeaders ??= [];
+    //public WebHeaderCollection Headers
+    //{
+    //    get
+    //    {
+    //        m_RequestHeaders ??= [];
 
-            return m_RequestHeaders;
-        }
-        set
-        {
-            if (RequestSubmitted)
-            {
-                throw new InvalidOperationException(
-                    "This operation cannot be performed after the request has been submitted.");
-            }
+    //        return m_RequestHeaders;
+    //    }
+    //    set
+    //    {
+    //        if (RequestSubmitted)
+    //        {
+    //            throw new InvalidOperationException(
+    //                "This operation cannot be performed after the request has been submitted.");
+    //        }
 
-            m_RequestHeaders = value;
-        }
-    }
+    //        m_RequestHeaders = value;
+    //    }
+    //}
 
     public bool RequestSubmitted { get; private set; }
 
-    public override string Method
+    public string Method
     {
         get => m_Method ?? "GET";
         set
@@ -107,11 +117,11 @@ internal class SocksHttpWebRequest : WebRequest
         }
     }
 
-    public override long ContentLength { get; set; }
+    public long ContentLength { get; set; }
 
-    public override string ContentType { get; set; }
+    public string ContentType { get; set; }
 
-    public override Stream GetRequestStream()
+    public Stream GetRequestStream()
     {
         if (RequestSubmitted)
         {
@@ -137,15 +147,15 @@ internal class SocksHttpWebRequest : WebRequest
     #endregion
 
     #region Methods
-    public static new WebRequest Create(string requestUri)
-    {
-        return new SocksHttpWebRequest(new Uri(requestUri));
-    }
+    //public static SocksHttpWebRequest Create(string requestUri)
+    //{
+    //    return new SocksHttpWebRequest(new Uri(requestUri));
+    //}
 
-    public static new WebRequest Create(Uri requestUri)
-    {
-        return new SocksHttpWebRequest(requestUri);
-    }
+    //public static SocksHttpWebRequest Create(Uri requestUri)
+    //{
+    //    return new SocksHttpWebRequest(requestUri);
+    //}
 
     private string BuildHttpRequestMessage()
     {
@@ -160,9 +170,9 @@ internal class SocksHttpWebRequest : WebRequest
         message.AppendFormat("{0} {1} HTTP/1.0\r\nHost: {2}\r\n", Method, RequestUri.PathAndQuery, RequestUri.Host);
 
         // add the headers
-        foreach (object key in Headers.Keys)
+        foreach (var header in m_HttpRequestMessage.Headers)
         {
-            message.AppendFormat("{0}: {1}\r\n", key, Headers[key.ToString()]);
+            message.AppendFormat("{0}: {1}\r\n", header.Key, header.Value);
         }
 
         if (!string.IsNullOrEmpty(ContentType))
@@ -293,19 +303,20 @@ internal class SocksHttpWebRequest : WebRequest
     #endregion
 }
 
-internal class SocksHttpWebResponse : WebResponse
+internal class SocksHttpWebResponse
 {
     #region Member Variables
-    WebHeaderCollection m_HttpResponseHeaders;
+    private readonly HttpResponseMessage m_HttpResponseMessage = new();
+    //HttpContentHeaders m_HttpResponseHeaders;
     readonly MemoryStream m_Data;
 
-    public override long ContentLength
+    public long ContentLength
     {
         get;
         set;
     }
 
-    public override string ContentType
+    public string ContentType
     {
         get;
         set;
@@ -347,26 +358,18 @@ internal class SocksHttpWebResponse : WebResponse
     #endregion
 
     #region WebResponse Members
-    public override Stream GetResponseStream()
+    public Stream GetResponseStream()
     {
         return m_Data ?? Stream.Null;
     }
 
-    public override void Close()
+    public void Close()
     {
         m_Data?.Close();
 
         /* the base implementation throws an exception */
     }
 
-    public override WebHeaderCollection Headers
-    {
-        get
-        {
-            m_HttpResponseHeaders ??= [];
-
-            return m_HttpResponseHeaders;
-        }
-    }
+    public HttpContentHeaders Headers => m_HttpResponseMessage.Content.Headers;
     #endregion
 }

@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using System;
+using System.Net;
 using System.Net.Http;
 using System.Threading;
 using GMap.NET.MapProviders;
@@ -32,6 +33,11 @@ public static class HttpClientFactory
     private static HttpClientHandler m_HttpClientHandler;
 
     /// <summary>
+    ///     timeout for provider connections
+    /// </summary>
+    public static int TimeoutMs { get; } = 5 * 1000;
+
+    /// <summary>
     /// Function to create an <see cref="HttpClient"/> which uses a static shared <see cref="HttpClientHandler"/>.
     /// </summary>
     /// <returns>An <see cref="HttpClient"/>.</returns>
@@ -56,6 +62,9 @@ public static class HttpClientFactory
         // client.DefaultRequestHeaders.Add("User-Agent", "HttpClientFactorySample");
         // Add any default headers or settings here.
 
-        return new HttpClient(m_HttpClientHandler, disposeHandler: false);
+        return new HttpClient(m_HttpClientHandler, disposeHandler: false)
+        {
+            Timeout = TimeSpan.FromMilliseconds(TimeoutMs)
+        };
     }
 }

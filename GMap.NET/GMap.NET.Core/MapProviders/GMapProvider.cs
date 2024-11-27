@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Security.Cryptography;
 using System.Text;
 using GMap.NET.Internals;
@@ -339,11 +340,6 @@ public abstract class GMapProvider
         Stuff.Random.Next((DateTime.Today.Year - 2012) * 10 - 10, (DateTime.Today.Year - 2012) * 10));
 
     /// <summary>
-    ///     timeout for provider connections
-    /// </summary>
-    public static int TimeoutMs { get; } = 5 * 1000;
-
-    /// <summary>
     ///     Time to live of cache, in hours. Default: 240 (10 days).
     /// </summary>
     public static int TTLCache { get; } = 240;
@@ -390,11 +386,11 @@ public abstract class GMapProvider
     static readonly string m_RequestAccept = "*/*";
     static readonly string m_ResponseContentType = "image";
 
-    protected virtual bool CheckTileImageHttpResponse(HttpResponseMessage response)
+    protected virtual bool CheckTileImageHttpResponse(HttpContentHeaders headers)
     {
-        if (response.Content.Headers.ContentType != null)
+        if (headers.ContentType != null)
         {
-            string contentType = response.Content.Headers.ContentType.MediaType;
+            string contentType = headers.ContentType.MediaType;
             return contentType.Contains(m_ResponseContentType, StringComparison.OrdinalIgnoreCase);
         }
         return false;
@@ -423,48 +419,34 @@ public abstract class GMapProvider
         //var request = IsSocksProxy ? SocksHttpWebRequest.Create(url) :
         //    WebRequestFactory != null ? WebRequestFactory(this, url) : WebRequest.Create(url);
 
-        var httpClient = HttpClientFactory.CreateClient();
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
 
         if (!string.IsNullOrEmpty(m_Authorization))
         {
-            request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue(m_AuthorizationType, m_Authorization);
+            request.Headers.Authorization = new AuthenticationHeaderValue(m_AuthorizationType, m_Authorization);
         }
 
-        //if (request is HttpWebRequest r)
-        //{
-        //    r.UserAgent = UserAgent;
-        //    r.ReadWriteTimeout = TimeoutMs * 6;
-        //    r.Accept = m_RequestAccept;
-        //    if (!string.IsNullOrEmpty(RefererUrl))
-        //    {
-        //        r.Referer = RefererUrl;
-        //    }
-
-        //    r.Timeout = TimeoutMs;
-        //}
-        //else
+        if (!string.IsNullOrEmpty(UserAgent))
         {
-            if (!string.IsNullOrEmpty(UserAgent))
-            {
-                request.Headers.Add("User-Agent", UserAgent);
-            }
+            request.Headers.Add("User-Agent", UserAgent);
+        }
 
-            if (!string.IsNullOrEmpty(m_RequestAccept))
-            {
-                request.Headers.Add("Accept", m_RequestAccept);
-            }
+        if (!string.IsNullOrEmpty(m_RequestAccept))
+        {
+            request.Headers.Add("Accept", m_RequestAccept);
+        }
 
-            if (!string.IsNullOrEmpty(RefererUrl))
-            {
-                request.Headers.Add("Referer", RefererUrl);
-            }
+        if (!string.IsNullOrEmpty(RefererUrl))
+        {
+            request.Headers.Add("Referer", RefererUrl);
         }
 
         InitializeWebRequest(request);
 
+        var httpClient = HttpClientFactory.CreateClient();
         using var response = httpClient.Send(request);
-        if (CheckTileImageHttpResponse(response))
+
+        if (CheckTileImageHttpResponse(response.Content.Headers))
         {
             using var responseStream = response.Content.ReadAsStream();
 
@@ -504,58 +486,31 @@ public abstract class GMapProvider
         //var request = IsSocksProxy ? SocksHttpWebRequest.Create(url) :
         //    WebRequestFactory != null ? WebRequestFactory(this, url) : WebRequest.Create(url);
 
-        //if (WebProxy != null)
-        //{
-        //    request.Proxy = WebProxy;
-        //}
-
-        //if (Credential != null)
-        //{
-        //    request.PreAuthenticate = true;
-        //    request.Credentials = Credential;
-        //}
-
-        var httpClient = HttpClientFactory.CreateClient();
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
-
-        //if (!string.IsNullOrEmpty(m_Authorization))
-        //{
-        //    request.Headers.Set("Authorization", m_Authorization);
-        //}
 
         if (!string.IsNullOrEmpty(m_Authorization))
         {
             request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue(m_AuthorizationType, m_Authorization);
         }
 
-        //if (request is HttpWebRequest r)
-        //{
-        //    r.UserAgent = UserAgent;
-        //    r.ReadWriteTimeout = TimeoutMs * 6;
-        //    r.Accept = m_RequestAccept;
-        //    r.Referer = RefererUrl;
-        //    r.Timeout = TimeoutMs;
-        //}
-        //else
+        if (!string.IsNullOrEmpty(UserAgent))
         {
-            if (!string.IsNullOrEmpty(UserAgent))
-            {
-                request.Headers.Add("User-Agent", UserAgent);
-            }
+            request.Headers.Add("User-Agent", UserAgent);
+        }
 
-            if (!string.IsNullOrEmpty(m_RequestAccept))
-            {
-                request.Headers.Add("Accept", m_RequestAccept);
-            }
+        if (!string.IsNullOrEmpty(m_RequestAccept))
+        {
+            request.Headers.Add("Accept", m_RequestAccept);
+        }
 
-            if (!string.IsNullOrEmpty(RefererUrl))
-            {
-                request.Headers.Add("Referer", RefererUrl);
-            }
+        if (!string.IsNullOrEmpty(RefererUrl))
+        {
+            request.Headers.Add("Referer", RefererUrl);
         }
 
         InitializeWebRequest(request);
 
+        var httpClient = HttpClientFactory.CreateClient();
         HttpResponseMessage response;
 
         try

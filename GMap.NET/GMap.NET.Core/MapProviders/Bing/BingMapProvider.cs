@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
-using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -315,12 +315,12 @@ public abstract class BingMapProviderBase : GMapProvider, RoutingProvider, Geoco
         }
     }
 
-    protected override bool CheckTileImageHttpResponse(HttpResponseMessage response)
+    protected override bool CheckTileImageHttpResponse(HttpContentHeaders headers)
     {
-        bool pass = base.CheckTileImageHttpResponse(response);
+        bool pass = base.CheckTileImageHttpResponse(headers);
         if (pass)
         {
-            string tileInfo = response.Content.Headers.TryGetValues("X-VE-Tile-Info", out var values)
+            string tileInfo = headers.TryGetValues("X-VE-Tile-Info", out var values)
                 ? values.FirstOrDefault()
                 : null;
             if (tileInfo != null)
