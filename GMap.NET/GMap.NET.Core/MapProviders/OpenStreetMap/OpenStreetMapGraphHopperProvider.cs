@@ -5,6 +5,7 @@ using System.Globalization;
 using System.Xml;
 using GMap.NET.Entity;
 using GMap.NET.Internals;
+using GMap.NET.MapProviders.OpenStreetMap;
 using Newtonsoft.Json;
 
 namespace GMap.NET.MapProviders

@@ -1,4 +1,5 @@
 ﻿using System;
+using GMap.NET.MapProviders.OpenStreetMap;
 
 namespace GMap.NET.MapProviders
 {

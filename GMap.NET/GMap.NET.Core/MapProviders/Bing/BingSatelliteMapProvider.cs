@@ -1,4 +1,5 @@
 ﻿using System;
+using GMap.NET.MapProviders.Bing;
 
 namespace GMap.NET.MapProviders
 {

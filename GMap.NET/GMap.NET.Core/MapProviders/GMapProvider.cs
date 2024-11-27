@@ -3,10 +3,13 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
+using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
 using GMap.NET.Internals;
 using GMap.NET.Internals.SocksProxySocket;
+using GMap.NET.MapProviders.Bing;
+using GMap.NET.MapProviders.OpenStreetMap;
 using GMap.NET.Projections;
 
 namespace GMap.NET.MapProviders;
@@ -277,7 +280,7 @@ public abstract class GMapProvider
 
     static GMapProvider()
     {
-        WebProxy = EmptyWebProxy.Instance;
+        //WebProxy = EmptyWebProxy.Instance;
     }
 
     /// <summary>
@@ -318,11 +321,6 @@ public abstract class GMapProvider
     public int? MaxZoom = 17;
 
     /// <summary>
-    ///     proxy for net access
-    /// </summary>
-    public static IWebProxy WebProxy { get; set; }
-
-    /// <summary>
     ///     Connect trough a SOCKS 4/5 proxy server
     /// </summary>
     public static bool IsSocksProxy { get; set; }
@@ -331,11 +329,6 @@ public abstract class GMapProvider
     ///     The web request factory
     /// </summary>
     public static Func<GMapProvider, string, WebRequest> WebRequestFactory { get; internal set; } = null;
-
-    /// <summary>
-    ///     NetworkCredential for tile HTTP access
-    /// </summary>
-    public static ICredentials Credential { get; set; }
 
     /// <summary>
     ///     Gets or sets the value of the User-agent HTTP header.
@@ -397,13 +390,18 @@ public abstract class GMapProvider
     static readonly string m_RequestAccept = "*/*";
     static readonly string m_ResponseContentType = "image";
 
-    protected virtual bool CheckTileImageHttpResponse(WebResponse response)
+    protected virtual bool CheckTileImageHttpResponse(HttpResponseMessage response)
     {
-        //Debug.WriteLine(response.StatusCode + "/" + response.StatusDescription + "/" + response.ContentType + " -> " + response.ResponseUri);
-        return response.ContentType.Contains(m_ResponseContentType);
+        if (response.Content.Headers.ContentType != null)
+        {
+            string contentType = response.Content.Headers.ContentType.MediaType;
+            return contentType.Contains(m_ResponseContentType, StringComparison.OrdinalIgnoreCase);
+        }
+        return false;
     }
 
     string m_Authorization = string.Empty;
+    string m_AuthorizationType = string.Empty;
 
     /// <summary>
     ///     http://blog.kowalczyk.info/article/at3/Forcing-basic-http-authentication-for-HttpWebReq.html
@@ -412,47 +410,40 @@ public abstract class GMapProvider
     /// <param name="userPassword"></param>
     public void ForceBasicHttpAuthentication(string userName, string userPassword)
     {
-        m_Authorization = "Basic " + Convert.ToBase64String(Encoding.UTF8.GetBytes(userName + ":" + userPassword));
+        m_Authorization = Convert.ToBase64String(Encoding.UTF8.GetBytes(userName + ":" + userPassword));
+        m_AuthorizationType = "Basic";
     }
 
-    protected virtual void InitializeWebRequest(WebRequest request) { }
+    protected virtual void InitializeWebRequest(HttpRequestMessage request) { }
 
     protected PureImage GetTileImageUsingHttp(string url)
     {
         PureImage ret = null;
 
-        var request = IsSocksProxy ? SocksHttpWebRequest.Create(url) :
-            WebRequestFactory != null ? WebRequestFactory(this, url) : WebRequest.Create(url);
+        //var request = IsSocksProxy ? SocksHttpWebRequest.Create(url) :
+        //    WebRequestFactory != null ? WebRequestFactory(this, url) : WebRequest.Create(url);
 
-        if (WebProxy != null)
-        {
-            request.Proxy = WebProxy;
-        }
-
-        if (Credential != null)
-        {
-            request.PreAuthenticate = true;
-            request.Credentials = Credential;
-        }
+        var httpClient = HttpClientFactory.CreateClient();
+        using var request = new HttpRequestMessage(HttpMethod.Get, url);
 
         if (!string.IsNullOrEmpty(m_Authorization))
         {
-            request.Headers.Set("Authorization", m_Authorization);
+            request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue(m_AuthorizationType, m_Authorization);
         }
 
-        if (request is HttpWebRequest r)
-        {
-            r.UserAgent = UserAgent;
-            r.ReadWriteTimeout = TimeoutMs * 6;
-            r.Accept = m_RequestAccept;
-            if (!string.IsNullOrEmpty(RefererUrl))
-            {
-                r.Referer = RefererUrl;
-            }
+        //if (request is HttpWebRequest r)
+        //{
+        //    r.UserAgent = UserAgent;
+        //    r.ReadWriteTimeout = TimeoutMs * 6;
+        //    r.Accept = m_RequestAccept;
+        //    if (!string.IsNullOrEmpty(RefererUrl))
+        //    {
+        //        r.Referer = RefererUrl;
+        //    }
 
-            r.Timeout = TimeoutMs;
-        }
-        else
+        //    r.Timeout = TimeoutMs;
+        //}
+        //else
         {
             if (!string.IsNullOrEmpty(UserAgent))
             {
@@ -472,37 +463,36 @@ public abstract class GMapProvider
 
         InitializeWebRequest(request);
 
-        using (var response = request.GetResponse())
+        using var response = httpClient.Send(request);
+        if (CheckTileImageHttpResponse(response))
         {
-            if (CheckTileImageHttpResponse(response))
+            using var responseStream = response.Content.ReadAsStream();
+
+            var data = Stuff.CopyStream(responseStream, false);
+
+            Debug.WriteLine("Response[" + data.Length + " bytes]: " + url);
+
+            if (data.Length > 0)
             {
-                using var responseStream = response.GetResponseStream();
-                var data = Stuff.CopyStream(responseStream, false);
+                ret = m_TileImageProxy.FromStream(data);
 
-                Debug.WriteLine("Response[" + data.Length + " bytes]: " + url);
-
-                if (data.Length > 0)
+                if (ret != null)
                 {
-                    ret = m_TileImageProxy.FromStream(data);
-
-                    if (ret != null)
-                    {
-                        ret.Data = data;
-                        ret.Data.Position = 0;
-                    }
-                    else
-                    {
-                        data.Dispose();
-                    }
+                    ret.Data = data;
+                    ret.Data.Position = 0;
+                }
+                else
+                {
+                    data.Dispose();
                 }
             }
-            else
-            {
-                Debug.WriteLine("CheckTileImageHttpResponse[false]: " + url);
-            }
-
-            response.Close();
         }
+        else
+        {
+            Debug.WriteLine("CheckTileImageHttpResponse[false]: " + url);
+        }
+
+        // response.Close();
 
         return ret;
     }
@@ -511,35 +501,42 @@ public abstract class GMapProvider
     {
         string ret = string.Empty;
 
-        var request = IsSocksProxy ? SocksHttpWebRequest.Create(url) :
-            WebRequestFactory != null ? WebRequestFactory(this, url) : WebRequest.Create(url);
+        //var request = IsSocksProxy ? SocksHttpWebRequest.Create(url) :
+        //    WebRequestFactory != null ? WebRequestFactory(this, url) : WebRequest.Create(url);
 
-        if (WebProxy != null)
-        {
-            request.Proxy = WebProxy;
-        }
+        //if (WebProxy != null)
+        //{
+        //    request.Proxy = WebProxy;
+        //}
 
-        if (Credential != null)
-        {
-            request.PreAuthenticate = true;
-            request.Credentials = Credential;
-        }
+        //if (Credential != null)
+        //{
+        //    request.PreAuthenticate = true;
+        //    request.Credentials = Credential;
+        //}
 
+        var httpClient = HttpClientFactory.CreateClient();
+        using var request = new HttpRequestMessage(HttpMethod.Get, url);
+
+        //if (!string.IsNullOrEmpty(m_Authorization))
+        //{
+        //    request.Headers.Set("Authorization", m_Authorization);
+        //}
 
         if (!string.IsNullOrEmpty(m_Authorization))
         {
-            request.Headers.Set("Authorization", m_Authorization);
+            request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue(m_AuthorizationType, m_Authorization);
         }
 
-        if (request is HttpWebRequest r)
-        {
-            r.UserAgent = UserAgent;
-            r.ReadWriteTimeout = TimeoutMs * 6;
-            r.Accept = m_RequestAccept;
-            r.Referer = RefererUrl;
-            r.Timeout = TimeoutMs;
-        }
-        else
+        //if (request is HttpWebRequest r)
+        //{
+        //    r.UserAgent = UserAgent;
+        //    r.ReadWriteTimeout = TimeoutMs * 6;
+        //    r.Accept = m_RequestAccept;
+        //    r.Referer = RefererUrl;
+        //    r.Timeout = TimeoutMs;
+        //}
+        //else
         {
             if (!string.IsNullOrEmpty(UserAgent))
             {
@@ -559,30 +556,25 @@ public abstract class GMapProvider
 
         InitializeWebRequest(request);
 
-        WebResponse response;
+        HttpResponseMessage response;
 
         try
         {
-            response = request.GetResponse();
+            response = httpClient.Send(request);
+            response.EnsureSuccessStatusCode();
+
+            using var responseStream = response.Content.ReadAsStream();
+            using var read = new StreamReader(responseStream, Encoding.UTF8);
+            ret = read.ReadToEnd();
         }
         catch (WebException ex)
         {
-            response = (HttpWebResponse)ex.Response;
+            // response = (HttpWebResponse)ex.Response;
+            return ex.Response.ToString();
         }
         catch (Exception)
         {
-            response = null;
-        }
-
-        if (response != null)
-        {
-            using (var responseStream = response.GetResponseStream())
-            {
-                using var read = new StreamReader(responseStream, Encoding.UTF8);
-                ret = read.ReadToEnd();
-            }
-
-            response.Close();
+            // response = null;
         }
 
         return ret;
