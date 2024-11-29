@@ -1,89 +1,129 @@
 ﻿using System.Collections.Generic;
 using Newtonsoft.Json;
 
-namespace GMap.NET.Entity
+namespace GMap.NET.Entity;
+
+public class OpenStreetMapGraphHopperRouteEntity
 {
-    public class OpenStreetMapGraphHopperRouteEntity
+    [JsonProperty("hints")]
+    public Hints RouteHints { get; set; }
+    [JsonProperty("info")]
+    public Info RouteInfo { get; set; }
+    [JsonProperty("paths")]
+    public List<Path> RoutePaths { get; set; }
+
+    public class Details
     {
-        public Hints hints { get; set; }
-        public Info info { get; set; }
-        public List<Path> paths { get; set; }
-
-        public class Details
-        {
-
-        }
-
-        public class Hints
-        {
-            [JsonProperty("visited_nodes.sum")]
-            public int VisitedNodesSum { get; set; }
-
-            [JsonProperty("visited_nodes.average")]
-            public double VisitedNodesAverage { get; set; }
-        }
-
-        public class Info
-        {
-            public List<string> copyrights { get; set; }
-            public int took { get; set; }
-        }
-
-        public class Instruction
-        {
-            public double distance { get; set; }
-            public double heading { get; set; }
-            public int sign { get; set; }
-            public List<int> interval { get; set; }
-            public string text { get; set; }
-            public int time { get; set; }
-            public string street_name { get; set; }
-            public double? last_heading { get; set; }
-        }
-
-        public class Path
-        {
-            public double distance { get; set; }
-            public double weight { get; set; }
-            public int time { get; set; }
-            public int transfers { get; set; }
-            public bool points_encoded { get; set; }
-            public List<double> bbox { get; set; }
-            public string points { get; set; }
-            public List<Instruction> instructions { get; set; }
-            public List<object> legs { get; set; }
-            public Details details { get; set; }
-            public double ascend { get; set; }
-            public double descend { get; set; }
-            public string snapped_waypoints { get; set; }
-        }
     }
 
-    public class OpenStreetMapGraphHopperGeocodeEntity
+    public class Hints
     {
-        public List<Hit> hits { get; set; }
-        public string locale { get; set; }
+        [JsonProperty("visited_nodes.sum")]
+        public int VisitedNodesSum { get; set; }
 
-        public class Hit
-        {
-            public Point point { get; set; }
-            public List<double> extent { get; set; }
-            public string name { get; set; }
-            public string country { get; set; }
-            public string countrycode { get; set; }
-            public string city { get; set; }
-            public string state { get; set; }
-            public long osm_id { get; set; }
-            public string osm_type { get; set; }
-            public string osm_key { get; set; }
-            public string osm_value { get; set; }
-            public string postcode { get; set; }
-        }
+        [JsonProperty("visited_nodes.average")]
+        public double VisitedNodesAverage { get; set; }
+    }
 
-        public class Point
-        {
-            public double lat { get; set; }
-            public double lng { get; set; }
-        }
+    public class Info
+    {
+        [JsonProperty("copyrights")]
+        public List<string> Copyrights { get; set; }
+        [JsonProperty("took")]
+        public int Took { get; set; }
+    }
+
+    public class Instruction
+    {
+        [JsonProperty("distance")]
+        public double Distance { get; set; }
+        [JsonProperty("heading")]
+        public double Heading { get; set; }
+        [JsonProperty("sign")]
+        public int Sign { get; set; }
+        [JsonProperty("interval")]
+        public List<int> Interval { get; set; }
+        [JsonProperty("text")]
+        public string Text { get; set; }
+        [JsonProperty("time")]
+        public int Time { get; set; }
+        [JsonProperty("street_name")]
+        public string StreetName { get; set; }
+        [JsonProperty("last_heading")]
+        public double? LastHeading { get; set; }
+    }
+
+    public class Path
+    {
+        [JsonProperty("distance")]
+        public double Distance { get; set; }
+        [JsonProperty("weight")]
+        public double Weight { get; set; }
+        [JsonProperty("time")]
+        public int Time { get; set; }
+        [JsonProperty("transfers")]
+        public int Transfers { get; set; }
+        [JsonProperty("points_encoded")]
+        public bool PointsEncoded { get; set; }
+        [JsonProperty("bbox")]
+        public List<double> BoundingBox { get; set; }
+        [JsonProperty("points")]
+        public string Points { get; set; }
+        [JsonProperty("instructions")]
+        public List<Instruction> Instructions { get; set; }
+        [JsonProperty("legs")]
+        public List<object> Legs { get; set; }
+        [JsonProperty("details")]
+        public Details Details { get; set; }
+        [JsonProperty("ascend")]
+        public double Ascend { get; set; }
+        [JsonProperty("descend")]
+        public double Descend { get; set; }
+        [JsonProperty("snapped_waypoints")]
+        public string SnappedWaypoints { get; set; }
+    }
+}
+
+public class OpenStreetMapGraphHopperGeocodeEntity
+{
+    [JsonProperty("hits")]
+    public List<Hit> Hits { get; set; }
+    [JsonProperty("locale")]
+    public string Locale { get; set; }
+
+    public class Hit
+    {
+        [JsonProperty("point")]
+        public Point Point { get; set; }
+        [JsonProperty("extent")]
+        public List<double> Extent { get; set; }
+        [JsonProperty("name")]
+        public string Name { get; set; }
+        [JsonProperty("country")]
+        public string Country { get; set; }
+        [JsonProperty("countrycode")]
+        public string CountryCode { get; set; }
+        [JsonProperty("city")]
+        public string City { get; set; }
+        [JsonProperty("state")]
+        public string State { get; set; }
+        [JsonProperty("osm_id")]
+        public long OsmId { get; set; }
+        [JsonProperty("osm_type")]
+        public string OsmType { get; set; }
+        [JsonProperty("osm_key")]
+        public string OsmKey { get; set; }
+        [JsonProperty("osm_value")]
+        public string OsmValue { get; set; }
+        [JsonProperty("postcode")]
+        public string Postcode { get; set; }
+    }
+
+    public class Point
+    {
+        [JsonProperty("lat")]
+        public double Latitude { get; set; }
+        [JsonProperty("lng")]
+        public double Longitude { get; set; }
     }
 }

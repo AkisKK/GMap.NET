@@ -13,7 +13,7 @@ using GMap.NET.Projections;
 
 namespace GMap.NET.MapProviders.Bing;
 
-public abstract class BingMapProviderBase : GMapProvider, RoutingProvider, GeocodingProvider
+public abstract partial class BingMapProviderBase : GMapProvider, RoutingProvider, GeocodingProvider
 {
     public BingMapProviderBase()
     {
@@ -34,7 +34,7 @@ public abstract class BingMapProviderBase : GMapProvider, RoutingProvider, Geoco
     /// </summary>
     public string ClientKey = string.Empty;
 
-    internal string SessionId = string.Empty;
+    internal string m_SessionId = string.Empty;
 
     /// <summary>
     ///     set true to append SessionId on requesting tiles
@@ -56,7 +56,7 @@ public abstract class BingMapProviderBase : GMapProvider, RoutingProvider, Geoco
     ///     to 23 (highest detail).
     /// </param>
     /// <returns>A string containing the QuadKey.</returns>
-    internal string TileXYToQuadKey(long tileX, long tileY, int levelOfDetail)
+    internal static string TileXYToQuadKey(long tileX, long tileY, int levelOfDetail)
     {
         var quadKey = new StringBuilder();
         for (int i = levelOfDetail; i > 0; i--)
@@ -87,7 +87,7 @@ public abstract class BingMapProviderBase : GMapProvider, RoutingProvider, Geoco
     /// <param name="tileX">Output parameter receiving the tile X coordinate.</param>
     /// <param name="tileY">Output parameter receiving the tile Y coordinate.</param>
     /// <param name="levelOfDetail">Output parameter receiving the level of detail.</param>
-    internal void QuadKeyToTileXY(string quadKey, out int tileX, out int tileY, out int levelOfDetail)
+    internal static void QuadKeyToTileXY(string quadKey, out int tileX, out int tileY, out int levelOfDetail)
     {
         tileX = tileY = 0;
         levelOfDetail = quadKey.Length;
@@ -144,18 +144,15 @@ public abstract class BingMapProviderBase : GMapProvider, RoutingProvider, Geoco
         }
     }
 
-    GMapProvider[] _overlays;
+    GMapProvider[] m_Overlays;
 
     public override GMapProvider[] Overlays
     {
         get
         {
-            if (_overlays == null)
-            {
-                _overlays = new GMapProvider[] { this };
-            }
+            m_Overlays ??= [this];
 
-            return _overlays;
+            return m_Overlays;
         }
     }
 
@@ -175,11 +172,11 @@ public abstract class BingMapProviderBase : GMapProvider, RoutingProvider, Geoco
     /// </summary>
     public bool TryGetDefaultKey = true;
 
-    static bool _init;
+    static bool m_Init;
 
     public override void OnInitialized()
     {
-        if (!_init)
+        if (!m_Init)
         {
             try
             {
@@ -228,9 +225,9 @@ public abstract class BingMapProviderBase : GMapProvider, RoutingProvider, Geoco
                     {
                         // microsoftMapsNetworkCallback({"sessionId" : "xxx", "authenticationResultCode" : "ValidCredentials"})
 
-                        SessionId = keyResponse.Split(',')[0].Split(':')[1].Replace("\"", string.Empty)
+                        m_SessionId = keyResponse.Split(',')[0].Split(':')[1].Replace("\"", string.Empty)
                             .Replace(" ", string.Empty);
-                        Debug.WriteLine("GMapProviders.BingMap.SessionId: " + SessionId);
+                        Debug.WriteLine("GMapProviders.BingMap.SessionId: " + m_SessionId);
                     }
                     else
                     {
@@ -268,7 +265,7 @@ public abstract class BingMapProviderBase : GMapProvider, RoutingProvider, Geoco
                     {
                         #region -- match versions --
 
-                        var reg = new Regex("tilegeneration:(\\d*)", RegexOptions.IgnoreCase);
+                        var reg = TileGenerationRegex();
                         var mat = reg.Match(html);
                         if (mat.Success)
                         {
@@ -306,7 +303,7 @@ public abstract class BingMapProviderBase : GMapProvider, RoutingProvider, Geoco
                     #endregion
                 }
 
-                _init = true; // try it only once
+                m_Init = true; // try it only once
             }
             catch (Exception ex)
             {
@@ -339,12 +336,12 @@ public abstract class BingMapProviderBase : GMapProvider, RoutingProvider, Geoco
         //This will prevent the app from breaking when the map tiles change.
 
         string ret = string.Empty;
-        if (!string.IsNullOrEmpty(SessionId))
+        if (!string.IsNullOrEmpty(m_SessionId))
         {
             try
             {
                 string url = "http://dev.virtualearth.net/REST/V1/Imagery/Metadata/" + imageryType +
-                             "?output=xml&key=" + SessionId;
+                             "?output=xml&key=" + m_SessionId;
 
                 string r = GMaps.Instance.UseUrlCache
                     ? Cache.Instance.GetContent("GetTileUrl" + imageryType,
@@ -364,7 +361,7 @@ public abstract class BingMapProviderBase : GMapProvider, RoutingProvider, Geoco
                     var doc = new XmlDocument();
                     doc.LoadXml(r);
 
-                    XmlNode xn = doc["Response"];
+                    var xn = doc["Response"];
                     string statuscode = xn["StatusCode"].InnerText;
 
                     if (string.Compare(statuscode, "200", true) == 0)
@@ -374,7 +371,7 @@ public abstract class BingMapProviderBase : GMapProvider, RoutingProvider, Geoco
 
                         foreach (XmlNode xno in xnl)
                         {
-                            XmlNode imageUrl = xno["ImageUrl"];
+                            var imageUrl = xno["ImageUrl"];
 
                             if (imageUrl != null && !string.IsNullOrEmpty(imageUrl.InnerText))
                             {
@@ -387,12 +384,12 @@ public abstract class BingMapProviderBase : GMapProvider, RoutingProvider, Geoco
 
                                 if (baseTileUrl.Contains("{key}") || baseTileUrl.Contains("{token}"))
                                 {
-                                    baseTileUrl.Replace("{key}", SessionId).Replace("{token}", SessionId);
+                                    baseTileUrl = baseTileUrl.Replace("{key}", m_SessionId).Replace("{token}", m_SessionId);
                                 }
                                 else if (ForceSessionIdOnTileAccess)
                                 {
                                     // haven't seen anyone doing that, yet? ;/                            
-                                    baseTileUrl += "&key=" + SessionId;
+                                    baseTileUrl += "&key=" + m_SessionId;
                                 }
 
                                 Debug.WriteLine("GetTileUrl, UrlFormat[" + imageryType + "]: " + baseTileUrl);
@@ -417,15 +414,12 @@ public abstract class BingMapProviderBase : GMapProvider, RoutingProvider, Geoco
 
     public MapRoute GetRoute(List<PointLatLng> list, bool avoidHighways, bool walkingMode, int zoom)
     {
-        string tooltip;
-        int numLevels;
-        int zoomFactor;
         MapRoute ret = null;
         var points = GetRoutePoints(MakeRouteUrl(list, LanguageStr, avoidHighways, walkingMode),
             zoom,
-            out tooltip,
-            out numLevels,
-            out zoomFactor);
+            out string tooltip,
+            out _,
+            out _);
         if (points != null)
         {
             ret = new MapRoute(points, tooltip);
@@ -434,18 +428,14 @@ public abstract class BingMapProviderBase : GMapProvider, RoutingProvider, Geoco
         return ret;
     }
 
-
     public MapRoute GetRoute(PointLatLng start, PointLatLng end, bool avoidHighways, bool walkingMode, int zoom)
     {
-        string tooltip;
-        int numLevels;
-        int zoomFactor;
         MapRoute ret = null;
         var points = GetRoutePoints(MakeRouteUrl(start, end, LanguageStr, avoidHighways, walkingMode),
             zoom,
-            out tooltip,
-            out numLevels,
-            out zoomFactor);
+            out string tooltip,
+            out _,
+            out _);
         if (points != null)
         {
             ret = new MapRoute(points, tooltip);
@@ -456,15 +446,8 @@ public abstract class BingMapProviderBase : GMapProvider, RoutingProvider, Geoco
 
     public MapRoute GetRoute(string start, string end, bool avoidHighways, bool walkingMode, int zoom)
     {
-        string tooltip;
-        int numLevels;
-        int zoomFactor;
         MapRoute ret = null;
-        var points = GetRoutePoints(MakeRouteUrl(start, end, LanguageStr, avoidHighways, walkingMode),
-            zoom,
-            out tooltip,
-            out numLevels,
-            out zoomFactor);
+        var points = GetRoutePoints(MakeRouteUrl(start, end, LanguageStr, avoidHighways, walkingMode), zoom, out string tooltip, out _, out _);
         if (points != null)
         {
             ret = new MapRoute(points, tooltip);
@@ -473,7 +456,7 @@ public abstract class BingMapProviderBase : GMapProvider, RoutingProvider, Geoco
         return ret;
     }
 
-    private string MakeRouteUrl(List<PointLatLng> list, string languageStr, bool avoidHighways, bool walkingMode)
+    private string MakeRouteUrl(List<PointLatLng> list, string _, bool avoidHighways, bool walkingMode)
     {
         string addition = avoidHighways ? "&avoid=highways" : string.Empty;
         string mode = walkingMode ? "Walking" : "Driving";
@@ -486,19 +469,19 @@ public abstract class BingMapProviderBase : GMapProvider, RoutingProvider, Geoco
 
         }
         return string.Format(CultureInfo.InvariantCulture,
-            RouteUrlFormatListPointLatLng,
+            m_RouteUrlFormatListPointLatLng,
             mode,
             wayPoints.ToString(),
             addition,
             ClientKey);
     }
-    string MakeRouteUrl(string start, string end, string language, bool avoidHighways, bool walkingMode)
+    string MakeRouteUrl(string start, string end, string _, bool avoidHighways, bool walkingMode)
     {
         string addition = avoidHighways ? "&avoid=highways" : string.Empty;
         string mode = walkingMode ? "Walking" : "Driving";
 
         return string.Format(CultureInfo.InvariantCulture,
-            RouteUrlFormatPointQueries,
+            m_RouteUrlFormatPointQueries,
             mode,
             start,
             end,
@@ -506,13 +489,13 @@ public abstract class BingMapProviderBase : GMapProvider, RoutingProvider, Geoco
             ClientKey);
     }
 
-    string MakeRouteUrl(PointLatLng start, PointLatLng end, string language, bool avoidHighways, bool walkingMode)
+    string MakeRouteUrl(PointLatLng start, PointLatLng end, string _, bool avoidHighways, bool walkingMode)
     {
         string addition = avoidHighways ? "&avoid=highways" : string.Empty;
         string mode = walkingMode ? "Walking" : "Driving";
 
         return string.Format(CultureInfo.InvariantCulture,
-            RouteUrlFormatPointLatLng,
+            m_RouteUrlFormatPointLatLng,
             mode,
             start.Lat,
             start.Lng,
@@ -522,7 +505,7 @@ public abstract class BingMapProviderBase : GMapProvider, RoutingProvider, Geoco
             ClientKey);
     }
 
-    List<PointLatLng> GetRoutePoints(string url, int zoom, out string tooltipHtml, out int numLevel,
+    List<PointLatLng> GetRoutePoints(string url, int _, out string tooltipHtml, out int numLevel,
         out int zoomFactor)
     {
         List<PointLatLng> points = null;
@@ -577,7 +560,7 @@ public abstract class BingMapProviderBase : GMapProvider, RoutingProvider, Geoco
 
                 var doc = new XmlDocument();
                 doc.LoadXml(route);
-                XmlNode xn = doc["Response"];
+                var xn = doc["Response"];
                 string statuscode = xn["StatusCode"].InnerText;
                 switch (statuscode)
                 {
@@ -587,11 +570,11 @@ public abstract class BingMapProviderBase : GMapProvider, RoutingProvider, Geoco
                             var xnl = xn.ChildNodes;
                             if (xnl.Count > 0)
                             {
-                                points = new List<PointLatLng>();
+                                points = [];
                                 foreach (XmlNode xno in xnl)
                                 {
-                                    XmlNode latitude = xno["Latitude"];
-                                    XmlNode longitude = xno["Longitude"];
+                                    var latitude = xno["Latitude"];
+                                    var longitude = xno["Longitude"];
                                     points.Add(new PointLatLng(
                                         double.Parse(latitude.InnerText, CultureInfo.InvariantCulture),
                                         double.Parse(longitude.InnerText, CultureInfo.InvariantCulture)));
@@ -634,13 +617,13 @@ public abstract class BingMapProviderBase : GMapProvider, RoutingProvider, Geoco
     }
 
     // example : http://dev.virtualearth.net/REST/V1/Routes/Driving?o=xml&wp.0=44.979035,-93.26493&wp.1=44.943828508257866,-93.09332862496376&optmz=distance&rpo=Points&key=[PROVIDEYOUROWNKEY!!]
-    static readonly string RouteUrlFormatPointLatLng =
+    static readonly string m_RouteUrlFormatPointLatLng =
         "http://dev.virtualearth.net/REST/V1/Routes/{0}?o=xml&wp.0={1},{2}&wp.1={3},{4}{5}&optmz=distance&rpo=Points&key={6}";
 
-    static readonly string RouteUrlFormatPointQueries =
+    static readonly string m_RouteUrlFormatPointQueries =
         "http://dev.virtualearth.net/REST/V1/Routes/{0}?o=xml&wp.0={1}&wp.1={2}{3}&optmz=distance&rpo=Points&key={4}";
 
-    static readonly string RouteUrlFormatListPointLatLng =
+    static readonly string m_RouteUrlFormatListPointLatLng =
         "http://dev.virtualearth.net/REST/V1/Routes/{0}?o=xml{1}{2}&optmz=distance&rpo=Points&key={3}";
 
     #endregion RoutingProvider
@@ -655,8 +638,7 @@ public abstract class BingMapProviderBase : GMapProvider, RoutingProvider, Geoco
 
     public PointLatLng? GetPoint(string keywords, out GeoCoderStatusCode status)
     {
-        List<PointLatLng> pointList;
-        status = GetPoints(keywords, out pointList);
+        status = GetPoints(keywords, out var pointList);
         return pointList != null && pointList.Count > 0 ? pointList[0] : null;
     }
 
@@ -667,8 +649,7 @@ public abstract class BingMapProviderBase : GMapProvider, RoutingProvider, Geoco
 
     public PointLatLng? GetPoint(Placemark placemark, out GeoCoderStatusCode status)
     {
-        List<PointLatLng> pointList;
-        status = GetLatLngFromGeocoderUrl(MakeGeocoderDetailedUrl(placemark), out pointList);
+        status = GetLatLngFromGeocoderUrl(MakeGeocoderDetailedUrl(placemark), out var pointList);
         return pointList != null && pointList.Count > 0 ? pointList[0] : null;
     }
 
@@ -691,14 +672,18 @@ public abstract class BingMapProviderBase : GMapProvider, RoutingProvider, Geoco
         return MakeGeocoderUrl(parameters);
     }
 
-    bool AddFieldIfNotEmpty(ref string input, string fieldName, string value)
+    static bool AddFieldIfNotEmpty(ref string input, string fieldName, string value)
     {
         if (!string.IsNullOrEmpty(value))
         {
             if (string.IsNullOrEmpty(input))
+            {
                 input = string.Empty;
+            }
             else
-                input = input + "&";
+            {
+                input += "&";
+            }
 
             input = input + fieldName + "=" + value;
 
@@ -722,7 +707,7 @@ public abstract class BingMapProviderBase : GMapProvider, RoutingProvider, Geoco
 
     string MakeGeocoderUrl(string keywords)
     {
-        return string.Format(CultureInfo.InvariantCulture, GeocoderUrlFormat, keywords, ClientKey);
+        return string.Format(CultureInfo.InvariantCulture, m_GeocoderUrlFormat, keywords, ClientKey);
     }
 
     GeoCoderStatusCode GetLatLngFromGeocoderUrl(string url, out List<PointLatLng> pointList)
@@ -755,19 +740,19 @@ public abstract class BingMapProviderBase : GMapProvider, RoutingProvider, Geoco
                 {
                     var doc = new XmlDocument();
                     doc.LoadXml(geo);
-                    XmlNode xn = doc["Response"];
+                    var xn = doc["Response"];
                     string statuscode = xn["StatusCode"].InnerText;
                     switch (statuscode)
                     {
                         case "200":
                             {
-                                pointList = new List<PointLatLng>();
+                                pointList = [];
                                 xn = xn["ResourceSets"]["ResourceSet"]["Resources"];
                                 var xnl = xn.ChildNodes;
                                 foreach (XmlNode xno in xnl)
                                 {
-                                    XmlNode latitude = xno["Point"]["Latitude"];
-                                    XmlNode longitude = xno["Point"]["Longitude"];
+                                    var latitude = xno["Point"]["Latitude"];
+                                    var longitude = xno["Point"]["Longitude"];
                                     pointList.Add(new PointLatLng(
                                         double.Parse(latitude.InnerText, CultureInfo.InvariantCulture),
                                         double.Parse(longitude.InnerText, CultureInfo.InvariantCulture)));
@@ -824,7 +809,10 @@ public abstract class BingMapProviderBase : GMapProvider, RoutingProvider, Geoco
     }
 
     // http://dev.virtualearth.net/REST/v1/Locations/1%20Microsoft%20Way%20Redmond%20WA%2098052?o=xml&key=BingMapsKey
-    static readonly string GeocoderUrlFormat = "http://dev.virtualearth.net/REST/v1/Locations?{0}&o=xml&key={1}";
+    static readonly string m_GeocoderUrlFormat = "http://dev.virtualearth.net/REST/v1/Locations?{0}&o=xml&key={1}";
+
+    [GeneratedRegex("tilegeneration:(\\d*)", RegexOptions.IgnoreCase)]
+    private static partial Regex TileGenerationRegex();
 
     #endregion GeocodingProvider
 }
@@ -847,15 +835,9 @@ public class BingMapProvider : BingMapProviderBase
 
     #region GMapProvider Members
 
-    public override Guid Id
-    {
-        get;
-    } = new Guid("D0CEB371-F10A-4E12-A2C1-DF617D6674A8");
+    public override Guid Id { get; } = new Guid("D0CEB371-F10A-4E12-A2C1-DF617D6674A8");
 
-    public override string Name
-    {
-        get;
-    } = "BingMap";
+    public override string Name { get; } = "BingMap";
 
     public override PureImage GetTileImage(GPoint pos, int zoom)
     {
@@ -872,10 +854,10 @@ public class BingMapProvider : BingMapProviderBase
         {
             //UrlFormat[Road]: http://ecn.{subdomain}.tiles.virtualearth.net/tiles/r{quadkey}.jpeg?g=3179&mkt={culture}&shading=hill
 
-            _urlDynamicFormat = GetTileUrl("Road");
-            if (!string.IsNullOrEmpty(_urlDynamicFormat))
+            m_UrlDynamicFormat = GetTileUrl("Road");
+            if (!string.IsNullOrEmpty(m_UrlDynamicFormat))
             {
-                _urlDynamicFormat = _urlDynamicFormat.Replace("{subdomain}", "t{0}").Replace("{quadkey}", "{1}")
+                m_UrlDynamicFormat = m_UrlDynamicFormat.Replace("{subdomain}", "t{0}").Replace("{quadkey}", "{1}")
                     .Replace("{culture}", "{2}");
             }
         }
@@ -887,23 +869,23 @@ public class BingMapProvider : BingMapProviderBase
     {
         string key = TileXYToQuadKey(pos.X, pos.Y, zoom);
 
-        if (!DisableDynamicTileUrlFormat && !string.IsNullOrEmpty(_urlDynamicFormat))
+        if (!DisableDynamicTileUrlFormat && !string.IsNullOrEmpty(m_UrlDynamicFormat))
         {
-            return string.Format(_urlDynamicFormat, GetServerNum(pos, 4), key, language);
+            return string.Format(m_UrlDynamicFormat, GetServerNum(pos, 4), key, language);
         }
 
-        return string.Format(UrlFormat,
+        return string.Format(m_UrlFormat,
             GetServerNum(pos, 4),
             key,
             Version,
             language,
-            ForceSessionIdOnTileAccess ? "&key=" + SessionId : string.Empty);
+            ForceSessionIdOnTileAccess ? "&key=" + m_SessionId : string.Empty);
     }
 
-    string _urlDynamicFormat = string.Empty;
+    string m_UrlDynamicFormat = string.Empty;
 
     // http://ecn.t0.tiles.virtualearth.net/tiles/r120030?g=875&mkt=en-us&lbl=l1&stl=h&shading=hill&n=z
 
-    static readonly string UrlFormat =
+    static readonly string m_UrlFormat =
         "http://ecn.t{0}.tiles.virtualearth.net/tiles/r{1}?g={2}&mkt={3}&lbl=l1&stl=h&shading=hill&n=z{4}";
 }

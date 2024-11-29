@@ -31,7 +31,6 @@
 using System;
 using System.Net;
 using System.Net.Sockets;
-using Org.Mentalis.Network.ProxySocket;
 
 // Implements a number of classes to allow Sockets to connect trough a firewall.
 namespace GMap.NET.Internals.SocksProxySocket;

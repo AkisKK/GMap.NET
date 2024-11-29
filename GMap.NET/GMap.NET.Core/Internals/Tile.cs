@@ -2,118 +2,100 @@
 using System.Collections.Generic;
 using System.Threading;
 
-namespace GMap.NET.Internals
+namespace GMap.NET.Internals;
+
+/// <summary>
+///     represent tile
+/// </summary>
+public struct Tile : IDisposable
 {
-    /// <summary>
-    ///     represent tile
-    /// </summary>
-    public struct Tile : IDisposable
+    public static readonly Tile Empty;
+
+    GPoint m_Pos;
+    PureImage[] m_Overlays;
+    long m_OverlaysCount;
+
+    public readonly bool NotEmpty;
+
+    public Tile(int zoom, GPoint pos)
     {
-        public static readonly Tile Empty = new Tile();
+        NotEmpty = true;
+        Zoom = zoom;
+        m_Pos = pos;
+        m_Overlays = null;
+        m_OverlaysCount = 0;
+    }
 
-        GPoint _pos;
-        PureImage[] _overlays;
-        long _overlaysCount;
-
-        public readonly bool NotEmpty;
-
-        public Tile(int zoom, GPoint pos)
+    public IEnumerable<PureImage> Overlays
+    {
+        get
         {
-            NotEmpty = true;
-            this.Zoom = zoom;
-            this._pos = pos;
-            _overlays = null;
-            _overlaysCount = 0;
-        }
-
-        public IEnumerable<PureImage> Overlays
-        {
-            get
+            for (long i = 0, size = Interlocked.Read(ref m_OverlaysCount); i < size; i++)
             {
-                for (long i = 0, size = Interlocked.Read(ref _overlaysCount); i < size; i++)
-                {
-                    yield return _overlays[i];
-                }
+                yield return m_Overlays[i];
             }
         }
+    }
 
-        internal void AddOverlay(PureImage i)
+    internal void AddOverlay(PureImage i)
+    {
+        m_Overlays ??= new PureImage[4];
+
+        m_Overlays[Interlocked.Increment(ref m_OverlaysCount) - 1] = i;
+    }
+
+    internal bool HasAnyOverlays => Interlocked.Read(ref m_OverlaysCount) > 0;
+
+    public int Zoom { get; private set; }
+
+    public GPoint Pos
+    {
+        readonly get => m_Pos;
+        private set => m_Pos = value;
+    }
+
+    #region IDisposable Members
+
+    public void Dispose()
+    {
+        if (m_Overlays != null)
         {
-            if (_overlays == null)
+            for (long i = Interlocked.Read(ref m_OverlaysCount) - 1; i >= 0; i--)
             {
-                _overlays = new PureImage[4];
+                Interlocked.Decrement(ref m_OverlaysCount);
+                m_Overlays[i].Dispose();
+                m_Overlays[i] = null;
             }
 
-            _overlays[Interlocked.Increment(ref _overlaysCount) - 1] = i;
+            m_Overlays = null;
         }
+    }
 
-        internal bool HasAnyOverlays
+    #endregion
+
+    public static bool operator ==(Tile m1, Tile m2)
+    {
+        return m1.m_Pos == m2.m_Pos && m1.Zoom == m2.Zoom;
+    }
+
+    public static bool operator !=(Tile m1, Tile m2)
+    {
+        return !(m1 == m2);
+    }
+
+    public override readonly bool Equals(object obj)
+    {
+        if (obj is not Tile)
         {
-            get
-            {
-                return Interlocked.Read(ref _overlaysCount) > 0;
-            }
+            return false;
         }
 
-        public int Zoom
-        {
-            get;
-            private set;
-        }
+        var comp = (Tile)obj;
+        return comp.Zoom == Zoom && comp.Pos == Pos;
+    }
 
-        public GPoint Pos
-        {
-            get
-            {
-                return _pos;
-            }
-            private set
-            {
-                _pos = value;
-            }
-        }
-
-        #region IDisposable Members
-
-        public void Dispose()
-        {
-            if (_overlays != null)
-            {
-                for (long i = Interlocked.Read(ref _overlaysCount) - 1; i >= 0; i--)
-                {
-                    Interlocked.Decrement(ref _overlaysCount);
-                    _overlays[i].Dispose();
-                    _overlays[i] = null;
-                }
-
-                _overlays = null;
-            }
-        }
-
-        #endregion
-
-        public static bool operator ==(Tile m1, Tile m2)
-        {
-            return m1._pos == m2._pos && m1.Zoom == m2.Zoom;
-        }
-
-        public static bool operator !=(Tile m1, Tile m2)
-        {
-            return !(m1 == m2);
-        }
-
-        public override bool Equals(object obj)
-        {
-            if (!(obj is Tile))
-                return false;
-
-            var comp = (Tile)obj;
-            return comp.Zoom == Zoom && comp.Pos == Pos;
-        }
-
-        public override int GetHashCode()
-        {
-            return Zoom ^ _pos.GetHashCode();
-        }
+    public override int GetHashCode()
+    {
+        return Zoom ^ m_Pos.GetHashCode();
     }
 }

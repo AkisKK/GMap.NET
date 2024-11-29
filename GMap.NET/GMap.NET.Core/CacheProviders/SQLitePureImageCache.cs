@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data.Common;
 using System.Data.SQLite;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
+using GMap.NET.Internals;
 using GMap.NET.MapProviders;
 
 namespace GMap.NET.CacheProviders;

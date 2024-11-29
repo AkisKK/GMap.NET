@@ -1,24 +1,23 @@
 ﻿using System.Collections.Generic;
 
-namespace GMap.NET
+namespace GMap.NET;
+
+/// <summary>
+///     geocoding interface
+/// </summary>
+public interface GeocodingProvider
 {
-    /// <summary>
-    ///     geocoding interface
-    /// </summary>
-    public interface GeocodingProvider
-    {
-        GeoCoderStatusCode GetPoints(string keywords, out List<PointLatLng> pointList);
+    GeoCoderStatusCode GetPoints(string keywords, out List<PointLatLng> pointList);
 
-        PointLatLng? GetPoint(string keywords, out GeoCoderStatusCode status);
+    PointLatLng? GetPoint(string keywords, out GeoCoderStatusCode status);
 
 
-        GeoCoderStatusCode GetPoints(Placemark placemark, out List<PointLatLng> pointList);
+    GeoCoderStatusCode GetPoints(Placemark placemark, out List<PointLatLng> pointList);
 
-        PointLatLng? GetPoint(Placemark placemark, out GeoCoderStatusCode status);
+    PointLatLng? GetPoint(Placemark placemark, out GeoCoderStatusCode status);
 
 
-        GeoCoderStatusCode GetPlacemarks(PointLatLng location, out List<Placemark> placemarkList);
+    GeoCoderStatusCode GetPlacemarks(PointLatLng location, out List<Placemark> placemarkList);
 
-        Placemark? GetPlacemark(PointLatLng location, out GeoCoderStatusCode status);
-    }
+    Placemark? GetPlacemark(PointLatLng location, out GeoCoderStatusCode status);
 }

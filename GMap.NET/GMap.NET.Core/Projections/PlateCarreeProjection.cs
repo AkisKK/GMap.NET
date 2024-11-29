@@ -1,94 +1,93 @@
 ﻿using System;
 
-namespace GMap.NET.Projections
+namespace GMap.NET.Projections;
+
+/// <summary>
+///     Plate Carrée (literally, “plane square”) projection
+///     PROJCS["WGS 84 / World Equidistant
+///     Cylindrical",GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137,298.257223563]],PRIMEM["Greenwich",0],UNIT["Degree",0.017453292519943295]],UNIT["Meter",1]]
+/// </summary>
+public class PlateCarreeProjection : PureProjection
 {
-    /// <summary>
-    ///     Plate Carrée (literally, “plane square”) projection
-    ///     PROJCS["WGS 84 / World Equidistant
-    ///     Cylindrical",GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137,298.257223563]],PRIMEM["Greenwich",0],UNIT["Degree",0.017453292519943295]],UNIT["Meter",1]]
-    /// </summary>
-    public class PlateCarreeProjection : PureProjection
+    public static readonly PlateCarreeProjection Instance = new PlateCarreeProjection();
+
+    static readonly double MinLatitude = -85.05112878;
+    static readonly double MaxLatitude = 85.05112878;
+    static readonly double MinLongitude = -180;
+    static readonly double MaxLongitude = 180;
+
+    public override RectLatLng Bounds
     {
-        public static readonly PlateCarreeProjection Instance = new PlateCarreeProjection();
-
-        static readonly double MinLatitude = -85.05112878;
-        static readonly double MaxLatitude = 85.05112878;
-        static readonly double MinLongitude = -180;
-        static readonly double MaxLongitude = 180;
-
-        public override RectLatLng Bounds
+        get
         {
-            get
-            {
-                return RectLatLng.FromLTRB(MinLongitude, MaxLatitude, MaxLongitude, MinLatitude);
-            }
+            return RectLatLng.FromLTRB(MinLongitude, MaxLatitude, MaxLongitude, MinLatitude);
         }
+    }
 
-        public override GSize TileSize
-        {
-            get;
-        } = new GSize(512, 512);
+    public override GSize TileSize
+    {
+        get;
+    } = new GSize(512, 512);
 
-        public override double Axis
+    public override double Axis
+    {
+        get
         {
-            get
-            {
-                return 6378137;
-            }
+            return 6378137;
         }
+    }
 
-        public override double Flattening
+    public override double Flattening
+    {
+        get
         {
-            get
-            {
-                return 1.0 / 298.257223563;
-            }
+            return 1.0 / 298.257223563;
         }
+    }
 
-        public override GPoint FromLatLngToPixel(double lat, double lng, int zoom)
-        {
-            var ret = GPoint.Empty;
+    public override GPoint FromLatLngToPixel(double lat, double lng, int zoom)
+    {
+        var ret = GPoint.Empty;
 
-            lat = Clip(lat, MinLatitude, MaxLatitude);
-            lng = Clip(lng, MinLongitude, MaxLongitude);
+        lat = Clip(lat, MinLatitude, MaxLatitude);
+        lng = Clip(lng, MinLongitude, MaxLongitude);
 
-            var s = GetTileMatrixSizePixel(zoom);
-            double mapSizeX = s.Width;
-            double mapSizeY = s.Height;
+        var s = GetTileMatrixSizePixel(zoom);
+        double mapSizeX = s.Width;
+        double mapSizeY = s.Height;
 
-            double scale = 360.0 / mapSizeX;
+        double scale = 360.0 / mapSizeX;
 
-            ret.Y = (long)((90.0 - lat) / scale);
-            ret.X = (long)((lng + 180.0) / scale);
+        ret.Y = (long)((90.0 - lat) / scale);
+        ret.X = (long)((lng + 180.0) / scale);
 
-            return ret;
-        }
+        return ret;
+    }
 
-        public override PointLatLng FromPixelToLatLng(long x, long y, int zoom)
-        {
-            var ret = PointLatLng.Empty;
+    public override PointLatLng FromPixelToLatLng(long x, long y, int zoom)
+    {
+        var ret = PointLatLng.Empty;
 
-            var s = GetTileMatrixSizePixel(zoom);
-            double mapSizeX = s.Width;
-            double mapSizeY = s.Height;
+        var s = GetTileMatrixSizePixel(zoom);
+        double mapSizeX = s.Width;
+        double mapSizeY = s.Height;
 
-            double scale = 360.0 / mapSizeX;
+        double scale = 360.0 / mapSizeX;
 
-            ret.Lat = 90 - y * scale;
-            ret.Lng = x * scale - 180;
+        ret.Lat = 90 - y * scale;
+        ret.Lng = x * scale - 180;
 
-            return ret;
-        }
+        return ret;
+    }
 
-        public override GSize GetTileMatrixMaxXY(int zoom)
-        {
-            long y = (long)Math.Pow(2, zoom);
-            return new GSize(2 * y - 1, y - 1);
-        }
+    public override GSize GetTileMatrixMaxXY(int zoom)
+    {
+        long y = (long)Math.Pow(2, zoom);
+        return new GSize(2 * y - 1, y - 1);
+    }
 
-        public override GSize GetTileMatrixMinXY(int zoom)
-        {
-            return new GSize(0, 0);
-        }
+    public override GSize GetTileMatrixMinXY(int zoom)
+    {
+        return new GSize(0, 0);
     }
 }

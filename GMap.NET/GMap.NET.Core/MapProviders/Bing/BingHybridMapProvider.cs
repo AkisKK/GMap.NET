@@ -1,4 +1,5 @@
 ﻿using System;
+using GMap.NET.Internals;
 
 namespace GMap.NET.MapProviders.Bing;
 
@@ -70,7 +71,7 @@ public class BingHybridMapProvider : BingMapProviderBase
             key,
             Version,
             language,
-            ForceSessionIdOnTileAccess ? "&key=" + SessionId : string.Empty);
+            ForceSessionIdOnTileAccess ? "&key=" + m_SessionId : string.Empty);
     }
 
     string m_UrlDynamicFormat = string.Empty;

@@ -1,27 +1,26 @@
 ﻿using System;
 using GMap.NET.MapProviders;
 
-namespace GMap.NET
-{
-    public delegate void PositionChanged(PointLatLng point);
+namespace GMap.NET;
 
-    public delegate void TileLoadComplete(long elapsedMilliseconds);
+public delegate void PositionChanged(PointLatLng point);
 
-    public delegate void TileLoadStart();
+public delegate void TileLoadComplete(long elapsedMilliseconds);
 
-    public delegate void TileCacheComplete();
+public delegate void TileLoadStart();
 
-    public delegate void TileCacheStart();
+public delegate void TileCacheComplete();
 
-    public delegate void TileCacheProgress(int tilesLeft);
+public delegate void TileCacheStart();
 
-    public delegate void MapDrag();
+public delegate void TileCacheProgress(int tilesLeft);
 
-    public delegate void MapZoomChanged();
+public delegate void MapDrag();
 
-    public delegate void MapTypeChanged(GMapProvider type);
+public delegate void MapZoomChanged();
 
-    public delegate void EmptyTileError(int zoom, GPoint pos);
+public delegate void MapTypeChanged(GMapProvider type);
 
-    public delegate void ExceptionThrown(Exception exception);
-}
+public delegate void EmptyTileError(int zoom, GPoint pos);
+
+public delegate void ExceptionThrown(Exception exception);

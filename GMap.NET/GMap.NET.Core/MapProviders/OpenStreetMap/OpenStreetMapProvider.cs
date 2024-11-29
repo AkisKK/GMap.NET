@@ -128,7 +128,7 @@ public abstract class OpenStreetMapProviderBase : GMapProvider, RoutingProvider,
                     result = JsonConvert.DeserializeObject<OpenStreetMapRouteEntity>(route);
 
                     if (GMaps.Instance.UseRouteCache && result != null &&
-                        result.routes != null && result.routes.Count > 0)
+                        result.Routes != null && result.Routes.Count > 0)
                     {
                         Cache.Instance.SaveContent(url, CacheType.RouteCache, route);
                     }
@@ -145,14 +145,14 @@ public abstract class OpenStreetMapProviderBase : GMapProvider, RoutingProvider,
 
                 if (result != null)
                 {
-                    if (result.routes != null && result.routes.Count > 0)
+                    if (result.Routes != null && result.Routes.Count > 0)
                     {
                         ret.Status = RouteStatusCode.OK;
 
-                        ret.Duration = result.routes[0].duration.ToString();
+                        ret.Duration = result.Routes[0].Duration.ToString();
 
                         var points = new List<PointLatLng>();
-                        PureProjection.PolylineDecode(points, result.routes[0].geometry);
+                        PureProjection.PolylineDecode(points, result.Routes[0].Geometry);
                         ret.Points.AddRange(points);
                     }
                 }
@@ -281,7 +281,7 @@ public abstract class OpenStreetMapProviderBase : GMapProvider, RoutingProvider,
 
                 foreach (var item in result)
                 {
-                    pointList.Add(new PointLatLng { Lat = item.lat, Lng = item.lon });
+                    pointList.Add(new PointLatLng { Lat = item.Latitude, Lng = item.Longitude });
                 }
 
                 status = GeoCoderStatusCode.OK;
@@ -331,19 +331,19 @@ public abstract class OpenStreetMapProviderBase : GMapProvider, RoutingProvider,
             {
                 ret = new List<Placemark>();
 
-                var p = new Placemark(result.display_name);
+                var p = new Placemark(result.DisplayName);
 
                 p = new Placemark
                 {
-                    PlacemarkId = result.place_id,
-                    Address = result.address.ToString(),
-                    CountryName = result.address.country,
-                    CountryNameCode = result.address.country_code,
-                    PostalCodeNumber = result.address.postcode,
-                    AdministrativeAreaName = result.address.state,
-                    SubAdministrativeAreaName = result.address.city,
-                    LocalityName = result.address.suburb,
-                    ThoroughfareName = result.address.road
+                    PlacemarkId = result.PlaceId,
+                    Address = result.EntityAddress.ToString(),
+                    CountryName = result.EntityAddress.Country,
+                    CountryNameCode = result.EntityAddress.CountryCode,
+                    PostalCodeNumber = result.EntityAddress.Postcode,
+                    AdministrativeAreaName = result.EntityAddress.State,
+                    SubAdministrativeAreaName = result.EntityAddress.City,
+                    LocalityName = result.EntityAddress.Suburb,
+                    ThoroughfareName = result.EntityAddress.Road
                 };
 
                 ret.Add(p);

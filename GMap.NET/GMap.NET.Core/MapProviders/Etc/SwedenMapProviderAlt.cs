@@ -11,125 +11,94 @@
 // created for those Apps as well.
 //--------------------------------------------------------------------------------------------
 
-namespace GMap.NET.MapProviders
+namespace GMap.NET.MapProviders.Etc;
+
+using System;
+using GMap.NET;
+using GMap.NET.Internals;
+using GMap.NET.MapProviders;
+using GMap.NET.Projections;
+
+public abstract class SwedenMapProviderAltBase : GMapProvider
 {
-    using System;
-    using GMap.NET.Projections;
-
-    public abstract class SwedenMapProviderAltBase : GMapProvider
+    public SwedenMapProviderAltBase()
     {
-        public SwedenMapProviderAltBase()
-        {
-            RefererUrl = "https://kso.etjanster.lantmateriet.se/?lang=en";
-            Copyright = string.Format("©{0} Lantmäteriet", DateTime.Today.Year);
-            MaxZoom = 15;
-        }
-
-        #region GMapProvider Members
-        public override Guid Id
-        {
-            get
-            {
-                throw new NotImplementedException();
-            }
-        }
-
-        public override string Name
-        {
-            get
-            {
-                throw new NotImplementedException();
-            }
-        }
-
-        public override PureProjection Projection
-        {
-            get
-            {
-                return MercatorProjection.Instance;
-            }
-        }
-
-        GMapProvider[] overlays;
-        public override GMapProvider[] Overlays
-        {
-            get
-            {
-                if (overlays == null)
-                {
-                    overlays = new GMapProvider[] { this };
-                }
-                return overlays;
-            }
-        }
-
-        public override PureImage GetTileImage(GPoint pos, int zoom)
-        {
-            throw new NotImplementedException();
-        }
-        #endregion
-
-        protected static readonly string UrlServerLetters = "bcde";
+        RefererUrl = "https://kso.etjanster.lantmateriet.se/?lang=en";
+        Copyright = string.Format("©{0} Lantmäteriet", DateTime.Today.Year);
+        MaxZoom = 15;
     }
 
-    /// <summary>
-    /// SwedenMapAlt provider
-    /// </summary>
-    public class SwedenMapProviderAlt : SwedenMapProviderAltBase
+    #region GMapProvider Members
+    public override Guid Id => throw new NotImplementedException();
+
+    public override string Name => throw new NotImplementedException();
+
+    public override PureProjection Projection => MercatorProjection.Instance;
+
+    GMapProvider[] m_Overlays;
+    public override GMapProvider[] Overlays
     {
-        public static readonly SwedenMapProviderAlt Instance;
-
-        SwedenMapProviderAlt()
+        get
         {
+            m_Overlays ??= [this];
+            return m_Overlays;
         }
-
-        static SwedenMapProviderAlt()
-        {
-            Instance = new SwedenMapProviderAlt();
-        }
-
-        #region GMapProvider Members
-
-        readonly Guid id = new Guid("d5e8e0de-3a93-4983-941e-9b66d79f50d6");
-        public override Guid Id
-        {
-            get
-            {
-                return id;
-            }
-        }
-
-        readonly string name = "SwedenMapAlternative";
-        public override string Name
-        {
-            get
-            {
-                return name;
-            }
-        }
-
-        public override PureImage GetTileImage(GPoint pos, int zoom)
-        {
-            string url = MakeTileImageUrl(pos, zoom, LanguageStr);
-
-            return GetTileImageUsingHttp(url);
-        }
-
-        #endregion
-
-
-        // 20200313 (jokubokla): Here is the magic: Use another Projection for Lantmateriet
-
-
-        string MakeTileImageUrl(GPoint pos, int zoom, string language)
-        {
-            // https://kso.etjanster.lantmateriet.se/karta/topowebb/v1/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=topowebb&STYLE=default&TILEMATRIXSET=3857&TILEMATRIX=2&TILEROW=6&TILECOL=7&FORMAT=image%2Fpng
-
-            return string.Format(UrlFormat, zoom, pos.Y, pos.X);
-        }
-
-        static readonly string UrlFormat = "https://kso.etjanster.lantmateriet.se/karta/topowebb/v1.1/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=topowebb&STYLE=default&TILEMATRIXSET=3857&TILEMATRIX={0}&TILEROW={1}&TILECOL={2}&FORMAT=image%2Fpng";
-
-
     }
+
+    public override PureImage GetTileImage(GPoint pos, int zoom)
+    {
+        throw new NotImplementedException();
+    }
+    #endregion
+
+    protected static readonly string UrlServerLetters = "bcde";
+}
+
+/// <summary>
+/// SwedenMapAlt provider
+/// </summary>
+public class SwedenMapProviderAlt : SwedenMapProviderAltBase
+{
+    public static readonly SwedenMapProviderAlt Instance;
+
+    SwedenMapProviderAlt()
+    {
+    }
+
+    static SwedenMapProviderAlt()
+    {
+        Instance = new SwedenMapProviderAlt();
+    }
+
+    #region GMapProvider Members
+
+    readonly Guid m_Id = new("d5e8e0de-3a93-4983-941e-9b66d79f50d6");
+    public override Guid Id => m_Id;
+
+    readonly string m_Name = "SwedenMapAlternative";
+    public override string Name => m_Name;
+
+    public override PureImage GetTileImage(GPoint pos, int zoom)
+    {
+        string url = MakeTileImageUrl(pos, zoom);
+
+        return GetTileImageUsingHttp(url);
+    }
+
+    #endregion
+
+
+    // 20200313 (jokubokla): Here is the magic: Use another Projection for Lantmateriet
+
+
+    static string MakeTileImageUrl(GPoint pos, int zoom)
+    {
+        // https://kso.etjanster.lantmateriet.se/karta/topowebb/v1/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=topowebb&STYLE=default&TILEMATRIXSET=3857&TILEMATRIX=2&TILEROW=6&TILECOL=7&FORMAT=image%2Fpng
+
+        return string.Format(m_UrlFormat, zoom, pos.Y, pos.X);
+    }
+
+    static readonly string m_UrlFormat = "https://kso.etjanster.lantmateriet.se/karta/topowebb/v1.1/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=topowebb&STYLE=default&TILEMATRIXSET=3857&TILEMATRIX={0}&TILEROW={1}&TILECOL={2}&FORMAT=image%2Fpng";
+
+
 }
