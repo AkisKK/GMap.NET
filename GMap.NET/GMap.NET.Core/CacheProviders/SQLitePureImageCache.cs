@@ -121,7 +121,9 @@ string.Format("Version=3,URI=file://{0},FailIfMissing=True,Page Size=32768,Pooli
             foreach (string d in dbs)
             {
                 if (d != m_Db)
+                {
                     Attach(d);
+                }
             }
         }
     }
@@ -166,8 +168,8 @@ string.Format("Version=3,URI=file://{0},FailIfMissing=True,Page Size=32768,Pooli
                 Array.Reverse(freePagesBytes);
             }
 
-            UInt16 pageSize = BitConverter.ToUInt16(pageSizeBytes, 0);
-            UInt32 freePages = BitConverter.ToUInt32(freePagesBytes, 0);
+            ushort pageSize = BitConverter.ToUInt16(pageSizeBytes, 0);
+            uint freePages = BitConverter.ToUInt32(freePagesBytes, 0);
 
             double freeMB = pageSize * freePages / (1024.0 * 1024.0);
 

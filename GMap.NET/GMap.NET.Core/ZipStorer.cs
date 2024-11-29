@@ -86,7 +86,7 @@ public class ZipStorer : IDisposable
     #region Private fields
 
     // List of files to store
-    private List<ZipFileEntry> Files = new List<ZipFileEntry>();
+    private List<ZipFileEntry> Files = [];
 
     // Filename of storage file
     private string _fileName;
@@ -127,9 +127,13 @@ public class ZipStorer : IDisposable
             for (int j = 0; j < 8; j++)
             {
                 if ((c & 1) != 0)
+                {
                     c = 3988292384 ^ c >> 1;
+                }
                 else
+                {
                     c >>= 1;
+                }
             }
 
             _crcTable[i] = c;
@@ -196,7 +200,9 @@ public class ZipStorer : IDisposable
     public static ZipStorer Open(Stream stream, FileAccess access)
     {
         if (!stream.CanSeek && access != FileAccess.Read)
+        {
             throw new InvalidOperationException("Stream cannot seek");
+        }
 
         var zip = new ZipStorer();
         //zip.FileName = _filename;
@@ -204,7 +210,9 @@ public class ZipStorer : IDisposable
         zip._access = access;
 
         if (zip.ReadFileInfo())
+        {
             return zip;
+        }
 
         throw new InvalidDataException();
     }
@@ -219,7 +227,9 @@ public class ZipStorer : IDisposable
     public void AddFile(Compression method, string pathname, string filenameInZip, string comment)
     {
         if (_access == FileAccess.Read)
+        {
             throw new InvalidOperationException("Writing is not alowed");
+        }
 
         var stream = new FileStream(pathname, FileMode.Open, FileAccess.Read);
         AddStream(method, filenameInZip, stream, File.GetLastWriteTime(pathname), comment);
@@ -238,11 +248,15 @@ public class ZipStorer : IDisposable
         string comment)
     {
         if (_access == FileAccess.Read)
+        {
             throw new InvalidOperationException("Writing is not alowed");
+        }
 
         long offset;
         if (Files.Count == 0)
+        {
             offset = 0;
+        }
         else
         {
             var last = Files[Files.Count - 1];
@@ -282,7 +296,9 @@ public class ZipStorer : IDisposable
     public void Close()
     {
         if (_zipFileStream == null)
+        {
             return;
+        }
 
         if (_access != FileAccess.Read)
         {
@@ -290,7 +306,9 @@ public class ZipStorer : IDisposable
             uint centralSize = 0;
 
             if (_centralDirImage != null)
+            {
                 _zipFileStream.Write(_centralDirImage, 0, _centralDirImage.Length);
+            }
 
             for (int i = 0; i < Files.Count; i++)
             {
@@ -300,9 +318,13 @@ public class ZipStorer : IDisposable
             }
 
             if (_centralDirImage != null)
+            {
                 WriteEndRecord(centralSize + (uint)_centralDirImage.Length, centralOffset);
+            }
             else
+            {
                 WriteEndRecord(centralSize, centralOffset);
+            }
         }
 
         if (_zipFileStream != null)
@@ -320,7 +342,9 @@ public class ZipStorer : IDisposable
     public List<ZipFileEntry> ReadCentralDir()
     {
         if (_centralDirImage == null)
+        {
             throw new InvalidOperationException("Central directory currently does not exist");
+        }
 
         var result = new List<ZipFileEntry>();
 
@@ -328,7 +352,9 @@ public class ZipStorer : IDisposable
         {
             uint signature = BitConverter.ToUInt32(_centralDirImage, pointer);
             if (signature != 0x02014b50)
+            {
                 break;
+            }
 
             bool encodeUTF8 = (BitConverter.ToUInt16(_centralDirImage, pointer + 8) & 0x0800) != 0;
             ushort method = BitConverter.ToUInt16(_centralDirImage, pointer + 10);
@@ -355,9 +381,11 @@ public class ZipStorer : IDisposable
             zfe.Crc32 = crc32;
             zfe.ModifyTime = DosTimeToDateTime(modifyTime);
             if (commentSize > 0)
+            {
                 zfe.Comment = encoder.GetString(_centralDirImage,
                     pointer + 46 + filenameSize + extraSize,
                     commentSize);
+            }
 
             result.Add(zfe);
             pointer += 46 + filenameSize + extraSize + commentSize;
@@ -379,15 +407,21 @@ public class ZipStorer : IDisposable
         string path = Path.GetDirectoryName(filename);
 
         if (!Directory.Exists(path))
+        {
             Directory.CreateDirectory(path);
+        }
         // Check it is directory. If so, do nothing
         if (Directory.Exists(filename))
+        {
             return true;
+        }
 
         Stream output = new FileStream(filename, FileMode.Create, FileAccess.Write);
         bool result = ExtractFile(zfe, output);
         if (result)
+        {
             output.Close();
+        }
 
         File.SetCreationTime(filename, zfe.ModifyTime);
         File.SetLastWriteTime(filename, zfe.ModifyTime);
@@ -405,23 +439,33 @@ public class ZipStorer : IDisposable
     public bool ExtractFile(ZipFileEntry zfe, Stream stream)
     {
         if (!stream.CanWrite)
+        {
             throw new InvalidOperationException("Stream cannot be written");
+        }
 
         // check signature
         byte[] signature = new byte[4];
         _zipFileStream.Seek(zfe.HeaderOffset, SeekOrigin.Begin);
         _zipFileStream.ReadExactly(signature, 0, 4);
         if (BitConverter.ToUInt32(signature, 0) != 0x04034b50)
+        {
             return false;
+        }
 
         // Select input stream for inflating or just reading
         Stream inStream;
         if (zfe.Method == Compression.Store)
+        {
             inStream = _zipFileStream;
+        }
         else if (zfe.Method == Compression.Deflate)
+        {
             inStream = new DeflateStream(_zipFileStream, CompressionMode.Decompress, true);
+        }
         else
+        {
             return false;
+        }
 
         // Buffered copy
         byte[] buffer = new byte[16384];
@@ -437,7 +481,10 @@ public class ZipStorer : IDisposable
         stream.Flush();
 
         if (zfe.Method == Compression.Deflate)
+        {
             inStream.Dispose();
+        }
+
         return true;
     }
 
@@ -451,7 +498,9 @@ public class ZipStorer : IDisposable
     public static bool RemoveEntries(ref ZipStorer zip, List<ZipFileEntry> zfes)
     {
         if (!(zip._zipFileStream is FileStream))
+        {
             throw new InvalidOperationException("RemoveEntries is allowed just over streams of type FileStream");
+        }
 
 
         //Get full list of entries
@@ -491,9 +540,14 @@ public class ZipStorer : IDisposable
         finally
         {
             if (File.Exists(tempZipName))
+            {
                 File.Delete(tempZipName);
+            }
+
             if (File.Exists(tempEntryName))
+            {
                 File.Delete(tempEntryName);
+            }
         }
 
         return true;
@@ -539,7 +593,7 @@ public class ZipStorer : IDisposable
         var encoder = zfe.EncodeUTF8 ? Encoding.UTF8 : DefaultEncoding;
         byte[] encodedFilename = encoder.GetBytes(zfe.FilenameInZip);
 
-        _zipFileStream.Write(new byte[] { 80, 75, 3, 4, 20, 0 }, 0, 6); // No extra header
+        _zipFileStream.Write([80, 75, 3, 4, 20, 0], 0, 6); // No extra header
         _zipFileStream.Write(BitConverter.GetBytes((ushort)(zfe.EncodeUTF8 ? 0x0800 : 0)),
             0,
             2); // filename and comment encoding 
@@ -547,7 +601,7 @@ public class ZipStorer : IDisposable
         _zipFileStream.Write(BitConverter.GetBytes(DateTimeToDosTime(zfe.ModifyTime)),
             0,
             4); // zipping date and time
-        _zipFileStream.Write(new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+        _zipFileStream.Write([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
             0,
             12); // unused CRC, un/compressed size, updated later
         _zipFileStream.Write(BitConverter.GetBytes((ushort)encodedFilename.Length), 0, 2); // filename length
@@ -586,7 +640,7 @@ public class ZipStorer : IDisposable
         byte[] encodedFilename = encoder.GetBytes(zfe.FilenameInZip);
         byte[] encodedComment = encoder.GetBytes(zfe.Comment);
 
-        _zipFileStream.Write(new byte[] { 80, 75, 1, 2, 23, 0xB, 20, 0 }, 0, 8);
+        _zipFileStream.Write([80, 75, 1, 2, 23, 0xB, 20, 0], 0, 8);
         _zipFileStream.Write(BitConverter.GetBytes((ushort)(zfe.EncodeUTF8 ? 0x0800 : 0)),
             0,
             2); // filename and comment encoding 
@@ -634,7 +688,7 @@ public class ZipStorer : IDisposable
         var encoder = EncodeUTF8 ? Encoding.UTF8 : DefaultEncoding;
         byte[] encodedComment = encoder.GetBytes(_comment);
 
-        _zipFileStream.Write(new byte[] { 80, 75, 5, 6, 0, 0, 0, 0 }, 0, 8);
+        _zipFileStream.Write([80, 75, 5, 6, 0, 0, 0, 0], 0, 8);
         _zipFileStream.Write(BitConverter.GetBytes((ushort)Files.Count + _existingFiles), 0, 2);
         _zipFileStream.Write(BitConverter.GetBytes((ushort)Files.Count + _existingFiles), 0, 2);
         _zipFileStream.Write(BitConverter.GetBytes(size), 0, 4);
@@ -655,9 +709,13 @@ public class ZipStorer : IDisposable
         long sourceStart = source.Position;
 
         if (zfe.Method == Compression.Store)
+        {
             outStream = _zipFileStream;
+        }
         else
+        {
             outStream = new DeflateStream(_zipFileStream, CompressionMode.Compress, true);
+        }
 
         zfe.Crc32 = 0 ^ 0xffffffff;
 
@@ -679,7 +737,9 @@ public class ZipStorer : IDisposable
         outStream.Flush();
 
         if (zfe.Method == Compression.Deflate)
+        {
             outStream.Dispose();
+        }
 
         zfe.Crc32 ^= 0xffffffff;
         zfe.FileSize = totalRead;
@@ -708,14 +768,14 @@ public class ZipStorer : IDisposable
             5-10 Minute (0–59) 
             11-15 Hour (0–23 on a 24-hour clock) 
     */
-    private uint DateTimeToDosTime(DateTime dt)
+    private static uint DateTimeToDosTime(DateTime dt)
     {
         return (uint)(
             dt.Second / 2 | dt.Minute << 5 | dt.Hour << 11 |
             dt.Day << 16 | dt.Month << 21 | dt.Year - 1980 << 25);
     }
 
-    private DateTime DosTimeToDateTime(uint dt)
+    private static DateTime DosTimeToDateTime(uint dt)
     {
         return new DateTime(
             (int)(dt >> 25) + 1980,
@@ -754,13 +814,15 @@ public class ZipStorer : IDisposable
     }
 
     // Replaces backslashes with slashes to store in zip header
-    private string NormalizedFilename(string filename)
+    private static string NormalizedFilename(string filename)
     {
         filename = filename.Replace('\\', '/');
 
         int pos = filename.IndexOf(':');
         if (pos >= 0)
+        {
             filename = filename.Remove(0, pos + 1);
+        }
 
         return filename.Trim('/');
     }
@@ -769,7 +831,9 @@ public class ZipStorer : IDisposable
     private bool ReadFileInfo()
     {
         if (_zipFileStream.Length < 22)
+        {
             return false;
+        }
 
         try
         {
@@ -790,7 +854,9 @@ public class ZipStorer : IDisposable
 
                     // check if comment field is the very last data in file
                     if (_zipFileStream.Position + commentSize != _zipFileStream.Length)
+                    {
                         return false;
+                    }
 
                     // Copy entire central directory to a memory buffer
                     _existingFiles = entries;

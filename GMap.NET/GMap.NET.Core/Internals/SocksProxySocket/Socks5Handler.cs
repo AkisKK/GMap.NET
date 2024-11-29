@@ -79,7 +79,10 @@ internal sealed class Socks5Handler : SocksHandler
         Server.Send([5, 2, 0, 2]);
         byte[] buffer = ReadBytes(2);
         if (buffer[1] == 255)
+        {
             throw new ProxyException("No authentication method accepted.");
+        }
+
         AuthMethod authenticate = buffer[1] switch
         {
             0 => new AuthNone(Server),
@@ -263,11 +266,11 @@ internal sealed class Socks5Handler : SocksHandler
         try
         {
             Server.BeginSend([5, 2, 0, 2],
-                0,
-                4,
-                SocketFlags.None,
-                OnAuthSent,
-                Server);
+                             0,
+                             4,
+                             SocketFlags.None,
+                             OnAuthSent,
+                             Server);
         }
         catch (Exception e)
         {
@@ -296,11 +299,11 @@ internal sealed class Socks5Handler : SocksHandler
             Buffer = new byte[1024];
             Received = 0;
             Server.BeginReceive(Buffer,
-                0,
-                Buffer.Length,
-                SocketFlags.None,
-                OnAuthReceive,
-                Server);
+                                0,
+                                Buffer.Length,
+                                SocketFlags.None,
+                                OnAuthReceive,
+                                Server);
         }
         catch (Exception e)
         {
@@ -318,7 +321,9 @@ internal sealed class Socks5Handler : SocksHandler
         {
             Received += Server.EndReceive(ar);
             if (Received <= 0)
+            {
                 throw new SocketException();
+            }
         }
         catch (Exception e)
         {
@@ -331,11 +336,11 @@ internal sealed class Socks5Handler : SocksHandler
             if (Received < 2)
             {
                 Server.BeginReceive(Buffer,
-                    Received,
-                    Buffer.Length - Received,
-                    SocketFlags.None,
-                    OnAuthReceive,
-                    Server);
+                                    Received,
+                                    Buffer.Length - Received,
+                                    SocketFlags.None,
+                                    OnAuthReceive,
+                                    Server);
             }
             else
             {
@@ -377,11 +382,11 @@ internal sealed class Socks5Handler : SocksHandler
         try
         {
             Server.BeginSend(HandShake,
-                0,
-                HandShake.Length,
-                SocketFlags.None,
-                OnSent,
-                Server);
+                             0,
+                             HandShake.Length,
+                             SocketFlags.None,
+                             OnSent,
+                             Server);
         }
         catch (Exception ex)
         {
@@ -410,11 +415,11 @@ internal sealed class Socks5Handler : SocksHandler
             Buffer = new byte[5];
             Received = 0;
             Server.BeginReceive(Buffer,
-                0,
-                Buffer.Length,
-                SocketFlags.None,
-                OnReceive,
-                Server);
+                                0,
+                                Buffer.Length,
+                                SocketFlags.None,
+                                OnReceive,
+                                Server);
         }
         catch (Exception e)
         {
@@ -441,14 +446,18 @@ internal sealed class Socks5Handler : SocksHandler
         try
         {
             if (Received == Buffer.Length)
+            {
                 ProcessReply(Buffer);
+            }
             else
+            {
                 Server.BeginReceive(Buffer,
-                    Received,
-                    Buffer.Length - Received,
-                    SocketFlags.None,
-                    OnReceive,
-                    Server);
+                                    Received,
+                                    Buffer.Length - Received,
+                                    SocketFlags.None,
+                                    OnReceive,
+                                    Server);
+            }
         }
         catch (Exception e)
         {
@@ -501,14 +510,18 @@ internal sealed class Socks5Handler : SocksHandler
         try
         {
             if (Received == Buffer.Length)
+            {
                 ProtocolComplete(null);
+            }
             else
+            {
                 Server.BeginReceive(Buffer,
-                    Received,
-                    Buffer.Length - Received,
-                    SocketFlags.None,
-                    OnReadLast,
-                    Server);
+                                    Received,
+                                    Buffer.Length - Received,
+                                    SocketFlags.None,
+                                    OnReadLast,
+                                    Server);
+            }
         }
         catch (Exception e)
         {

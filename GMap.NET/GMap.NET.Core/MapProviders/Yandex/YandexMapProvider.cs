@@ -8,42 +8,21 @@ public abstract class YandexMapProviderBase : GMapProvider
 {
     #region GMapProvider Members
 
-    public override Guid Id
-    {
-        get
-        {
-            throw new NotImplementedException();
-        }
-    }
+    public override Guid Id => throw new NotImplementedException();
 
-    public override string Name
-    {
-        get
-        {
-            throw new NotImplementedException();
-        }
-    }
+    public override string Name => throw new NotImplementedException();
 
-    public override PureProjection Projection
-    {
-        get
-        {
-            return MercatorProjectionYandex.Instance;
-        }
-    }
+    public override PureProjection Projection => MercatorProjectionYandex.Instance;
 
-    GMapProvider[] _overlays;
+    GMapProvider[] m_Overlays;
 
     public override GMapProvider[] Overlays
     {
         get
         {
-            if (_overlays == null)
-            {
-                _overlays = new GMapProvider[] { this };
-            }
+            m_Overlays ??= [this];
 
-            return _overlays;
+            return m_Overlays;
         }
     }
 
@@ -85,15 +64,9 @@ public class YandexMapProvider : YandexMapProviderBase
 
     #region GMapProvider Members
 
-    public override Guid Id
-    {
-        get;
-    } = new Guid("82DC969D-0491-40F3-8C21-4D90B67F47EB");
+    public override Guid Id { get; } = new Guid("82DC969D-0491-40F3-8C21-4D90B67F47EB");
 
-    public override string Name
-    {
-        get;
-    } = "YandexMap";
+    public override string Name { get; } = "YandexMap";
 
     public override PureImage GetTileImage(GPoint pos, int zoom)
     {
@@ -106,17 +79,17 @@ public class YandexMapProvider : YandexMapProviderBase
 
     string MakeTileImageUrl(GPoint pos, int zoom, string language)
     {
-        return string.Format(UrlFormat,
-            UrlServer,
-            GetServerNum(pos, 4) + 1,
-            Version,
-            pos.X,
-            pos.Y,
-            zoom,
-            language,
-            Server);
+        return string.Format(m_UrlFormat,
+                             m_UrlServer,
+                             GetServerNum(pos, 4) + 1,
+                             Version,
+                             pos.X,
+                             pos.Y,
+                             zoom,
+                             language,
+                             Server);
     }
 
-    static readonly string UrlServer = "vec";
-    static readonly string UrlFormat = "http://{0}0{1}.{7}/tiles?l=map&v={2}&x={3}&y={4}&z={5}&lang={6}";
+    static readonly string m_UrlServer = "vec";
+    static readonly string m_UrlFormat = "http://{0}0{1}.{7}/tiles?l=map&v={2}&x={3}&y={4}&z={5}&lang={6}";
 }

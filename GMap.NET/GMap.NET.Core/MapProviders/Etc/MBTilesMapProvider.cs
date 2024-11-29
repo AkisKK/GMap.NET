@@ -25,7 +25,10 @@ public class MBTilesMapProvider : GMapProvider
             m_Db.Open();
             using var cmd = new System.Data.SQLite.SQLiteCommand("SELECT * FROM metadata;", m_Db);
             using var rd = cmd.ExecuteReader();
-            while (rd.Read()) metadata[rd.GetString(0)] = rd.GetString(1);
+            while (rd.Read())
+            {
+                metadata[rd.GetString(0)] = rd.GetString(1);
+            }
         }
 
         ~MBTiles()
@@ -190,8 +193,16 @@ public class MBTilesMapProvider : GMapProvider
 
     public override PureImage GetTileImage(GPoint pos, int zoom)
     {
-        if (m_Source == null) return null;
-        if (zoom < MinZoom || zoom > MaxZoom) return null;
+        if (m_Source == null)
+        {
+            return null;
+        }
+
+        if (zoom < MinZoom || zoom > MaxZoom)
+        {
+            return null;
+        }
+
         return m_Source.GetImage(pos, zoom);
     }
 
@@ -206,7 +217,11 @@ public class MBTilesMapProvider : GMapProvider
 
     public bool Open(string MBTilesFilePath)
     {
-        if (!File.Exists(MBTilesFilePath)) return false;
+        if (!File.Exists(MBTilesFilePath))
+        {
+            return false;
+        }
+
         try
         {
             m_Source = new MBTiles(MBTilesFilePath);
@@ -272,14 +287,32 @@ public class MBTilesMapProvider : GMapProvider
 #endif
                 return false;
             }
-            if (MinZoom < 0) MinZoom = m_Source.GetZoomMin();
-            if (MaxZoom < 0) MaxZoom = m_Source.GetZoomMax();
-            if (Bounds != null && CenterLocation == PointLatLng.Empty) CenterLocation = new PointLatLng(Bounds[0].Lat - 0.5 * (Bounds[1].Lat - Bounds[0].Lat), Bounds[0].Lng + 0.5 * (Bounds[1].Lng - Bounds[0].Lng));
-            if (CenterZoom < 0) CenterZoom = MinZoom + (MaxZoom - MinZoom) / 2;
+            if (MinZoom < 0)
+            {
+                MinZoom = m_Source.GetZoomMin();
+            }
+
+            if (MaxZoom < 0)
+            {
+                MaxZoom = m_Source.GetZoomMax();
+            }
+
+            if (Bounds != null && CenterLocation == PointLatLng.Empty)
+            {
+                CenterLocation = new PointLatLng(Bounds[0].Lat - 0.5 * (Bounds[1].Lat - Bounds[0].Lat), Bounds[0].Lng + 0.5 * (Bounds[1].Lng - Bounds[0].Lng));
+            }
+
+            if (CenterZoom < 0)
+            {
+                CenterZoom = MinZoom + (MaxZoom - MinZoom) / 2;
+            }
 
             return true;
         }
-        catch { return false; }
+        catch
+        {
+            return false;
+        }
     }
 }
 

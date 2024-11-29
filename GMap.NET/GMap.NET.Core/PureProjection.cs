@@ -13,17 +13,17 @@ namespace GMap.NET;
 public abstract class PureProjection
 {
     private readonly List<Dictionary<PointLatLng, GPoint>> _fromLatLngToPixelCache =
-        new List<Dictionary<PointLatLng, GPoint>>(33);
+        new(33);
 
     private readonly List<Dictionary<GPoint, PointLatLng>> _fromPixelToLatLngCache =
-        new List<Dictionary<GPoint, PointLatLng>>(33);
+        new(33);
 
     public PureProjection()
     {
         for (int i = 0; i < _fromLatLngToPixelCache.Capacity; i++)
         {
-            _fromLatLngToPixelCache.Add(new Dictionary<PointLatLng, GPoint>());
-            _fromPixelToLatLngCache.Add(new Dictionary<GPoint, PointLatLng>());
+            _fromLatLngToPixelCache.Add([]);
+            _fromPixelToLatLngCache.Add([]);
         }
     }
 
@@ -325,9 +325,13 @@ public abstract class PureProjection
         while (true)
         {
             if (Abs(x) <= PI)
+            {
                 break;
+            }
             else if ((long)Abs(x / PI) < 2)
+            {
                 x = x - Sign(x) * TwoPi;
+            }
             else if ((long)Abs(x / TwoPi) < MaxLong)
             {
                 x = x - (long)(x / TwoPi) * TwoPi;
@@ -341,11 +345,15 @@ public abstract class PureProjection
                 x = x - (long)(x / (DblLong * TwoPi)) * (TwoPi * DblLong);
             }
             else
+            {
                 x = x - Sign(x) * TwoPi;
+            }
 
             count++;
             if (count > MaxVal)
+            {
                 break;
+            }
         }
 
         return x;
@@ -438,7 +446,7 @@ public abstract class PureProjection
         return dDistance;
     }
 
-    public double GetDistanceInPixels(GPoint point1, GPoint point2)
+    public static double GetDistanceInPixels(GPoint point1, GPoint point2)
     {
         double a = point2.X - point1.X;
         double b = point2.Y - point1.Y;
@@ -450,7 +458,7 @@ public abstract class PureProjection
     ///     Accepts two coordinates in degrees.
     /// </summary>
     /// <returns>A double value in degrees. From 0 to 360.</returns>
-    public double GetBearing(PointLatLng p1, PointLatLng p2)
+    public static double GetBearing(PointLatLng p1, PointLatLng p2)
     {
         double latitude1 = DegreesToRadians(p1.Lat);
         double latitude2 = DegreesToRadians(p2.Lat);
@@ -560,7 +568,7 @@ public abstract class PureProjection
         path.AddRange(PolylineDecode(encodedPath));
     }
 
-    public static String PolylineEncode(List<PointLatLng> path)
+    public static string PolylineEncode(List<PointLatLng> path)
     {
         long lastLat = 0;
         long lastLng = 0;

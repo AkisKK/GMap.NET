@@ -31,53 +31,37 @@ public class UMPMapProvider : GMapProvider
     }
 
     #region GMapProvider Members
+    public override Guid Id { get; } = new Guid("E36E311E-256A-4639-9AF7-FEB7BDEA6ABE");
 
-    public override Guid Id
-    {
-        get;
-    } = new Guid("E36E311E-256A-4639-9AF7-FEB7BDEA6ABE");
+    public override string Name { get; } = "UMP";
 
-    public override string Name
-    {
-        get;
-    } = "UMP";
+    public override PureProjection Projection => MercatorProjection.Instance;
 
-    public override PureProjection Projection
-    {
-        get
-        {
-            return MercatorProjection.Instance;
-        }
-    }
-
-    GMapProvider[] _overlays;
+    GMapProvider[] m_Overlays;
 
     public override GMapProvider[] Overlays
     {
         get
         {
-            if (_overlays == null)
-            {
-                _overlays = new GMapProvider[] { this };
-            }
+            m_Overlays ??= [this];
 
-            return _overlays;
+            return m_Overlays;
         }
     }
 
     public override PureImage GetTileImage(GPoint pos, int zoom)
     {
-        string url = MakeTileImageUrl(pos, zoom, string.Empty);
+        string url = MakeTileImageUrl(pos, zoom);
 
         return GetTileImageUsingHttp(url);
     }
 
     #endregion
 
-    string MakeTileImageUrl(GPoint pos, int zoom, string language)
+    static string MakeTileImageUrl(GPoint pos, int zoom)
     {
-        return string.Format(UrlFormat, zoom, pos.X, pos.Y);
+        return string.Format(m_UrlFormat, zoom, pos.X, pos.Y);
     }
 
-    static readonly string UrlFormat = "http://tiles.ump.waw.pl/ump_tiles/{0}/{1}/{2}.png";
+    static readonly string m_UrlFormat = "http://tiles.ump.waw.pl/ump_tiles/{0}/{1}/{2}.png";
 }

@@ -99,10 +99,7 @@ internal sealed class Core : IDisposable
     /// </summary>
     public int Zoom
     {
-        get
-        {
-            return m_Zoom;
-        }
+        get => m_Zoom;
         set
         {
             if (m_Zoom != value && !IsDragging)
@@ -395,7 +392,9 @@ internal sealed class Core : IDisposable
         while (Refresh != null && (!skiped && Refresh.WaitOne() || Refresh.WaitOne(spanMs, false) || true))
         {
             if (w.CancellationPending)
+            {
                 break;
+            }
 
             now = DateTime.Now;
             lock (m_InvalidationLock)
@@ -684,9 +683,9 @@ internal sealed class Core : IDisposable
     }
 
     /// <summary>
-    ///     darg map by offset in pixels
+    ///     Drag map by offset in pixels.
     /// </summary>
-    /// <param name="offset"></param>
+    /// <param name="offset">The offset in pixels.</param>
     public void DragOffset(GPoint offset)
     {
         m_RenderOffset.Offset(offset);
@@ -789,7 +788,7 @@ internal sealed class Core : IDisposable
                     {
                         Debug.WriteLine("creating ProcessLoadTask: " + m_TileLoadQueue4Tasks.Count);
 
-                        m_TileLoadQueue4Tasks.Add(Task.Factory.StartNew(delegate()
+                        m_TileLoadQueue4Tasks.Add(Task.Factory.StartNew(delegate ()
                             {
                                 string ctid = "ProcessLoadTask[" + Environment.CurrentManagedThreadId + "]";
                                 Thread.CurrentThread.Name = ctid;

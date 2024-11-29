@@ -11,60 +11,45 @@ namespace GMap.NET.Projections;
 /// </summary>
 public class LKS94Projection : PureProjection
 {
-    public static readonly LKS94Projection Instance = new LKS94Projection();
+    public static readonly LKS94Projection Instance = new();
 
-    static readonly double MinLatitude = 53.33;
-    static readonly double MaxLatitude = 56.55;
-    static readonly double MinLongitude = 20.22;
-    static readonly double MaxLongitude = 27.11;
+    static readonly double m_MinLatitude = 53.33;
+    static readonly double m_MaxLatitude = 56.55;
+    static readonly double m_MinLongitude = 20.22;
+    static readonly double m_MaxLongitude = 27.11;
 
-    static readonly double OrignX = -5122000;
-    static readonly double OrignY = 10000100;
+    static readonly double m_OrignX = -5122000;
+    static readonly double m_OrignY = 10000100;
 
-    static readonly double ScaleFactor = 0.9998; // scale factor				
-    static readonly double CentralMeridian = 0.41887902047863912; // Center longitude (projection center) 
-    static readonly double LatOrigin = 0.0; // center latitude			
-    static readonly double FalseNorthing = 0.0; // y offset in meters			
-    static readonly double FalseEasting = 500000.0; // x offset in meters			
-    static readonly double SemiMajor = 6378137.0; // major axis
-    static readonly double SemiMinor = 6356752.3141403561; // minor axis
-    static readonly double SemiMinor2 = 6356752.3142451793; // minor axis
-    static readonly double MetersPerUnit = 1.0;
-    static readonly double COS_67P5 = 0.38268343236508977; // cosine of 67.5 degrees
-    static readonly double AD_C = 1.0026000; // Toms region 1 constant
+    static readonly double m_ScaleFactor = 0.9998; // scale factor				
+    static readonly double m_CentralMeridian = 0.41887902047863912; // Center longitude (projection center) 
+    static readonly double m_LatOrigin = 0.0; // center latitude			
+    static readonly double m_FalseNorthing = 0.0; // y offset in meters			
+    static readonly double m_FalseEasting = 500000.0; // x offset in meters			
+    static readonly double m_SemiMajor = 6378137.0; // major axis
+    static readonly double m_SemiMinor = 6356752.3141403561; // minor axis
+    static readonly double m_SemiMinor2 = 6356752.3142451793; // minor axis
+    static readonly double m_MetersPerUnit = 1.0;
+    static readonly double m_COS_67P5 = 0.38268343236508977; // cosine of 67.5 degrees
+    static readonly double m_AD_C = 1.0026000; // Toms region 1 constant
 
-    public override RectLatLng Bounds
-    {
-        get
-        {
-            return RectLatLng.FromLTRB(MinLongitude, MaxLatitude, MaxLongitude, MinLatitude);
-        }
-    }
+    public override RectLatLng Bounds => RectLatLng.FromLTRB(m_MinLongitude,
+                                                             m_MaxLatitude,
+                                                             m_MaxLongitude,
+                                                             m_MinLatitude);
 
     public override GSize TileSize { get; } = new GSize(256, 256);
 
-    public override double Axis
-    {
-        get
-        {
-            return 6378137;
-        }
-    }
+    public override double Axis => 6378137;
 
-    public override double Flattening
-    {
-        get
-        {
-            return 1.0 / 298.257222101;
-        }
-    }
+    public override double Flattening { get; } = 1.0 / 298.257222101;
 
     public override GPoint FromLatLngToPixel(double lat, double lng, int zoom)
     {
-        lat = Clip(lat, MinLatitude, MaxLatitude);
-        lng = Clip(lng, MinLongitude, MaxLongitude);
+        lat = Clip(lat, m_MinLatitude, m_MaxLatitude);
+        lng = Clip(lng, m_MinLongitude, m_MaxLongitude);
 
-        double[] lks = new[] {lng, lat};
+        double[] lks = [lng, lat];
         lks = DTM10(lks);
         lks = MTD10(lks);
         lks = DTM00(lks);
@@ -75,7 +60,7 @@ public class LKS94Projection : PureProjection
 
     static GPoint LksToPixel(double[] lks, double res)
     {
-        return new GPoint((long)Math.Floor((lks[0] - OrignX) / res), (long)Math.Floor((OrignY - lks[1]) / res));
+        return new GPoint((long)Math.Floor((lks[0] - m_OrignX) / res), (long)Math.Floor((m_OrignY - lks[1]) / res));
     }
 
     public override PointLatLng FromPixelToLatLng(long x, long y, int zoom)
@@ -84,51 +69,51 @@ public class LKS94Projection : PureProjection
 
         double res = GetTileMatrixResolution(zoom);
 
-        double[] lks = new[] {x * res + OrignX, OrignY - y * res};
+        double[] lks = [x * res + m_OrignX, m_OrignY - y * res];
         lks = MTD11(lks);
         lks = DTM10(lks);
         lks = MTD10(lks);
 
-        ret.Lat = Clip(lks[1], MinLatitude, MaxLatitude);
-        ret.Lng = Clip(lks[0], MinLongitude, MaxLongitude);
+        ret.Lat = Clip(lks[1], m_MinLatitude, m_MaxLatitude);
+        ret.Lng = Clip(lks[0], m_MinLongitude, m_MaxLongitude);
 
         return ret;
     }
 
-    double[] DTM10(double[] lonlat)
+    static double[] DTM10(double[] lonlat)
     {
         // Eccentricity squared : (a^2 - b^2)/a^2
-        double es = 1.0 - SemiMinor2 * SemiMinor2 / (SemiMajor * SemiMajor); // e^2
+        double es = 1.0 - m_SemiMinor2 * m_SemiMinor2 / (m_SemiMajor * m_SemiMajor); // e^2
 
         // Second eccentricity squared : (a^2 - b^2)/b^2
-        double ses = (Math.Pow(SemiMajor, 2) - Math.Pow(SemiMinor2, 2)) / Math.Pow(SemiMinor2, 2);
+        // double ses = (Math.Pow(m_SemiMajor, 2) - Math.Pow(m_SemiMinor2, 2)) / Math.Pow(m_SemiMinor2, 2);
 
-        double ba = SemiMinor2 / SemiMajor;
-        double ab = SemiMajor / SemiMinor2;
+        // double ba = m_SemiMinor2 / m_SemiMajor;
+        // double ab = m_SemiMajor / m_SemiMinor2;
 
         double lon = DegreesToRadians(lonlat[0]);
         double lat = DegreesToRadians(lonlat[1]);
-        double h = lonlat.Length < 3 ? 0 : lonlat[2].Equals(Double.NaN) ? 0 : lonlat[2];
-        double v = SemiMajor / Math.Sqrt(1 - es * Math.Pow(Math.Sin(lat), 2));
+        double h = lonlat.Length < 3 ? 0 : lonlat[2].Equals(double.NaN) ? 0 : lonlat[2];
+        double v = m_SemiMajor / Math.Sqrt(1 - es * Math.Pow(Math.Sin(lat), 2));
         double x = (v + h) * Math.Cos(lat) * Math.Cos(lon);
         double y = (v + h) * Math.Cos(lat) * Math.Sin(lon);
         double z = ((1 - es) * v + h) * Math.Sin(lat);
-        return new[] {x, y, z,};
+        return [x, y, z,];
     }
 
-    double[] MTD10(double[] pnt)
+    static double[] MTD10(double[] pnt)
     {
         // Eccentricity squared : (a^2 - b^2)/a^2
-        double es = 1.0 - SemiMinor * SemiMinor / (SemiMajor * SemiMajor); // e^2
+        double es = 1.0 - m_SemiMinor * m_SemiMinor / (m_SemiMajor * m_SemiMajor); // e^2
 
         // Second eccentricity squared : (a^2 - b^2)/b^2
-        double ses = (Math.Pow(SemiMajor, 2) - Math.Pow(SemiMinor, 2)) / Math.Pow(SemiMinor, 2);
+        double ses = (Math.Pow(m_SemiMajor, 2) - Math.Pow(m_SemiMinor, 2)) / Math.Pow(m_SemiMinor, 2);
 
-        double ba = SemiMinor / SemiMajor;
-        double ab = SemiMajor / SemiMinor;
+        // double ba = m_SemiMinor / m_SemiMajor;
+        // double ab = m_SemiMajor / m_SemiMinor;
 
         bool atPole = false; // is location in polar region
-        double Z = pnt.Length < 3 ? 0 : pnt[2].Equals(Double.NaN) ? 0 : pnt[2];
+        double Z = pnt.Length < 3 ? 0 : pnt[2].Equals(double.NaN) ? 0 : pnt[2];
 
         double lon;
         double lat = 0;
@@ -161,29 +146,29 @@ public class LKS94Projection : PureProjection
                 }
                 else // center of earth
                 {
-                    return new[] {RadiansToDegrees(lon), RadiansToDegrees(Math.PI * 0.5), -SemiMinor,};
+                    return [RadiansToDegrees(lon), RadiansToDegrees(Math.PI * 0.5), -m_SemiMinor,];
                 }
             }
         }
 
         double W2 = pnt[0] * pnt[0] + pnt[1] * pnt[1]; // Square of distance from Z axis
         double W = Math.Sqrt(W2); // distance from Z axis
-        double T0 = Z * AD_C; // initial estimate of vertical component
+        double T0 = Z * m_AD_C; // initial estimate of vertical component
         double S0 = Math.Sqrt(T0 * T0 + W2); // initial estimate of horizontal component
         double Sin_B0 = T0 / S0; // sin(B0), B0 is estimate of Bowring aux variable
         double Cos_B0 = W / S0; // cos(B0)
         double Sin3_B0 = Math.Pow(Sin_B0, 3);
-        double T1 = Z + SemiMinor * ses * Sin3_B0; // corrected estimate of vertical component
-        double Sum = W - SemiMajor * es * Cos_B0 * Cos_B0 * Cos_B0; // numerator of cos(phi1)
+        double T1 = Z + m_SemiMinor * ses * Sin3_B0; // corrected estimate of vertical component
+        double Sum = W - m_SemiMajor * es * Cos_B0 * Cos_B0 * Cos_B0; // numerator of cos(phi1)
         double S1 = Math.Sqrt(T1 * T1 + Sum * Sum); // corrected estimate of horizontal component
         double Sin_p1 = T1 / S1; // sin(phi1), phi1 is estimated latitude
         double Cos_p1 = Sum / S1; // cos(phi1)
-        double Rn = SemiMajor / Math.Sqrt(1.0 - es * Sin_p1 * Sin_p1); // Earth radius at location
-        if (Cos_p1 >= COS_67P5)
+        double Rn = m_SemiMajor / Math.Sqrt(1.0 - es * Sin_p1 * Sin_p1); // Earth radius at location
+        if (Cos_p1 >= m_COS_67P5)
         {
             height = W / Cos_p1 - Rn;
         }
-        else if (Cos_p1 <= -COS_67P5)
+        else if (Cos_p1 <= -m_COS_67P5)
         {
             height = W / -Cos_p1 - Rn;
         }
@@ -197,22 +182,22 @@ public class LKS94Projection : PureProjection
             lat = Math.Atan(Sin_p1 / Cos_p1);
         }
 
-        return new[] {RadiansToDegrees(lon), RadiansToDegrees(lat), height,};
+        return [RadiansToDegrees(lon), RadiansToDegrees(lat), height,];
     }
 
-    double[] DTM00(double[] lonlat)
+    static double[] DTM00(double[] lonlat)
     {
         double e0, e1, e2, e3; // eccentricity constants		
-        double e, es, esp; // eccentricity constants		
+        double es, esp; // eccentricity constants		
         double ml0; // small value m			
 
-        es = 1.0 - Math.Pow(SemiMinor / SemiMajor, 2);
-        e = Math.Sqrt(es);
+        es = 1.0 - Math.Pow(m_SemiMinor / m_SemiMajor, 2);
+        // e = Math.Sqrt(es);
         e0 = E0Fn(es);
         e1 = E1Fn(es);
         e2 = E2Fn(es);
         e3 = E3Fn(es);
-        ml0 = SemiMajor * Mlfn(e0, e1, e2, e3, LatOrigin);
+        ml0 = m_SemiMajor * Mlfn(e0, e1, e2, e3, m_LatOrigin);
         esp = es / (1.0 - es);
 
         // ...		
@@ -221,13 +206,13 @@ public class LKS94Projection : PureProjection
         double lat = DegreesToRadians(lonlat[1]);
 
         double delta_lon; // Delta longitude (Given longitude - center)
-        double sin_phi, cos_phi; // sin and cos value				
+                          // sin and cos value				
         double al, als; // temporary values				
         double c, t, tq; // temporary values				
         double con, n, ml; // cone constant, small m			
 
-        delta_lon = AdjustLongitude(lon - CentralMeridian);
-        SinCos(lat, out sin_phi, out cos_phi);
+        delta_lon = AdjustLongitude(lon - m_CentralMeridian);
+        SinCos(lat, out double sin_phi, out double cos_phi);
 
         al = cos_phi * delta_lon;
         als = Math.Pow(al, 2);
@@ -235,144 +220,146 @@ public class LKS94Projection : PureProjection
         tq = Math.Tan(lat);
         t = Math.Pow(tq, 2);
         con = 1.0 - es * Math.Pow(sin_phi, 2);
-        n = SemiMajor / Math.Sqrt(con);
-        ml = SemiMajor * Mlfn(e0, e1, e2, e3, lat);
+        n = m_SemiMajor / Math.Sqrt(con);
+        ml = m_SemiMajor * Mlfn(e0, e1, e2, e3, lat);
 
-        double x = ScaleFactor * n * al * (1.0 + als / 6.0 * (1.0 - t + c + als / 20.0 *
+        double x = m_ScaleFactor * n * al * (1.0 + als / 6.0 * (1.0 - t + c + als / 20.0 *
                                                               (5.0 - 18.0 * t + Math.Pow(t, 2) + 72.0 * c -
-                                                               58.0 * esp))) + FalseEasting;
+                                                               58.0 * esp))) + m_FalseEasting;
 
-        double y = ScaleFactor * (ml - ml0 + n * tq * (als * (0.5 + als / 24.0 *
+        double y = m_ScaleFactor * (ml - ml0 + n * tq * (als * (0.5 + als / 24.0 *
                                                               (5.0 - t + 9.0 * c + 4.0 * Math.Pow(c, 2) + als /
                                                                30.0 * (61.0 - 58.0 * t
                                                                        + Math.Pow(t, 2) + 600.0 * c -
-                                                                       330.0 * esp))))) + FalseNorthing;
+                                                                       330.0 * esp))))) + m_FalseNorthing;
 
         if (lonlat.Length < 3)
-            return new[] {x / MetersPerUnit, y / MetersPerUnit};
+        {
+            return [x / m_MetersPerUnit, y / m_MetersPerUnit];
+        }
 
-        return new[] {x / MetersPerUnit, y / MetersPerUnit, lonlat[2]};
+        return [x / m_MetersPerUnit, y / m_MetersPerUnit, lonlat[2]];
     }
 
-    double[] DTM01(double[] lonlat)
-    {
-        // Eccentricity squared : (a^2 - b^2)/a^2
-        double es = 1.0 - SemiMinor * SemiMinor / (SemiMajor * SemiMajor);
+    //static double[] DTM01(double[] lonlat)
+    //{
+    //    // Eccentricity squared : (a^2 - b^2)/a^2
+    //    double es = 1.0 - m_SemiMinor * m_SemiMinor / (m_SemiMajor * m_SemiMajor);
 
-        // Second eccentricity squared : (a^2 - b^2)/b^2
-        double ses = (Math.Pow(SemiMajor, 2) - Math.Pow(SemiMinor, 2)) / Math.Pow(SemiMinor, 2);
+    //    // Second eccentricity squared : (a^2 - b^2)/b^2
+    //    double ses = (Math.Pow(m_SemiMajor, 2) - Math.Pow(m_SemiMinor, 2)) / Math.Pow(m_SemiMinor, 2);
 
-        double ba = SemiMinor / SemiMajor;
-        double ab = SemiMajor / SemiMinor;
+    //    double ba = m_SemiMinor / m_SemiMajor;
+    //    double ab = m_SemiMajor / m_SemiMinor;
 
-        double lon = DegreesToRadians(lonlat[0]);
-        double lat = DegreesToRadians(lonlat[1]);
-        double h = lonlat.Length < 3 ? 0 : lonlat[2].Equals(Double.NaN) ? 0 : lonlat[2];
-        double v = SemiMajor / Math.Sqrt(1 - es * Math.Pow(Math.Sin(lat), 2));
-        double x = (v + h) * Math.Cos(lat) * Math.Cos(lon);
-        double y = (v + h) * Math.Cos(lat) * Math.Sin(lon);
-        double z = ((1 - es) * v + h) * Math.Sin(lat);
-        return new[] {x, y, z,};
-    }
+    //    double lon = DegreesToRadians(lonlat[0]);
+    //    double lat = DegreesToRadians(lonlat[1]);
+    //    double h = lonlat.Length < 3 ? 0 : lonlat[2].Equals(double.NaN) ? 0 : lonlat[2];
+    //    double v = m_SemiMajor / Math.Sqrt(1 - es * Math.Pow(Math.Sin(lat), 2));
+    //    double x = (v + h) * Math.Cos(lat) * Math.Cos(lon);
+    //    double y = (v + h) * Math.Cos(lat) * Math.Sin(lon);
+    //    double z = ((1 - es) * v + h) * Math.Sin(lat);
+    //    return [x, y, z,];
+    //}
 
-    double[] MTD01(double[] pnt)
-    {
-        // Eccentricity squared : (a^2 - b^2)/a^2
-        double es = 1.0 - SemiMinor2 * SemiMinor2 / (SemiMajor * SemiMajor);
+    //static double[] MTD01(double[] pnt)
+    //{
+    //    // Eccentricity squared : (a^2 - b^2)/a^2
+    //    double es = 1.0 - m_SemiMinor2 * m_SemiMinor2 / (m_SemiMajor * m_SemiMajor);
 
-        // Second eccentricity squared : (a^2 - b^2)/b^2
-        double ses = (Math.Pow(SemiMajor, 2) - Math.Pow(SemiMinor2, 2)) / Math.Pow(SemiMinor2, 2);
+    //    // Second eccentricity squared : (a^2 - b^2)/b^2
+    //    double ses = (Math.Pow(m_SemiMajor, 2) - Math.Pow(m_SemiMinor2, 2)) / Math.Pow(m_SemiMinor2, 2);
 
-        double ba = SemiMinor2 / SemiMajor;
-        double ab = SemiMajor / SemiMinor2;
+    //    double ba = m_SemiMinor2 / m_SemiMajor;
+    //    double ab = m_SemiMajor / m_SemiMinor2;
 
-        bool At_Pole = false; // is location in polar region
-        double Z = pnt.Length < 3 ? 0 : pnt[2].Equals(Double.NaN) ? 0 : pnt[2];
+    //    bool At_Pole = false; // is location in polar region
+    //    double Z = pnt.Length < 3 ? 0 : pnt[2].Equals(double.NaN) ? 0 : pnt[2];
 
-        double lon;
-        double lat = 0;
-        double height;
-        if (pnt[0] != 0.0)
-        {
-            lon = Math.Atan2(pnt[1], pnt[0]);
-        }
-        else
-        {
-            if (pnt[1] > 0)
-            {
-                lon = Math.PI / 2;
-            }
-            else if (pnt[1] < 0)
-            {
-                lon = -Math.PI * 0.5;
-            }
-            else
-            {
-                At_Pole = true;
-                lon = 0.0;
-                if (Z > 0.0) // north pole
-                {
-                    lat = Math.PI * 0.5;
-                }
-                else if (Z < 0.0) // south pole
-                {
-                    lat = -Math.PI * 0.5;
-                }
-                else // center of earth
-                {
-                    return new[] {RadiansToDegrees(lon), RadiansToDegrees(Math.PI * 0.5), -SemiMinor2,};
-                }
-            }
-        }
+    //    double lon;
+    //    double lat = 0;
+    //    double height;
+    //    if (pnt[0] != 0.0)
+    //    {
+    //        lon = Math.Atan2(pnt[1], pnt[0]);
+    //    }
+    //    else
+    //    {
+    //        if (pnt[1] > 0)
+    //        {
+    //            lon = Math.PI / 2;
+    //        }
+    //        else if (pnt[1] < 0)
+    //        {
+    //            lon = -Math.PI * 0.5;
+    //        }
+    //        else
+    //        {
+    //            At_Pole = true;
+    //            lon = 0.0;
+    //            if (Z > 0.0) // north pole
+    //            {
+    //                lat = Math.PI * 0.5;
+    //            }
+    //            else if (Z < 0.0) // south pole
+    //            {
+    //                lat = -Math.PI * 0.5;
+    //            }
+    //            else // center of earth
+    //            {
+    //                return [RadiansToDegrees(lon), RadiansToDegrees(Math.PI * 0.5), -m_SemiMinor2,];
+    //            }
+    //        }
+    //    }
 
-        double W2 = pnt[0] * pnt[0] + pnt[1] * pnt[1]; // Square of distance from Z axis
-        double W = Math.Sqrt(W2); // distance from Z axis
-        double T0 = Z * AD_C; // initial estimate of vertical component
-        double S0 = Math.Sqrt(T0 * T0 + W2); //initial estimate of horizontal component
-        double Sin_B0 = T0 / S0; // sin(B0), B0 is estimate of Bowring aux variable
-        double Cos_B0 = W / S0; // cos(B0)
-        double Sin3_B0 = Math.Pow(Sin_B0, 3);
-        double T1 = Z + SemiMinor2 * ses * Sin3_B0; //corrected estimate of vertical component
-        double Sum = W - SemiMajor * es * Cos_B0 * Cos_B0 * Cos_B0; // numerator of cos(phi1)
-        double S1 = Math.Sqrt(T1 * T1 + Sum * Sum); // corrected estimate of horizontal component
-        double Sin_p1 = T1 / S1; // sin(phi1), phi1 is estimated latitude
-        double Cos_p1 = Sum / S1; // cos(phi1)
-        double Rn = SemiMajor / Math.Sqrt(1.0 - es * Sin_p1 * Sin_p1); // Earth radius at location
+    //    double W2 = pnt[0] * pnt[0] + pnt[1] * pnt[1]; // Square of distance from Z axis
+    //    double W = Math.Sqrt(W2); // distance from Z axis
+    //    double T0 = Z * m_AD_C; // initial estimate of vertical component
+    //    double S0 = Math.Sqrt(T0 * T0 + W2); //initial estimate of horizontal component
+    //    double Sin_B0 = T0 / S0; // sin(B0), B0 is estimate of Bowring aux variable
+    //    double Cos_B0 = W / S0; // cos(B0)
+    //    double Sin3_B0 = Math.Pow(Sin_B0, 3);
+    //    double T1 = Z + m_SemiMinor2 * ses * Sin3_B0; //corrected estimate of vertical component
+    //    double Sum = W - m_SemiMajor * es * Cos_B0 * Cos_B0 * Cos_B0; // numerator of cos(phi1)
+    //    double S1 = Math.Sqrt(T1 * T1 + Sum * Sum); // corrected estimate of horizontal component
+    //    double Sin_p1 = T1 / S1; // sin(phi1), phi1 is estimated latitude
+    //    double Cos_p1 = Sum / S1; // cos(phi1)
+    //    double Rn = m_SemiMajor / Math.Sqrt(1.0 - es * Sin_p1 * Sin_p1); // Earth radius at location
 
-        if (Cos_p1 >= COS_67P5)
-        {
-            height = W / Cos_p1 - Rn;
-        }
-        else if (Cos_p1 <= -COS_67P5)
-        {
-            height = W / -Cos_p1 - Rn;
-        }
-        else
-        {
-            height = Z / Sin_p1 + Rn * (es - 1.0);
-        }
+    //    if (Cos_p1 >= m_COS_67P5)
+    //    {
+    //        height = W / Cos_p1 - Rn;
+    //    }
+    //    else if (Cos_p1 <= -m_COS_67P5)
+    //    {
+    //        height = W / -Cos_p1 - Rn;
+    //    }
+    //    else
+    //    {
+    //        height = Z / Sin_p1 + Rn * (es - 1.0);
+    //    }
 
-        if (!At_Pole)
-        {
-            lat = Math.Atan(Sin_p1 / Cos_p1);
-        }
+    //    if (!At_Pole)
+    //    {
+    //        lat = Math.Atan(Sin_p1 / Cos_p1);
+    //    }
 
-        return new[] {RadiansToDegrees(lon), RadiansToDegrees(lat), height,};
-    }
+    //    return [RadiansToDegrees(lon), RadiansToDegrees(lat), height,];
+    //}
 
-    double[] MTD11(double[] p)
+    static double[] MTD11(double[] p)
     {
         double e0, e1, e2, e3; // eccentricity constants		
-        double e, es, esp; // eccentricity constants		
+        double es, esp; // eccentricity constants		
         double ml0; // small value m
 
-        es = 1.0 - Math.Pow(SemiMinor / SemiMajor, 2);
-        e = Math.Sqrt(es);
+        es = 1.0 - Math.Pow(m_SemiMinor / m_SemiMajor, 2);
+        //e = Math.Sqrt(es);
         e0 = E0Fn(es);
         e1 = E1Fn(es);
         e2 = E2Fn(es);
         e3 = E3Fn(es);
-        ml0 = SemiMajor * Mlfn(e0, e1, e2, e3, LatOrigin);
+        ml0 = m_SemiMajor * Mlfn(e0, e1, e2, e3, m_LatOrigin);
         esp = es / (1.0 - es);
 
         // ...
@@ -380,40 +367,44 @@ public class LKS94Projection : PureProjection
         double con, phi;
         double delta_phi;
         long i;
-        double sin_phi, cos_phi, tan_phi;
+        double tan_phi;
         double c, cs, t, ts, n, r, d, ds;
         long max_iter = 6;
 
-        double x = p[0] * MetersPerUnit - FalseEasting;
-        double y = p[1] * MetersPerUnit - FalseNorthing;
+        double x = p[0] * m_MetersPerUnit - m_FalseEasting;
+        double y = p[1] * m_MetersPerUnit - m_FalseNorthing;
 
-        con = (ml0 + y / ScaleFactor) / SemiMajor;
+        con = (ml0 + y / m_ScaleFactor) / m_SemiMajor;
         phi = con;
-        for (i = 0;; i++)
+        for (i = 0; ; i++)
         {
             delta_phi =
                 (con + e1 * Math.Sin(2.0 * phi) - e2 * Math.Sin(4.0 * phi) + e3 * Math.Sin(6.0 * phi)) / e0 - phi;
             phi += delta_phi;
 
             if (Math.Abs(delta_phi) <= Epsilon)
+            {
                 break;
+            }
 
             if (i >= max_iter)
+            {
                 throw new ArgumentException("Latitude failed to converge");
+            }
         }
 
         if (Math.Abs(phi) < HalfPi)
         {
-            SinCos(phi, out sin_phi, out cos_phi);
+            SinCos(phi, out double sin_phi, out double cos_phi);
             tan_phi = Math.Tan(phi);
             c = esp * Math.Pow(cos_phi, 2);
             cs = Math.Pow(c, 2);
             t = Math.Pow(tan_phi, 2);
             ts = Math.Pow(t, 2);
             con = 1.0 - es * Math.Pow(sin_phi, 2);
-            n = SemiMajor / Math.Sqrt(con);
+            n = m_SemiMajor / Math.Sqrt(con);
             r = n * (1.0 - es) / con;
-            d = x / (n * ScaleFactor);
+            d = x / (n * m_ScaleFactor);
             ds = Math.Pow(d, 2);
 
             double lat = phi - n * tan_phi * ds / r * (0.5 - ds / 24.0 * (5.0 + 3.0 * t +
@@ -422,28 +413,35 @@ public class LKS94Projection : PureProjection
                                                                                   298.0 * c + 45.0 * ts -
                                                                                   252.0 * esp - 3.0 * cs)));
 
-            double lon = AdjustLongitude(CentralMeridian + d * (1.0 - ds / 6.0 * (1.0 + 2.0 * t +
+            double lon = AdjustLongitude(m_CentralMeridian + d * (1.0 - ds / 6.0 * (1.0 + 2.0 * t +
                                                                                   c - ds / 20.0 *
                                                                                   (5.0 - 2.0 * c + 28.0 * t -
                                                                                    3.0 * cs + 8.0 * esp +
                                                                                    24.0 * ts))) / cos_phi);
 
             if (p.Length < 3)
-                return new[] {RadiansToDegrees(lon), RadiansToDegrees(lat)};
+            {
+                return [RadiansToDegrees(lon), RadiansToDegrees(lat)];
+            }
             else
-                return new[] {RadiansToDegrees(lon), RadiansToDegrees(lat), p[2]};
+            {
+                return [RadiansToDegrees(lon), RadiansToDegrees(lat), p[2]];
+            }
         }
         else
         {
             if (p.Length < 3)
-                return new[] {RadiansToDegrees(HalfPi * Sign(y)), RadiansToDegrees(CentralMeridian)};
+            {
+                return [RadiansToDegrees(HalfPi * Sign(y)), RadiansToDegrees(m_CentralMeridian)];
+            }
             else
-                return new[] {RadiansToDegrees(HalfPi * Sign(y)), RadiansToDegrees(CentralMeridian), p[2]};
+            {
+                return [RadiansToDegrees(HalfPi * Sign(y)), RadiansToDegrees(m_CentralMeridian), p[2]];
+            }
         }
     }
 
     #region -- levels info --
-
     //  layers":[{"id":0,"name":"Lietuva","parentLayerId":-1, "defaultVisibility":true,
     // "subLayerIds":null,
     //
@@ -482,7 +480,6 @@ public class LKS94Projection : PureProjection
     //"supportedImageFormatTypes":"PNG32,PNG24,PNG,JPG,DIB,TIFF,EMF,PS,PDF,GIF,SVG,SVGZ,BMP",
     //"documentInfo":{"Title":"Lietuvos topografinis žemėlapis"
     //"xmax":1050000,"ymax":6500000, units":"esriMeters"
-
     #endregion
 
     public static double GetTileMatrixResolution(int zoom)
@@ -492,86 +489,85 @@ public class LKS94Projection : PureProjection
         switch (zoom)
         {
             #region -- sizes --
-
             case 0:
-            {
-                ret = 1587.5031750063501;
-            }
+                {
+                    ret = 1587.5031750063501;
+                }
                 break;
 
             case 1:
-            {
-                ret = 793.7515875031751;
-            }
+                {
+                    ret = 793.7515875031751;
+                }
                 break;
 
             case 2:
-            {
-                ret = 529.1677250021168;
-            }
+                {
+                    ret = 529.1677250021168;
+                }
                 break;
 
             case 3:
-            {
-                ret = 264.5838625010584;
-            }
+                {
+                    ret = 264.5838625010584;
+                }
                 break;
 
             case 4:
-            {
-                ret = 132.2919312505292;
-            }
+                {
+                    ret = 132.2919312505292;
+                }
                 break;
 
             case 5:
-            {
-                ret = 52.91677250021167;
-            }
+                {
+                    ret = 52.91677250021167;
+                }
                 break;
 
             case 6:
-            {
-                ret = 26.458386250105836;
-            }
+                {
+                    ret = 26.458386250105836;
+                }
                 break;
 
             case 7:
-            {
-                ret = 13.229193125052918;
-            }
+                {
+                    ret = 13.229193125052918;
+                }
                 break;
 
             case 8:
-            {
-                ret = 6.614596562526459;
-            }
+                {
+                    ret = 6.614596562526459;
+                }
                 break;
 
             case 9:
-            {
-                ret = 2.6458386250105836;
-            }
+                {
+                    ret = 2.6458386250105836;
+                }
                 break;
 
             case 10:
-            {
-                ret = 1.3229193125052918;
-            }
+                {
+                    ret = 1.3229193125052918;
+                }
                 break;
 
             case 11:
-            {
-                ret = 0.5291677250021167;
-            }
+                {
+                    ret = 0.5291677250021167;
+                }
                 break;
 
             case 12:
-            {
-                ret = 0.26458386250105836;
-            }
+                {
+                    ret = 0.26458386250105836;
+                }
                 break;
 
-            #endregion
+                #endregion
         }
 
         return ret;
@@ -582,43 +578,43 @@ public class LKS94Projection : PureProjection
         return GetTileMatrixResolution(zoom);
     }
 
-    Dictionary<int, GSize> _extentMatrixMin;
-    Dictionary<int, GSize> _extentMatrixMax;
+    Dictionary<int, GSize> m_ExtentMatrixMin;
+    Dictionary<int, GSize> m_ExtentMatrixMax;
 
     public override GSize GetTileMatrixMinXY(int zoom)
     {
-        if (_extentMatrixMin == null)
+        if (m_ExtentMatrixMin == null)
         {
             GenerateExtents();
         }
 
-        return _extentMatrixMin[zoom];
+        return m_ExtentMatrixMin[zoom];
     }
 
     public override GSize GetTileMatrixMaxXY(int zoom)
     {
-        if (_extentMatrixMax == null)
+        if (m_ExtentMatrixMax == null)
         {
             GenerateExtents();
         }
 
-        return _extentMatrixMax[zoom];
+        return m_ExtentMatrixMax[zoom];
     }
 
     void GenerateExtents()
     {
-        _extentMatrixMin = new Dictionary<int, GSize>();
-        _extentMatrixMax = new Dictionary<int, GSize>();
+        m_ExtentMatrixMin = [];
+        m_ExtentMatrixMax = [];
         //RectLatLng Extent = RectLatLng.FromLTRB(219818.60040028347, 6407318.126743601, 747927.9899523959, 5826291.964691277);
 
         for (int i = 0; i <= 12; i++)
         {
-            double res = GetTileMatrixResolution(i);
+            // double res = GetTileMatrixResolution(i);
             //extentMatrixMin.Add(i, new GSize(FromPixelToTileXY(LksToPixel(new double[]{ Extent.Left, Extent.Top }, res))));
             //extentMatrixMax.Add(i, new GSize(FromPixelToTileXY(LksToPixel(new double[] { Extent.Right, Extent.Bottom }, res))));
 
-            _extentMatrixMin.Add(i, new GSize(FromPixelToTileXY(FromLatLngToPixel(Bounds.LocationTopLeft, i))));
-            _extentMatrixMax.Add(i, new GSize(FromPixelToTileXY(FromLatLngToPixel(Bounds.LocationRightBottom, i))));
+            m_ExtentMatrixMin.Add(i, new GSize(FromPixelToTileXY(FromLatLngToPixel(Bounds.LocationTopLeft, i))));
+            m_ExtentMatrixMax.Add(i, new GSize(FromPixelToTileXY(FromLatLngToPixel(Bounds.LocationRightBottom, i))));
         }
     }
 }

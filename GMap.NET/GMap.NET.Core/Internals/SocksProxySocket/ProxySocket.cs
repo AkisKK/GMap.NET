@@ -136,9 +136,13 @@ internal class ProxySocket : Socket
         {
             base.Connect(ProxyEndPoint);
             if (ProxyType == ProxyTypes.Socks4)
+            {
                 new Socks4Handler(this, ProxyUser).Negotiate((IPEndPoint)remoteEP);
+            }
             else if (ProxyType == ProxyTypes.Socks5)
+            {
                 new Socks5Handler(this, ProxyUser, ProxyPass).Negotiate((IPEndPoint)remoteEP);
+            }
         }
     }
 
@@ -368,7 +372,10 @@ internal class ProxySocket : Socket
     private void OnHandShakeComplete(Exception error)
     {
         if (error != null)
+        {
             Close();
+        }
+
         ToThrow = error;
         AsyncResult.Reset();
         m_CallBack?.Invoke(AsyncResult);

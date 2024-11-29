@@ -21,42 +21,21 @@ public abstract class NearMapProviderBase : GMapProvider
 
     #region GMapProvider Members
 
-    public override Guid Id
-    {
-        get
-        {
-            throw new NotImplementedException();
-        }
-    }
+    public override Guid Id => throw new NotImplementedException();
 
-    public override string Name
-    {
-        get
-        {
-            throw new NotImplementedException();
-        }
-    }
+    public override string Name => throw new NotImplementedException();
 
-    public override PureProjection Projection
-    {
-        get
-        {
-            return MercatorProjection.Instance;
-        }
-    }
+    public override PureProjection Projection => MercatorProjection.Instance;
 
-    GMapProvider[] _overlays;
+    GMapProvider[] m_Overlays;
 
     public override GMapProvider[] Overlays
     {
         get
         {
-            if (_overlays == null)
-            {
-                _overlays = new GMapProvider[] { this };
-            }
+            m_Overlays ??= [this];
 
-            return _overlays;
+            return m_Overlays;
         }
     }
 
@@ -73,9 +52,9 @@ public abstract class NearMapProviderBase : GMapProvider
         return (int)(pos.X & 2) % max;
     }
 
-    static readonly string SecureStr = "Vk52edzNRYKbGjF8Ur0WhmQlZs4wgipDETyL1oOMXIAvqtxJBuf7H36acCnS9P";
+    static readonly string m_SecureStr = "Vk52edzNRYKbGjF8Ur0WhmQlZs4wgipDETyL1oOMXIAvqtxJBuf7H36acCnS9P";
 
-    public string GetSafeString(GPoint pos)
+    public static string GetSafeString(GPoint pos)
     {
         #region -- source --
 
@@ -116,7 +95,7 @@ public abstract class NearMapProviderBase : GMapProvider
         for (int i = 0; i < arg.Length; i++)
         {
             offset += int.Parse(arg[i].ToString());
-            ret += SecureStr[offset % SecureStr.Length];
+            ret += m_SecureStr[offset % m_SecureStr.Length];
         }
 
         return ret;
@@ -142,26 +121,20 @@ public class NearMapProvider : NearMapProviderBase
 
     #region GMapProvider Members
 
-    public override Guid Id
-    {
-        get;
-    } = new Guid("E33803DF-22CB-4FFA-B8E3-15383ED9969D");
+    public override Guid Id { get; } = new Guid("E33803DF-22CB-4FFA-B8E3-15383ED9969D");
 
-    public override string Name
-    {
-        get;
-    } = "NearMap";
+    public override string Name { get; } = "NearMap";
 
     public override PureImage GetTileImage(GPoint pos, int zoom)
     {
-        string url = MakeTileImageUrl(pos, zoom, LanguageStr);
+        string url = MakeTileImageUrl(pos, zoom);
 
         return GetTileImageUsingHttp(url);
     }
 
     #endregion
 
-    string MakeTileImageUrl(GPoint pos, int zoom, string language)
+    static string MakeTileImageUrl(GPoint pos, int zoom)
     {
         // http://web1.nearmap.com/maps/hl=en&x=18681&y=10415&z=15&nml=Map_&nmg=1&s=kY8lZssipLIJ7c5
         // http://web1.nearmap.com/kh/v=nm&hl=en&x=20&y=8&z=5&nml=Map_&s=55KUZ
@@ -172,8 +145,8 @@ public class NearMapProvider : NearMapProviderBase
         // http://web1.au.nearmap.com/maps/hl=en&x=1855837&y=1265913&z=21&nml=V&httpauth=false&version=2
         // http://web2.au.nearmap.com/maps/hl=en&x=231977&y=158238&z=18&nml=Dem&httpauth=false&version=2
 
-        return string.Format(UrlFormat, GetServerNum(pos, 3), pos.X, pos.Y, zoom, GetSafeString(pos));
+        return string.Format(m_UrlFormat, GetServerNum(pos, 3), pos.X, pos.Y, zoom, GetSafeString(pos));
     }
 
-    static readonly string UrlFormat = "http://web{0}.nearmap.com/kh/v=nm&hl=en&x={1}&y={2}&z={3}&nml=Map_{4}";
+    static readonly string m_UrlFormat = "http://web{0}.nearmap.com/kh/v=nm&hl=en&x={1}&y={2}&z={3}&nml=Map_{4}";
 }

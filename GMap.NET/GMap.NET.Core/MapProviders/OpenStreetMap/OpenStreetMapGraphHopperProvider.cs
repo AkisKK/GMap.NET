@@ -27,42 +27,33 @@ public class OpenStreetMapGraphHopperProvider : OpenStreetMapProviderBase
     }
 
     #region GMapProvider Members
+    public override Guid Id { get; } = new Guid("FAACDE73-4B90-5AE6-BB4A-ADE4F3545559");
 
-    public override Guid Id
-    {
-        get;
-    } = new Guid("FAACDE73-4B90-5AE6-BB4A-ADE4F3545559");
-
-    public override string Name
-    {
-        get;
-    } = "OpenStreetMapGraphHopper";
+    public override string Name { get; } = "OpenStreetMapGraphHopper";
 
     public string ApiKey = string.Empty;
 
-    GMapProvider[] _overlays;
+    GMapProvider[] m_Overlays;
 
     public override GMapProvider[] Overlays
     {
         get
         {
-            if (_overlays == null)
-            {
-                _overlays = new GMapProvider[] { OpenStreetMapProvider.Instance, this };
-            }
+            m_Overlays ??= [OpenStreetMapProvider.Instance, this];
 
-            return _overlays;
+            return m_Overlays;
         }
     }
-
     #endregion
 
     #region GMapRoutingProvider Members
-
-    public override MapRoute GetRoute(PointLatLng start, PointLatLng end, bool avoidHighways, bool walkingMode,
-       int zoom)
+    public override MapRoute GetRoute(PointLatLng start,
+                                      PointLatLng end,
+                                      bool avoidHighways,
+                                      bool walkingMode,
+                                      int zoom)
     {
-        return GetRoute(MakeRoutingUrl(start, end, walkingMode ? TravelTypeFoot : TravelTypeMotorCar));
+        return GetRoute(MakeRoutingUrl(start, end, walkingMode ? m_TravelTypeFoot : m_TravelTypeMotorCar));
     }
 
     public override MapRoute GetRoute(string start, string end, bool avoidHighways, bool walkingMode, int zoom)
@@ -71,10 +62,10 @@ public class OpenStreetMapGraphHopperProvider : OpenStreetMapProviderBase
     }
 
     #region -- internals --
-    string MakeRoutingUrl(PointLatLng start, PointLatLng end, string travelType)
+    static string MakeRoutingUrl(PointLatLng start, PointLatLng end, string travelType)
     {
         return string.Format(CultureInfo.InvariantCulture,
-            RoutingUrlFormat,
+            m_RoutingUrlFormat,
             start.Lat,
             start.Lng,
             end.Lat,
@@ -146,17 +137,13 @@ public class OpenStreetMapGraphHopperProvider : OpenStreetMapProviderBase
         return ret;
     }
 
-    static readonly string TravelTypeFoot = "foot";
-    static readonly string TravelTypeMotorCar = "car";
-
-    static readonly string RoutingUrlFormat = "https://graphhopper.com/api/1/route?point={0},{1}&point={2},{3}&vehicle={4}&type=json";
-
+    static readonly string m_TravelTypeFoot = "foot";
+    static readonly string m_TravelTypeMotorCar = "car";
+    static readonly string m_RoutingUrlFormat = "https://graphhopper.com/api/1/route?point={0},{1}&point={2},{3}&vehicle={4}&type=json";
     #endregion
-
     #endregion
 
     #region GeocodingProvider Members
-
     public new GeoCoderStatusCode GetPoints(string keywords, out List<PointLatLng> pointList)
     {
         return GetLatLngFromGeocoderUrl(MakeGeocoderUrl(keywords), out pointList);
@@ -164,8 +151,7 @@ public class OpenStreetMapGraphHopperProvider : OpenStreetMapProviderBase
 
     public new PointLatLng? GetPoint(string keywords, out GeoCoderStatusCode status)
     {
-        List<PointLatLng> pointList;
-        status = GetPoints(keywords, out pointList);
+        status = GetPoints(keywords, out var pointList);
         return pointList != null && pointList.Count > 0 ? pointList[0] : null;
     }
 
@@ -185,28 +171,25 @@ public class OpenStreetMapGraphHopperProvider : OpenStreetMapProviderBase
 
     public new GeoCoderStatusCode GetPlacemarks(PointLatLng location, out List<Placemark> placemarkList)
     {
-        GeoCoderStatusCode status;
-        placemarkList = GetPlacemarkFromReverseGeocoderUrl(MakeReverseGeocoderUrl(location), out status);
+        placemarkList = GetPlacemarkFromReverseGeocoderUrl(MakeReverseGeocoderUrl(location), out var status);
         return status;
     }
 
     public new Placemark? GetPlacemark(PointLatLng location, out GeoCoderStatusCode status)
     {
-        List<Placemark> placemarkList;
-        status = GetPlacemarks(location, out placemarkList);
+        status = GetPlacemarks(location, out var placemarkList);
         return placemarkList != null && placemarkList.Count > 0 ? placemarkList[0] : null;
     }
 
     #region -- internals --
-
-    string MakeGeocoderUrl(string keywords)
+    static string MakeGeocoderUrl(string keywords)
     {
-        return string.Format(GeocoderUrlFormat, keywords.Replace(' ', '+'));
+        return string.Format(m_GeocoderUrlFormat, keywords.Replace(' ', '+'));
     }
 
-    string MakeReverseGeocoderUrl(PointLatLng pt)
+    static string MakeReverseGeocoderUrl(PointLatLng pt)
     {
-        return string.Format(CultureInfo.InvariantCulture, ReverseGeocoderUrlFormat, pt.Lat, pt.Lng);
+        return string.Format(CultureInfo.InvariantCulture, m_ReverseGeocoderUrlFormat, pt.Lat, pt.Lng);
     }
 
     GeoCoderStatusCode GetLatLngFromGeocoderUrl(string url, out List<PointLatLng> pointList)
@@ -243,7 +226,7 @@ public class OpenStreetMapGraphHopperProvider : OpenStreetMapProviderBase
 
             if (!string.IsNullOrEmpty(geo))
             {
-                pointList = new List<PointLatLng>();
+                pointList = [];
 
                 foreach (var item in result.Hits)
                 {
@@ -296,7 +279,7 @@ public class OpenStreetMapGraphHopperProvider : OpenStreetMapProviderBase
 
             if (!string.IsNullOrEmpty(geo))
             {
-                ret = new List<Placemark>();
+                ret = [];
 
                 foreach (var item in routeResult.Hits)
                 {
@@ -331,11 +314,9 @@ public class OpenStreetMapGraphHopperProvider : OpenStreetMapProviderBase
         return ret;
     }
 
-    static readonly string ReverseGeocoderUrlFormat = "https://graphhopper.com/api/1/geocode?point={0},{1}&locale=en&reverse=true";
+    static readonly string m_ReverseGeocoderUrlFormat = "https://graphhopper.com/api/1/geocode?point={0},{1}&locale=en&reverse=true";
 
-    static readonly string GeocoderUrlFormat = "https://graphhopper.com/api/1/geocode?q={0}&locale=en";
-
+    static readonly string m_GeocoderUrlFormat = "https://graphhopper.com/api/1/geocode?q={0}&locale=en";
     #endregion
-
     #endregion
 }

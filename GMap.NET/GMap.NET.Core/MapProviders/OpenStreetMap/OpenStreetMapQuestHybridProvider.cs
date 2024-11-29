@@ -21,45 +21,35 @@ public class OpenStreetMapQuestHybridProvider : OpenStreetMapProviderBase
     }
 
     #region GMapProvider Members
+    public override Guid Id { get; } = new Guid("95E05027-F846-4429-AB7A-9445ABEEFA2A");
 
-    public override Guid Id
-    {
-        get;
-    } = new Guid("95E05027-F846-4429-AB7A-9445ABEEFA2A");
+    public override string Name { get; } = "OpenStreetMapQuestHybrid";
 
-    public override string Name
-    {
-        get;
-    } = "OpenStreetMapQuestHybrid";
-
-    GMapProvider[] _overlays;
+    GMapProvider[] m_Overlays;
 
     public override GMapProvider[] Overlays
     {
         get
         {
-            if (_overlays == null)
-            {
-                _overlays = new GMapProvider[] { OpenStreetMapQuestSatelliteProvider.Instance, this };
-            }
+            m_Overlays ??= [OpenStreetMapQuestSatelliteProvider.Instance, this];
 
-            return _overlays;
+            return m_Overlays;
         }
     }
 
     public override PureImage GetTileImage(GPoint pos, int zoom)
     {
-        string url = MakeTileImageUrl(pos, zoom, string.Empty);
+        string url = MakeTileImageUrl(pos, zoom);
 
         return GetTileImageUsingHttp(url);
     }
 
     #endregion
 
-    string MakeTileImageUrl(GPoint pos, int zoom, string language)
+    static string MakeTileImageUrl(GPoint pos, int zoom)
     {
-        return string.Format(UrlFormat, GetServerNum(pos, 3) + 1, zoom, pos.X, pos.Y);
+        return string.Format(m_UrlFormat, GetServerNum(pos, 3) + 1, zoom, pos.X, pos.Y);
     }
 
-    static readonly string UrlFormat = "http://otile{0}.mqcdn.com/tiles/1.0.0/hyb/{1}/{2}/{3}.png";
+    static readonly string m_UrlFormat = "http://otile{0}.mqcdn.com/tiles/1.0.0/hyb/{1}/{2}/{3}.png";
 }

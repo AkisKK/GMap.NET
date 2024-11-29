@@ -7,7 +7,7 @@ namespace GMap.NET;
 /// </summary>
 public struct GSize
 {
-    public static readonly GSize Empty = new GSize();
+    public static readonly GSize Empty = new();
 
     public GSize(GPoint pt)
     {
@@ -79,7 +79,9 @@ public struct GSize
     public override bool Equals(object obj)
     {
         if (!(obj is GSize))
+        {
             return false;
+        }
 
         var comp = (GSize)obj;
         // Note value types can't have derived classes, so we don't need to

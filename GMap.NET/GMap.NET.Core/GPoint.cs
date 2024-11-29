@@ -10,7 +10,7 @@ namespace GMap.NET;
 [Serializable]
 public struct GPoint
 {
-    public static readonly GPoint Empty = new GPoint();
+    public static readonly GPoint Empty = new();
 
     public GPoint(long x, long y)
     {
@@ -82,7 +82,9 @@ public struct GPoint
     public override bool Equals(object obj)
     {
         if (!(obj is GPoint))
+        {
             return false;
+        }
 
         var comp = (GPoint)obj;
         return comp.X == X && comp.Y == Y;

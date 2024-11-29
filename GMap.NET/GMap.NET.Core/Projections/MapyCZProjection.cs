@@ -10,15 +10,14 @@ namespace GMap.NET.Projections;
 /// </summary>
 public class MapyCZProjection : PureProjection
 {
-    public static readonly MapyCZProjection Instance = new MapyCZProjection();
+    public static readonly MapyCZProjection Instance = new();
 
-    static readonly double MinLatitude = 26;
-    static readonly double MaxLatitude = 76;
-    static readonly double MinLongitude = -26;
-    static readonly double MaxLongitude = 38;
+    static readonly double m_MinLatitude = 26;
+    static readonly double m_MaxLatitude = 76;
+    static readonly double m_MinLongitude = -26;
+    static readonly double m_MaxLongitude = 38;
 
     #region -- Common --
-
     static int GetLCM(int zone)
     {
         if (zone < 1 || zone > 60)
@@ -39,13 +38,11 @@ public class MapyCZProjection : PureProjection
         return x;
     }
 
-    static readonly double UTMSIZE = 2;
-    static readonly double UNITS = 1;
-
+    static readonly double m_UTMSIZE = 2;
+    static readonly double m_UNITS = 1;
     #endregion
 
     #region -- WGSToMapyCZ --
-
     public long[] WGSToPP(double la, double lo)
     {
         double[] utmEE = WGSToUTM(DegreesToRadians(la), DegreesToRadians(lo), 33);
@@ -58,14 +55,14 @@ public class MapyCZProjection : PureProjection
         double x = (Round(east) - -3700000.0) * Pow(2, 5);
         double y = (Round(north) - 1300000.0) * Pow(2, 5);
 
-        return new[] {(long)x, (long)y};
+        return [(long)x, (long)y];
     }
 
     double[] WGSToUTM(double la, double lo, int zone)
     {
         double latrad = la;
-        double lonrad = lo;
-        double latddd = RadiansToDegrees(la);
+        // double lonrad = lo;
+        // double latddd = RadiansToDegrees(la);
         double londdd = RadiansToDegrees(lo);
 
         float k = 0.9996f;
@@ -73,12 +70,12 @@ public class MapyCZProjection : PureProjection
         double f = Flattening;
         double b = a * (1.0 - f);
         double e2 = (a * a - b * b) / (a * a);
-        double e = Sqrt(e2);
-        double ei2 = (a * a - b * b) / (b * b);
-        double ei = Sqrt(ei2);
-        double n = (a - b) / (a + b);
-        double g = a * (1.0 - n) * (1.0 - n * n) * (1.0 + 9 / 4.0 * n * n + 255.0 / 64.0 * Pow(n, 4)) *
-                   (PI / 180.0);
+        // double e = Sqrt(e2);
+        // double ei2 = (a * a - b * b) / (b * b);
+        // double ei = Sqrt(ei2);
+        // double n = (a - b) / (a + b);
+        // double g = a * (1.0 - n) * (1.0 - n * n) * (1.0 + 9 / 4.0 * n * n + 255.0 / 64.0 * Pow(n, 4)) *
+        //            (PI / 180.0);
         double w = londdd - (zone * 6 - 183);
         w = DegreesToRadians(w);
         double t = Tan(latrad);
@@ -98,8 +95,8 @@ public class MapyCZProjection : PureProjection
                          Pow(t, 4));
         double eterm3 = Pow(w, 6) / 5040.0 * Pow(coslat, 6) * (61.0 - 479 * t * t + 179 * Pow(t, 4) - Pow(t, 6));
         double dE = k * nu * w * coslat * (1.0 + eterm1 + eterm2 + eterm3);
-        double east = 500000.0 + dE / UNITS;
-        east = Roundoff(east, UTMSIZE);
+        double east = 500000.0 + dE / m_UNITS;
+        east = Roundoff(east, m_UTMSIZE);
         double nterm1 = w * w / 2.0 * nu * sinlat * coslat;
         double nterm2 = Pow(w, 4) / 24.0 * nu * sinlat * Pow(coslat, 3) * (4 * psi * psi + psi - t * t);
         double nterm3 = Pow(w, 6) / 720.0 * nu * sinlat * Pow(coslat, 5) *
@@ -108,16 +105,14 @@ public class MapyCZProjection : PureProjection
         double nterm4 = Pow(w, 8) / 40320.0 * nu * sinlat * Pow(coslat, 7) *
                         (1385.0 - 3111 * t * t + 543 * Pow(t, 4) - Pow(t, 6));
         double dN = k * (m + nterm1 + nterm2 + nterm3 + nterm4);
-        double north = 0.0 + dN / UNITS;
-        north = Roundoff(north, UTMSIZE);
+        double north = 0.0 + dN / m_UNITS;
+        north = Roundoff(north, m_UTMSIZE);
 
-        return new[] {east, north, zone};
+        return [east, north, zone];
     }
-
     #endregion
 
     #region -- MapyCZToWGS --
-
     public double[] PPToWGS(double x, double y)
     {
         double[] utmEE = PPToUTMEE(x, y);
@@ -125,14 +120,14 @@ public class MapyCZProjection : PureProjection
         return ret;
     }
 
-    double[] PPToUTMEE(double x, double y)
+    static double[] PPToUTMEE(double x, double y)
     {
         double north = y * Pow(2, -5) + 1300000.0;
         double east = x * Pow(2, -5) + -3700000.0;
-        east = Roundoff(east, UTMSIZE);
-        north = Roundoff(north, UTMSIZE);
+        east = Roundoff(east, m_UTMSIZE);
+        north = Roundoff(north, m_UTMSIZE);
 
-        return new[] {east, north};
+        return [east, north];
     }
 
     double[] UTMToWGS(double eastIn, double northIn, int zone)
@@ -142,13 +137,13 @@ public class MapyCZProjection : PureProjection
         double f = Flattening;
         double b = a * (1.0 - f);
         double e2 = (a * a - b * b) / (a * a);
-        double e = Sqrt(e2);
-        double ei2 = (a * a - b * b) / (b * b);
-        double ei = Sqrt(ei2);
+        // double e = Sqrt(e2);
+        // double ei2 = (a * a - b * b) / (b * b);
+        // double ei = Sqrt(ei2);
         double n = (a - b) / (a + b);
         double g = a * (1.0 - n) * (1.0 - n * n) * (1.0 + 9 / 4.0 * n * n + 255 / 64.0 * Pow(n, 4)) * (PI / 180.0);
-        double north = (northIn - 0) * UNITS;
-        double east = (eastIn - 500000.0) * UNITS;
+        double north = (northIn - 0) * m_UNITS;
+        double east = (eastIn - 500000.0) * m_UNITS;
         double m = north / k;
         double sigma = m * PI / (180.0 * g);
         double footlat = sigma + (3 * n / 2.0 - 27 * Pow(n, 3) / 32.0) * Sin(2 * sigma) +
@@ -181,49 +176,27 @@ public class MapyCZProjection : PureProjection
         double longrad = DegreesToRadians(GetLCM(zone)) + w;
         double lon = RadiansToDegrees(longrad);
 
-        return new[] {lat, lon, latrad, longrad};
+        return [lat, lon, latrad, longrad];
     }
-
     #endregion
 
-    public override RectLatLng Bounds
-    {
-        get
-        {
-            return RectLatLng.FromLTRB(MinLongitude, MaxLatitude, MaxLongitude, MinLatitude);
-        }
-    }
+    public override RectLatLng Bounds => RectLatLng.FromLTRB(m_MinLongitude,
+                                                             m_MaxLatitude,
+                                                             m_MaxLongitude,
+                                                             m_MinLatitude);
 
-    public override GSize TileSize
-    {
-        get
-        {
-            return new GSize(256, 256);
-        }
-    }
+    public override GSize TileSize => new GSize(256, 256);
 
-    public override double Axis
-    {
-        get
-        {
-            return 6378137;
-        }
-    }
+    public override double Axis => 6378137;
 
-    public override double Flattening
-    {
-        get
-        {
-            return 1.0 / 298.257223563;
-        }
-    }
+    public override double Flattening => 1.0 / 298.257223563;
 
     public override GPoint FromLatLngToPixel(double lat, double lng, int zoom)
     {
         var ret = GPoint.Empty;
 
-        lat = Clip(lat, MinLatitude, MaxLatitude);
-        lng = Clip(lng, MinLongitude, MaxLongitude);
+        lat = Clip(lat, m_MinLatitude, m_MaxLatitude);
+        lng = Clip(lng, m_MinLongitude, m_MaxLongitude);
 
         var size = GetTileMatrixSizePixel(zoom);
         {
@@ -244,8 +217,8 @@ public class MapyCZProjection : PureProjection
         long oY = (size.Height - y) << (20 - zoom);
         {
             double[] l = PPToWGS(oX, oY);
-            ret.Lat = Clip(l[0], MinLatitude, MaxLatitude);
-            ret.Lng = Clip(l[1], MinLongitude, MaxLongitude);
+            ret.Lat = Clip(l[0], m_MinLatitude, m_MaxLatitude);
+            ret.Lng = Clip(l[1], m_MinLongitude, m_MaxLongitude);
         }
         return ret;
     }

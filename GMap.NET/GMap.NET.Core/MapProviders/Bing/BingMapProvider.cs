@@ -658,16 +658,22 @@ public abstract partial class BingMapProviderBase : GMapProvider, RoutingProvide
         string parameters = string.Empty;
 
         if (!AddFieldIfNotEmpty(ref parameters, "countryRegion", placemark.CountryNameCode))
+        {
             AddFieldIfNotEmpty(ref parameters, "countryRegion", placemark.CountryName);
+        }
 
         AddFieldIfNotEmpty(ref parameters, "adminDistrict", placemark.DistrictName);
         AddFieldIfNotEmpty(ref parameters, "locality", placemark.LocalityName);
         AddFieldIfNotEmpty(ref parameters, "postalCode", placemark.PostalCodeNumber);
 
         if (!string.IsNullOrEmpty(placemark.HouseNo))
+        {
             AddFieldIfNotEmpty(ref parameters, "addressLine", placemark.ThoroughfareName + " " + placemark.HouseNo);
+        }
         else
+        {
             AddFieldIfNotEmpty(ref parameters, "addressLine", placemark.ThoroughfareName);
+        }
 
         return MakeGeocoderUrl(parameters);
     }

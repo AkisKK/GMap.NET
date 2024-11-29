@@ -20,43 +20,21 @@ public abstract class YahooMapProviderBase : GMapProvider, GeocodingProvider
     public int MinExpectedQuality = 39;
 
     #region GMapProvider Members
+    public override Guid Id => throw new NotImplementedException();
 
-    public override Guid Id
-    {
-        get
-        {
-            throw new NotImplementedException();
-        }
-    }
+    public override string Name => throw new NotImplementedException();
 
-    public override string Name
-    {
-        get
-        {
-            throw new NotImplementedException();
-        }
-    }
+    public override PureProjection Projection => MercatorProjection.Instance;
 
-    public override PureProjection Projection
-    {
-        get
-        {
-            return MercatorProjection.Instance;
-        }
-    }
-
-    GMapProvider[] _overlays;
+    GMapProvider[] m_Overlays;
 
     public override GMapProvider[] Overlays
     {
         get
         {
-            if (_overlays == null)
-            {
-                _overlays = new GMapProvider[] { this };
-            }
+            m_Overlays ??= [this];
 
-            return _overlays;
+            return m_Overlays;
         }
     }
 
@@ -64,11 +42,9 @@ public abstract class YahooMapProviderBase : GMapProvider, GeocodingProvider
     {
         throw new NotImplementedException();
     }
-
     #endregion
 
     #region GeocodingProvider Members
-
     public GeoCoderStatusCode GetPoints(string keywords, out List<PointLatLng> pointList)
     {
         // http://where.yahooapis.com/geocode?q=lithuania,vilnius&appid=1234&flags=CG&gflags=QL&locale=LT-lt
@@ -84,8 +60,7 @@ public abstract class YahooMapProviderBase : GMapProvider, GeocodingProvider
 
     public PointLatLng? GetPoint(string keywords, out GeoCoderStatusCode status)
     {
-        List<PointLatLng> pointList;
-        status = GetPoints(keywords, out pointList);
+        status = GetPoints(keywords, out var pointList);
         return pointList != null && pointList.Count > 0 ? pointList[0] : null;
     }
 
@@ -104,8 +79,7 @@ public abstract class YahooMapProviderBase : GMapProvider, GeocodingProvider
 
     public PointLatLng? GetPoint(Placemark placemark, out GeoCoderStatusCode status)
     {
-        List<PointLatLng> pointList;
-        status = GetPoints(placemark, out pointList);
+        status = GetPoints(placemark, out var pointList);
         return pointList != null && pointList.Count > 0 ? pointList[0] : null;
     }
 
@@ -124,8 +98,7 @@ public abstract class YahooMapProviderBase : GMapProvider, GeocodingProvider
 
     public Placemark? GetPlacemark(PointLatLng location, out GeoCoderStatusCode status)
     {
-        List<Placemark> placemarkList;
-        status = GetPlacemarks(location, out placemarkList);
+        status = GetPlacemarks(location, out var placemarkList);
         return placemarkList != null && placemarkList.Count > 0 ? placemarkList[0] : null;
     }
 
@@ -134,7 +107,7 @@ public abstract class YahooMapProviderBase : GMapProvider, GeocodingProvider
     string MakeGeocoderUrl(string keywords)
     {
         return string.Format(CultureInfo.InvariantCulture,
-            GeocoderUrlFormat,
+            m_GeocoderUrlFormat,
             keywords.Replace(' ', '+'),
             AppId,
             !string.IsNullOrEmpty(LanguageStr) ? "&locale=" + LanguageStr : "");
@@ -142,7 +115,7 @@ public abstract class YahooMapProviderBase : GMapProvider, GeocodingProvider
 
     string MakeGeocoderDetailedUrl(Placemark placemark)
     {
-        return string.Format(GeocoderDetailedUrlFormat,
+        return string.Format(m_GeocoderDetailedUrlFormat,
             PrepareUrlString(placemark.CountryName),
             PrepareUrlString(placemark.AdministrativeAreaName),
             PrepareUrlString(placemark.SubAdministrativeAreaName),
@@ -158,16 +131,20 @@ public abstract class YahooMapProviderBase : GMapProvider, GeocodingProvider
     string MakeReverseGeocoderUrl(PointLatLng pt)
     {
         return string.Format(CultureInfo.InvariantCulture,
-            ReverseGeocoderUrlFormat,
+            m_ReverseGeocoderUrlFormat,
             pt.Lat,
             pt.Lng,
             AppId,
             !string.IsNullOrEmpty(LanguageStr) ? "&locale=" + LanguageStr : "");
     }
 
-    string PrepareUrlString(string str)
+    static string PrepareUrlString(string str)
     {
-        if (str == null) return string.Empty;
+        if (str == null)
+        {
+            return string.Empty;
+        }
+
         return str.Replace(' ', '+');
     }
 
@@ -209,7 +186,7 @@ public abstract class YahooMapProviderBase : GMapProvider, GeocodingProvider
                         var l = doc.SelectNodes("/ResultSet/Result");
                         if (l != null)
                         {
-                            pointList = new List<PointLatLng>();
+                            pointList = [];
 
                             foreach (XmlNode n in l)
                             {
@@ -217,7 +194,10 @@ public abstract class YahooMapProviderBase : GMapProvider, GeocodingProvider
                                 if (nn != null)
                                 {
                                     int quality = int.Parse(nn.InnerText);
-                                    if (quality < MinExpectedQuality) continue;
+                                    if (quality < MinExpectedQuality)
+                                    {
+                                        continue;
+                                    }
 
                                     nn = n.SelectSingleNode("latitude");
                                     if (nn != null)
@@ -287,12 +267,15 @@ public abstract class YahooMapProviderBase : GMapProvider, GeocodingProvider
                         var l = doc.SelectNodes("/ResultSet/Result");
                         if (l != null)
                         {
-                            placemarkList = new List<Placemark>();
+                            placemarkList = [];
 
                             foreach (XmlNode n in l)
                             {
                                 var vl = n.SelectSingleNode("name");
-                                if (vl == null) continue;
+                                if (vl == null)
+                                {
+                                    continue;
+                                }
 
                                 var placemark = new Placemark(vl.InnerText);
 
@@ -374,13 +357,13 @@ public abstract class YahooMapProviderBase : GMapProvider, GeocodingProvider
         return status;
     }
 
-    static readonly string ReverseGeocoderUrlFormat =
+    static readonly string m_ReverseGeocoderUrlFormat =
         "http://where.yahooapis.com/geocode?q={0},{1}&appid={2}&flags=G&gflags=QRL{3}";
 
-    static readonly string GeocoderUrlFormat =
+    static readonly string m_GeocoderUrlFormat =
         "http://where.yahooapis.com/geocode?q={0}&appid={1}&flags=CG&gflags=QL{2}";
 
-    static readonly string GeocoderDetailedUrlFormat =
+    static readonly string m_GeocoderDetailedUrlFormat =
         "http://where.yahooapis.com/geocode?country={0}&state={1}&county={2}&city={3}&neighborhood={4}&postal={5}&street={6}&house={7}&appid={8}&flags=CG&gflags=QL{9}";
 
     #endregion
@@ -407,16 +390,9 @@ public class YahooMapProvider : YahooMapProviderBase
     public string Version = "2.1";
 
     #region GMapProvider Members
+    public override Guid Id { get; } = new Guid("65DB032C-6869-49B0-A7FC-3AE41A26AF4D");
 
-    public override Guid Id
-    {
-        get;
-    } = new Guid("65DB032C-6869-49B0-A7FC-3AE41A26AF4D");
-
-    public override string Name
-    {
-        get;
-    } = "YahooMap";
+    public override string Name { get; } = "YahooMap";
 
     public override PureImage GetTileImage(GPoint pos, int zoom)
     {
@@ -424,7 +400,6 @@ public class YahooMapProvider : YahooMapProviderBase
 
         return GetTileImageUsingHttp(url);
     }
-
     #endregion
 
     string MakeTileImageUrl(GPoint pos, int zoom, string language)
@@ -434,21 +409,21 @@ public class YahooMapProvider : YahooMapProviderBase
         // https://4.aerial.maps.api.here.com/maptile/2.1/maptile/newest/hybrid.day/11/1167/652/256/jpg?lg=ENG&token=TrLJuXVK62IQk0vuXFzaig%3D%3D&requestid=yahoo.prod&app_id=eAdkWGYRoc4RfxVo0Z4B
         // https://4.aerial.maps.api.here.com/maptile/2.1/maptile/newest/satellite.day/13/4671/2604/256/jpg?lg=ENG&token=TrLJuXVK62IQk0vuXFzaig%3D%3D&requestid=yahoo.prod&app_id=eAdkWGYRoc4RfxVo0Z4B
 
-        return string.Format(UrlFormat,
-            GetServerNum(pos, 2) + 1,
-            Version,
-            zoom,
-            pos.X,
-            pos.Y,
-            language,
-            rnd1,
-            rnd2);
+        return string.Format(m_UrlFormat,
+                             GetServerNum(pos, 2) + 1,
+                             Version,
+                             zoom,
+                             pos.X,
+                             pos.Y,
+                             language,
+                             m_Rnd1,
+                             m_Rnd2);
     }
 
-    string rnd1 = Guid.NewGuid().ToString("N").Substring(0, 28);
-    string rnd2 = Guid.NewGuid().ToString("N").Substring(0, 20);
+    readonly string m_Rnd1 = Guid.NewGuid().ToString("N")[..28];
+    readonly string m_Rnd2 = Guid.NewGuid().ToString("N")[..20];
 
     //static readonly string UrlFormat = "http://maps{0}.yimg.com/hx/tl?v={1}&.intl={2}&x={3}&y={4}&z={5}&r=1";
-    static readonly string UrlFormat =
+    static readonly string m_UrlFormat =
         "http://{0}.base.maps.api.here.com/maptile/{1}/maptile/newest/normal.day/{2}/{3}/{4}/256/png8?lg={5}&token={6}&requestid=yahoo.prod&app_id={7}";
 }

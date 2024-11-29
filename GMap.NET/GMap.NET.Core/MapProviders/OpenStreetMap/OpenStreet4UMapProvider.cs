@@ -30,28 +30,19 @@ public class OpenStreet4UMapProvider : OpenStreetMapProviderBase
 
     #region GMapProvider Members
 
-    public override Guid Id
-    {
-        get;
-    } = new Guid("3E3D919E-9814-4978-B430-6AAB2C1E41B2");
+    public override Guid Id { get; } = new Guid("3E3D919E-9814-4978-B430-6AAB2C1E41B2");
 
-    public override string Name
-    {
-        get;
-    } = "OpenStreet4UMap";
+    public override string Name { get; } = "OpenStreet4UMap";
 
-    GMapProvider[] _overlays;
+    GMapProvider[] m_Overlays;
 
     public override GMapProvider[] Overlays
     {
         get
         {
-            if (_overlays == null)
-            {
-                _overlays = new GMapProvider[] { this };
-            }
+            m_Overlays ??= [this];
 
-            return _overlays;
+            return m_Overlays;
         }
     }
 
@@ -63,10 +54,10 @@ public class OpenStreet4UMapProvider : OpenStreetMapProviderBase
 
     #endregion
 
-    string MakeTileImageUrl(GPoint pos, int zoom)
+    static string MakeTileImageUrl(GPoint pos, int zoom)
     {
-        return string.Format(UrlFormat, zoom, pos.X, pos.Y);
+        return string.Format(m_UrlFormat, zoom, pos.X, pos.Y);
     }
 
-    static readonly string UrlFormat = "http://4umaps.eu/{0}/{1}/{2}.png";
+    static readonly string m_UrlFormat = "http://4umaps.eu/{0}/{1}/{2}.png";
 }

@@ -101,12 +101,11 @@ internal sealed class AuthUserPass : AuthMethod
     {
         CallBack = callback;
         Server.BeginSend(GetAuthenticationBytes(),
-            0,
-            3 + Username.Length + Password.Length,
-            SocketFlags.None,
-            OnSent,
-            Server);
-        return;
+                         0,
+                         3 + Username.Length + Password.Length,
+                         SocketFlags.None,
+                         OnSent,
+                         Server);
     }
 
     /// <summary>
@@ -137,17 +136,25 @@ internal sealed class AuthUserPass : AuthMethod
         {
             Received += Server.EndReceive(ar);
             if (Received == Buffer.Length)
+            {
                 if (Buffer[1] == 0)
+                {
                     CallBack(null);
+                }
                 else
+                {
                     throw new ProxyException("Username/password combination not accepted.");
+                }
+            }
             else
+            {
                 Server.BeginReceive(Buffer,
-                    Received,
-                    Buffer.Length - Received,
-                    SocketFlags.None,
-                    OnReceive,
-                    Server);
+                                    Received,
+                                    Buffer.Length - Received,
+                                    SocketFlags.None,
+                                    OnReceive,
+                                    Server);
+            }
         }
         catch (Exception e)
         {

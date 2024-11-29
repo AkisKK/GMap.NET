@@ -33,7 +33,7 @@ namespace GMap.NET.Projections;
 /// </summary>
 public class PlateCarreeProjectionDarbAe : PureProjection
 {
-    public static readonly PlateCarreeProjectionDarbAe Instance = new PlateCarreeProjectionDarbAe();
+    public static readonly PlateCarreeProjectionDarbAe Instance = new();
 
     public static readonly double MinLatitude = 18.7071563263201;
     public static readonly double MaxLatitude = 29.4052130085331;

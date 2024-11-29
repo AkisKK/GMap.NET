@@ -22,44 +22,35 @@ public class OpenSeaMapHybridProvider : OpenStreetMapProviderBase
 
     #region GMapProvider Members
 
-    public override Guid Id
-    {
-        get;
-    } = new Guid("FAACDE73-4B90-4AE6-BB4A-ADE4F3545592");
+    public override Guid Id { get; } = new Guid("FAACDE73-4B90-4AE6-BB4A-ADE4F3545592");
 
-    public override string Name
-    {
-        get;
-    } = "OpenSeaMapHybrid";
+    public override string Name { get; } = "OpenSeaMapHybrid";
 
-    GMapProvider[] _overlays;
+    GMapProvider[] m_Overlays;
 
     public override GMapProvider[] Overlays
     {
         get
         {
-            if (_overlays == null)
-            {
-                _overlays = new GMapProvider[] { OpenStreetMapProvider.Instance, this };
-            }
+            m_Overlays ??= [OpenStreetMapProvider.Instance, this];
 
-            return _overlays;
+            return m_Overlays;
         }
     }
 
     public override PureImage GetTileImage(GPoint pos, int zoom)
     {
-        string url = MakeTileImageUrl(pos, zoom, string.Empty);
+        string url = MakeTileImageUrl(pos, zoom);
 
         return GetTileImageUsingHttp(url);
     }
 
     #endregion
 
-    string MakeTileImageUrl(GPoint pos, int zoom, string language)
+    static string MakeTileImageUrl(GPoint pos, int zoom)
     {
-        return string.Format(UrlFormat, zoom, pos.X, pos.Y);
+        return string.Format(m_UrlFormat, zoom, pos.X, pos.Y);
     }
 
-    static readonly string UrlFormat = "http://tiles.openseamap.org/seamark/{0}/{1}/{2}.png";
+    static readonly string m_UrlFormat = "http://tiles.openseamap.org/seamark/{0}/{1}/{2}.png";
 }

@@ -23,9 +23,9 @@ public class GoogleSatelliteMapProvider : GoogleMapProviderBase
 
     #region GMapProvider Members
 
-    public override Guid Id    {        get;    } = new Guid("9CB89D76-67E9-47CF-8137-B9EE9FC46388");
+    public override Guid Id { get; } = new Guid("9CB89D76-67E9-47CF-8137-B9EE9FC46388");
 
-    public override string Name    {        get;    } = "GoogleSatelliteMap";
+    public override string Name { get; } = "GoogleSatelliteMap";
 
     public override PureImage GetTileImage(GPoint pos, int zoom)
     {

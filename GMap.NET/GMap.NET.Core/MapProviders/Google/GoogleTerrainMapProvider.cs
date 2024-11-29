@@ -23,15 +23,9 @@ public class GoogleTerrainMapProvider : GoogleMapProviderBase
 
     #region GMapProvider Members
 
-    public override Guid Id
-    {
-        get;
-    } = new Guid("A42EDF2E-63C5-4967-9DBF-4EFB3AF7BC11");
+    public override Guid Id { get; } = new Guid("A42EDF2E-63C5-4967-9DBF-4EFB3AF7BC11");
 
-    public override string Name
-    {
-        get;
-    } = "GoogleTerrainMap";
+    public override string Name { get; } = "GoogleTerrainMap";
 
     public override PureImage GetTileImage(GPoint pos, int zoom)
     {
@@ -48,10 +42,10 @@ public class GoogleTerrainMapProvider : GoogleMapProviderBase
         // sec2: after &zoom=...
         GetSecureWords(pos, out string sec1, out string sec2);
 
-        return string.Format(UrlFormat,
-            UrlFormatServer,
+        return string.Format(m_UrlFormat,
+            m_UrlFormatServer,
             GetServerNum(pos, 4),
-            UrlFormatRequest,
+            m_UrlFormatRequest,
             Version,
             language,
             pos.X,
@@ -62,7 +56,7 @@ public class GoogleTerrainMapProvider : GoogleMapProviderBase
             Server);
     }
 
-    static readonly string UrlFormatServer = "mt";
-    static readonly string UrlFormatRequest = "vt";
-    static readonly string UrlFormat = "https://{0}{1}.{10}/maps/{2}/lyrs={3}&hl={4}&x={5}{6}&y={7}&z={8}&s={9}";
+    static readonly string m_UrlFormatServer = "mt";
+    static readonly string m_UrlFormatRequest = "vt";
+    static readonly string m_UrlFormat = "https://{0}{1}.{10}/maps/{2}/lyrs={3}&hl={4}&x={5}{6}&y={7}&z={8}&s={9}";
 }

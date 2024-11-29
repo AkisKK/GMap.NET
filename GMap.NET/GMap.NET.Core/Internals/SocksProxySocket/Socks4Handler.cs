@@ -271,7 +271,9 @@ internal sealed class Socks4Handler : SocksHandler
             if (Received == 8)
             {
                 if (Buffer[1] == 90)
+                {
                     ProtocolComplete(null);
+                }
                 else
                 {
                     Server.Close();

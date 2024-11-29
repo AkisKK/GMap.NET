@@ -334,12 +334,10 @@ internal sealed class FastResourceLock : IDisposable
                 System.Diagnostics.Trace.Assert(((value >> LockExclusiveWaitersShift) & LockExclusiveWaitersMask) == 0);
 
 #endif
-                if (Interlocked.CompareExchange(
-                        ref m_Value,
-                        value + LockOwned,
-                        value
-                    ) == value)
+                if (Interlocked.CompareExchange(ref m_Value, value + LockOwned, value) == value)
+                {
                     break;
+                }
             }
             // Case 2: lock owned OR lock not owned and an exclusive waiter is waking up. 
             // The second case means an exclusive waiter has just been woken up and is 
@@ -354,11 +352,7 @@ internal sealed class FastResourceLock : IDisposable
            this.EnsureEventCreated(ref _exclusiveWakeEvent);
 
 #endif
-                if (Interlocked.CompareExchange(
-                        ref m_Value,
-                        value + LockExclusiveWaitersIncrement,
-                        value
-                    ) == value)
+                if (Interlocked.CompareExchange(ref m_Value, value + LockExclusiveWaitersIncrement, value) == value)
                 {
 #if ENABLE_STATISTICS
                     Interlocked.Increment(ref _acqExclSlpCount);
@@ -373,11 +367,10 @@ internal sealed class FastResourceLock : IDisposable
 
 #endif
                     // Go to sleep.
-                    if (NativeMethods.WaitForSingleObject(
-                            m_ExclusiveWakeEvent,
-                            Timeout.Infinite
-                        ) != NativeMethods.WaitObject0)
+                    if (NativeMethods.WaitForSingleObject(m_ExclusiveWakeEvent, Timeout.Infinite) != NativeMethods.WaitObject0)
+                    {
                         UtilsBreak("Utils.MsgFailedToWaitIndefinitely");
+                    }
 
                     // Acquire the lock. 
                     // At this point *no one* should be able to steal the lock from us.
@@ -388,11 +381,8 @@ internal sealed class FastResourceLock : IDisposable
                         System.Diagnostics.Trace.Assert((value & LockOwned) == 0);
                         System.Diagnostics.Trace.Assert((value & LockExclusiveWaking) != 0);
 #endif
-                    } while (Interlocked.CompareExchange(
-                                 ref m_Value,
-                                 value + LockOwned - LockExclusiveWaking,
-                                 value
-                             ) != value);
+                    }
+                    while (Interlocked.CompareExchange(ref m_Value, value + LockOwned - LockExclusiveWaking, value) != value);
 
                     break;
                 }
@@ -429,24 +419,24 @@ internal sealed class FastResourceLock : IDisposable
             // Case 1: lock not owned AND no exclusive waiter is waking up AND 
             // there are no shared owners AND there are no exclusive waiters
             if ((value & (
-                     LockOwned |
-                     (LockSharedOwnersMask << LockSharedOwnersShift) |
-                     ExclusiveMask
+                     LockOwned
+                     | (LockSharedOwnersMask << LockSharedOwnersShift)
+                     | ExclusiveMask
                  )) == 0)
             {
-                if (Interlocked.CompareExchange(
-                        ref m_Value,
-                        value + LockOwned + LockSharedOwnersIncrement,
-                        value
-                    ) == value)
+                if (Interlocked.CompareExchange(ref m_Value,
+                                                value + LockOwned + LockSharedOwnersIncrement,
+                                                value) == value)
+                {
                     break;
+                }
             }
             // Case 2: lock is owned AND no exclusive waiter is waking up AND 
             // there are shared owners AND there are no exclusive waiters
             else if (
-                (value & LockOwned) != 0 &&
-                ((value >> LockSharedOwnersShift) & LockSharedOwnersMask) != 0 &&
-                (value & ExclusiveMask) == 0
+                (value & LockOwned) != 0
+                && ((value >> LockSharedOwnersShift) & LockSharedOwnersMask) != 0
+                && (value & ExclusiveMask) == 0
             )
             {
                 if (Interlocked.CompareExchange(
@@ -454,7 +444,9 @@ internal sealed class FastResourceLock : IDisposable
                         value + LockSharedOwnersIncrement,
                         value
                     ) == value)
+                {
                     break;
+                }
             }
             // Other cases.
             else if (i >= m_SpinCount)
@@ -486,7 +478,9 @@ internal sealed class FastResourceLock : IDisposable
                             m_SharedWakeEvent,
                             Timeout.Infinite
                         ) != NativeMethods.WaitObject0)
+                    {
                         UtilsBreak("Utils.MsgFailedToWaitIndefinitely");
+                    }
 
                     // Go back and try again.
                     continue;
@@ -537,7 +531,9 @@ internal sealed class FastResourceLock : IDisposable
                 ) == value)
             {
                 if (sharedWaiters != 0)
+                {
                     NativeMethods.ReleaseSemaphore(m_SharedWakeEvent, sharedWaiters, IntPtr.Zero);
+                }
 
                 break;
             }
@@ -631,7 +627,9 @@ internal sealed class FastResourceLock : IDisposable
                     ) == value)
                 {
                     if (sharedWaiters != 0)
+                    {
                         NativeMethods.ReleaseSemaphore(m_SharedWakeEvent, sharedWaiters, IntPtr.Zero);
+                    }
 
                     break;
                 }
@@ -666,7 +664,9 @@ internal sealed class FastResourceLock : IDisposable
                         value - LockSharedOwnersIncrement,
                         value
                     ) == value)
+                {
                     break;
+                }
             }
             // Case 2: we are the last shared owner AND there are exclusive waiters.
             else if (((value >> LockExclusiveWaitersShift) & LockExclusiveWaitersMask) != 0)
@@ -691,7 +691,9 @@ internal sealed class FastResourceLock : IDisposable
                         value - LockOwned - LockSharedOwnersIncrement,
                         value
                     ) == value)
+                {
                     break;
+                }
             }
         }
     }
@@ -719,13 +721,19 @@ internal sealed class FastResourceLock : IDisposable
                         value + LockOwned,
                         value
                     ) == value)
+                {
                     break;
+                }
             }
 
             if (NativeMethods.SpinEnabled)
+            {
                 Thread.SpinWait(8);
+            }
             else
+            {
                 Thread.Sleep(0);
+            }
         }
     }
 
@@ -754,7 +762,9 @@ internal sealed class FastResourceLock : IDisposable
                             value + LockOwned + LockSharedOwnersIncrement,
                             value
                         ) == value)
+                    {
                         break;
+                    }
                 }
                 else if (((value >> LockSharedOwnersShift) & LockSharedOwnersMask) != 0)
                 {
@@ -763,14 +773,20 @@ internal sealed class FastResourceLock : IDisposable
                             value + LockSharedOwnersIncrement,
                             value
                         ) == value)
+                    {
                         break;
+                    }
                 }
             }
 
             if (NativeMethods.SpinEnabled)
+            {
                 Thread.SpinWait(8);
+            }
             else
+            {
                 Thread.Sleep(0);
+            }
         }
     }
 
@@ -794,13 +810,19 @@ internal sealed class FastResourceLock : IDisposable
                         value - LockSharedOwnersIncrement,
                         value
                     ) == value)
+                {
                     break;
+                }
             }
 
             if (NativeMethods.SpinEnabled)
+            {
                 Thread.SpinWait(8);
+            }
             else
+            {
                 Thread.Sleep(0);
+            }
         }
     }
 
@@ -815,7 +837,9 @@ internal sealed class FastResourceLock : IDisposable
         value = m_Value;
 
         if ((value & (LockOwned | LockExclusiveWaking)) != 0)
+        {
             return false;
+        }
 
         return Interlocked.CompareExchange(
                    ref m_Value,
@@ -835,7 +859,9 @@ internal sealed class FastResourceLock : IDisposable
         value = m_Value;
 
         if ((value & ExclusiveMask) != 0)
+        {
             return false;
+        }
 
         if ((value & LockOwned) == 0)
         {
@@ -879,14 +905,18 @@ internal sealed class FastResourceLock : IDisposable
 
             // Can't convert if there are other shared owners.
             if (((value >> LockSharedOwnersShift) & LockSharedOwnersMask) != 1)
+            {
                 return false;
+            }
 
             if (Interlocked.CompareExchange(
                     ref m_Value,
                     value - LockSharedOwnersIncrement,
                     value
                 ) == value)
+            {
                 return true;
+            }
         }
     }
 }
@@ -912,18 +942,18 @@ internal class NativeMethods
 
     [DllImport("kernel32.dll", CharSet = CharSet.Unicode)]
     public static extern IntPtr CreateEvent(
-        [In] [Optional] IntPtr eventAttributes,
+        [In][Optional] IntPtr eventAttributes,
         [In] bool manualReset,
         [In] bool initialState,
-        [In] [Optional] string name
+        [In][Optional] string name
     );
 
     [DllImport("kernel32.dll", CharSet = CharSet.Unicode)]
     public static extern IntPtr CreateSemaphore(
-        [In] [Optional] IntPtr semaphoreAttributes,
+        [In][Optional] IntPtr semaphoreAttributes,
         [In] int initialCount,
         [In] int maximumCount,
-        [In] [Optional] string name
+        [In][Optional] string name
     );
 
     [DllImport("kernel32.dll")]
@@ -953,7 +983,7 @@ internal class NativeMethods
     public static extern int NtCreateKeyedEvent(
         [Out] out IntPtr keyedEventHandle,
         [In] int desiredAccess,
-        [In] [Optional] IntPtr objectAttributes,
+        [In][Optional] IntPtr objectAttributes,
         [In] int flags
     );
 
@@ -962,7 +992,7 @@ internal class NativeMethods
         [In] IntPtr keyedEventHandle,
         [In] IntPtr keyValue,
         [In] bool alertable,
-        [In] [Optional] IntPtr timeout
+        [In][Optional] IntPtr timeout
     );
 
     [DllImport("ntdll.dll")]
@@ -970,7 +1000,7 @@ internal class NativeMethods
         [In] IntPtr keyedEventHandle,
         [In] IntPtr keyValue,
         [In] bool alertable,
-        [In] [Optional] IntPtr timeout
+        [In][Optional] IntPtr timeout
     );
 }
 #endif

@@ -10,7 +10,7 @@ namespace GMap.NET.Projections;
 /// </summary>
 public class SWEREF99_TMProjection : PureProjection
 {
-    public static readonly SWEREF99_TMProjection Instance = new SWEREF99_TMProjection();
+    public static readonly SWEREF99_TMProjection Instance = new();
 
     static readonly double MinLatitude = 54.96;
     static readonly double MaxLatitude = 69.07;
@@ -68,7 +68,7 @@ public class SWEREF99_TMProjection : PureProjection
         lat = Clip(lat, MinLatitude, MaxLatitude);
         lng = Clip(lng, MinLongitude, MaxLongitude);
 
-        double[] lks = new[] {lng, lat};
+        double[] lks = [lng, lat];
         lks = DTM10(lks);
         lks = MTD10(lks);
         lks = DTM00(lks);
@@ -88,7 +88,7 @@ public class SWEREF99_TMProjection : PureProjection
 
         double res = GetTileMatrixResolution(zoom);
 
-        double[] lks = new[] {x * res + OrignX, OrignY - y * res};
+        double[] lks = [x * res + OrignX, OrignY - y * res];
         lks = MTD11(lks);
         lks = DTM10(lks);
         lks = MTD10(lks);
@@ -99,7 +99,7 @@ public class SWEREF99_TMProjection : PureProjection
         return ret;
     }
 
-    double[] DTM10(double[] lonlat)
+    static double[] DTM10(double[] lonlat)
     {
         // Eccentricity squared : (a^2 - b^2)/a^2
         double es = 1.0 - SemiMinor2 * SemiMinor2 / (SemiMajor * SemiMajor); // e^2
@@ -112,15 +112,15 @@ public class SWEREF99_TMProjection : PureProjection
 
         double lon = DegreesToRadians(lonlat[0]);
         double lat = DegreesToRadians(lonlat[1]);
-        double h = lonlat.Length < 3 ? 0 : lonlat[2].Equals(Double.NaN) ? 0 : lonlat[2];
+        double h = lonlat.Length < 3 ? 0 : lonlat[2].Equals(double.NaN) ? 0 : lonlat[2];
         double v = SemiMajor / Math.Sqrt(1 - es * Math.Pow(Math.Sin(lat), 2));
         double x = (v + h) * Math.Cos(lat) * Math.Cos(lon);
         double y = (v + h) * Math.Cos(lat) * Math.Sin(lon);
         double z = ((1 - es) * v + h) * Math.Sin(lat);
-        return new[] {x, y, z,};
+        return [x, y, z,];
     }
 
-    double[] MTD10(double[] pnt)
+    static double[] MTD10(double[] pnt)
     {
         // Eccentricity squared : (a^2 - b^2)/a^2
         double es = 1.0 - SemiMinor * SemiMinor / (SemiMajor * SemiMajor); // e^2
@@ -132,7 +132,7 @@ public class SWEREF99_TMProjection : PureProjection
         double ab = SemiMajor / SemiMinor;
 
         bool AtPole = false; // is location in polar region
-        double Z = pnt.Length < 3 ? 0 : pnt[2].Equals(Double.NaN) ? 0 : pnt[2];
+        double Z = pnt.Length < 3 ? 0 : pnt[2].Equals(double.NaN) ? 0 : pnt[2];
 
         double lon = 0;
         double lat = 0;
@@ -165,7 +165,7 @@ public class SWEREF99_TMProjection : PureProjection
                 }
                 else // center of earth
                 {
-                    return new[] {RadiansToDegrees(lon), RadiansToDegrees(Math.PI * 0.5), -SemiMinor,};
+                    return [RadiansToDegrees(lon), RadiansToDegrees(Math.PI * 0.5), -SemiMinor,];
                 }
             }
         }
@@ -201,10 +201,10 @@ public class SWEREF99_TMProjection : PureProjection
             lat = Math.Atan(Sin_p1 / Cos_p1);
         }
 
-        return new[] {RadiansToDegrees(lon), RadiansToDegrees(lat), Height,};
+        return [RadiansToDegrees(lon), RadiansToDegrees(lat), Height,];
     }
 
-    double[] DTM00(double[] lonlat)
+    static double[] DTM00(double[] lonlat)
     {
         double e0, e1, e2, e3; // eccentricity constants		
         double e, es, esp; // eccentricity constants		
@@ -225,13 +225,13 @@ public class SWEREF99_TMProjection : PureProjection
         double lat = DegreesToRadians(lonlat[1]);
 
         double delta_lon = 0.0; // Delta longitude (Given longitude - center)
-        double sin_phi, cos_phi; // sin and cos value				
+                                // sin and cos value				
         double al, als; // temporary values				
         double c, t, tq; // temporary values				
         double con, n, ml; // cone constant, small m			
 
         delta_lon = AdjustLongitude(lon - CentralMeridian);
-        SinCos(lat, out sin_phi, out cos_phi);
+        SinCos(lat, out double sin_phi, out double cos_phi);
 
         al = cos_phi * delta_lon;
         als = Math.Pow(al, 2);
@@ -253,12 +253,16 @@ public class SWEREF99_TMProjection : PureProjection
                                                                        330.0 * esp))))) + FalseNorthing;
 
         if (lonlat.Length < 3)
-            return new[] {x / MetersPerUnit, y / MetersPerUnit};
+        {
+            return [x / MetersPerUnit, y / MetersPerUnit];
+        }
         else
-            return new[] {x / MetersPerUnit, y / MetersPerUnit, lonlat[2]};
+        {
+            return [x / MetersPerUnit, y / MetersPerUnit, lonlat[2]];
+        }
     }
 
-    double[] DTM01(double[] lonlat)
+    static double[] DTM01(double[] lonlat)
     {
         // Eccentricity squared : (a^2 - b^2)/a^2
         double es = 1.0 - SemiMinor * SemiMinor / (SemiMajor * SemiMajor);
@@ -271,15 +275,15 @@ public class SWEREF99_TMProjection : PureProjection
 
         double lon = DegreesToRadians(lonlat[0]);
         double lat = DegreesToRadians(lonlat[1]);
-        double h = lonlat.Length < 3 ? 0 : lonlat[2].Equals(Double.NaN) ? 0 : lonlat[2];
+        double h = lonlat.Length < 3 ? 0 : lonlat[2].Equals(double.NaN) ? 0 : lonlat[2];
         double v = SemiMajor / Math.Sqrt(1 - es * Math.Pow(Math.Sin(lat), 2));
         double x = (v + h) * Math.Cos(lat) * Math.Cos(lon);
         double y = (v + h) * Math.Cos(lat) * Math.Sin(lon);
         double z = ((1 - es) * v + h) * Math.Sin(lat);
-        return new[] {x, y, z,};
+        return [x, y, z,];
     }
 
-    double[] MTD01(double[] pnt)
+    static double[] MTD01(double[] pnt)
     {
         // Eccentricity squared : (a^2 - b^2)/a^2
         double es = 1.0 - SemiMinor2 * SemiMinor2 / (SemiMajor * SemiMajor);
@@ -291,7 +295,7 @@ public class SWEREF99_TMProjection : PureProjection
         double ab = SemiMajor / SemiMinor2;
 
         bool At_Pole = false; // is location in polar region
-        double Z = pnt.Length < 3 ? 0 : pnt[2].Equals(Double.NaN) ? 0 : pnt[2];
+        double Z = pnt.Length < 3 ? 0 : pnt[2].Equals(double.NaN) ? 0 : pnt[2];
 
         double lon = 0;
         double lat = 0;
@@ -324,7 +328,7 @@ public class SWEREF99_TMProjection : PureProjection
                 }
                 else // center of earth
                 {
-                    return new[] {RadiansToDegrees(lon), RadiansToDegrees(Math.PI * 0.5), -SemiMinor2,};
+                    return [RadiansToDegrees(lon), RadiansToDegrees(Math.PI * 0.5), -SemiMinor2,];
                 }
             }
         }
@@ -361,10 +365,10 @@ public class SWEREF99_TMProjection : PureProjection
             lat = Math.Atan(Sin_p1 / Cos_p1);
         }
 
-        return new[] {RadiansToDegrees(lon), RadiansToDegrees(lat), Height,};
+        return [RadiansToDegrees(lon), RadiansToDegrees(lat), Height,];
     }
 
-    double[] MTD11(double[] p)
+    static double[] MTD11(double[] p)
     {
         double e0, e1, e2, e3; // eccentricity constants		
         double e, es, esp; // eccentricity constants		
@@ -384,7 +388,7 @@ public class SWEREF99_TMProjection : PureProjection
         double con, phi;
         double delta_phi;
         long i;
-        double sin_phi, cos_phi, tan_phi;
+        double tan_phi;
         double c, cs, t, ts, n, r, d, ds;
         long max_iter = 6;
 
@@ -400,15 +404,19 @@ public class SWEREF99_TMProjection : PureProjection
             phi += delta_phi;
 
             if (Math.Abs(delta_phi) <= Epsilon)
+            {
                 break;
+            }
 
             if (i >= max_iter)
+            {
                 throw new ArgumentException("Latitude failed to converge");
+            }
         }
 
         if (Math.Abs(phi) < HalfPi)
         {
-            SinCos(phi, out sin_phi, out cos_phi);
+            SinCos(phi, out double sin_phi, out double cos_phi);
             tan_phi = Math.Tan(phi);
             c = esp * Math.Pow(cos_phi, 2);
             cs = Math.Pow(c, 2);
@@ -433,16 +441,24 @@ public class SWEREF99_TMProjection : PureProjection
                                                                                    24.0 * ts))) / cos_phi);
 
             if (p.Length < 3)
-                return new[] {RadiansToDegrees(lon), RadiansToDegrees(lat)};
+            {
+                return [RadiansToDegrees(lon), RadiansToDegrees(lat)];
+            }
             else
-                return new[] {RadiansToDegrees(lon), RadiansToDegrees(lat), p[2]};
+            {
+                return [RadiansToDegrees(lon), RadiansToDegrees(lat), p[2]];
+            }
         }
         else
         {
             if (p.Length < 3)
-                return new[] {RadiansToDegrees(HalfPi * Sign(y)), RadiansToDegrees(CentralMeridian)};
+            {
+                return [RadiansToDegrees(HalfPi * Sign(y)), RadiansToDegrees(CentralMeridian)];
+            }
             else
-                return new[] {RadiansToDegrees(HalfPi * Sign(y)), RadiansToDegrees(CentralMeridian), p[2]};
+            {
+                return [RadiansToDegrees(HalfPi * Sign(y)), RadiansToDegrees(CentralMeridian), p[2]];
+            }
         }
     }
 
@@ -467,11 +483,11 @@ public class SWEREF99_TMProjection : PureProjection
 
     #endregion
 
-    static double[] resolutions = new[]
-    {
+    static double[] resolutions =
+    [
         4096.0, 2048.0, 1024.0, 512.0, 256.0, 128.0, 64.0, 32.0, 16.0, 8.0, 4.0, 2.0, 1.0, 0.5, 0.25, 0.15, 0.1,
         0.05, 0.01
-    };
+    ];
 
     public static double GetTileMatrixResolution(int zoom)
     {
@@ -515,8 +531,8 @@ public class SWEREF99_TMProjection : PureProjection
 
     void GenerateExtents()
     {
-        extentMatrixMin = new Dictionary<int, GSize>();
-        extentMatrixMax = new Dictionary<int, GSize>();
+        extentMatrixMin = [];
+        extentMatrixMax = [];
 
         for (int i = 0; i <= resolutions.Length; i++)
         {

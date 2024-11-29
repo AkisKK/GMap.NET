@@ -21,47 +21,38 @@ public class NearHybridMapProvider : NearMapProviderBase
 
     #region GMapProvider Members
 
-    public override Guid Id
-    {
-        get;
-    } = new Guid("4BF8819A-635D-4A94-8DC7-94C0E0F04BFD");
+    public override Guid Id { get; } = new Guid("4BF8819A-635D-4A94-8DC7-94C0E0F04BFD");
 
-    public override string Name
-    {
-        get;
-    } = "NearHybridMap";
+    public override string Name { get; } = "NearHybridMap";
 
-    GMapProvider[] _overlays;
+    GMapProvider[] m_Overlays;
 
     public override GMapProvider[] Overlays
     {
         get
         {
-            if (_overlays == null)
-            {
-                _overlays = new GMapProvider[] { NearSatelliteMapProvider.Instance, this };
-            }
+            m_Overlays ??= [NearSatelliteMapProvider.Instance, this];
 
-            return _overlays;
+            return m_Overlays;
         }
     }
 
     public override PureImage GetTileImage(GPoint pos, int zoom)
     {
-        string url = MakeTileImageUrl(pos, zoom, LanguageStr);
+        string url = MakeTileImageUrl(pos, zoom);
 
         return GetTileImageUsingHttp(url);
     }
 
     #endregion
 
-    string MakeTileImageUrl(GPoint pos, int zoom, string language)
+    static string MakeTileImageUrl(GPoint pos, int zoom)
     {
         // http://web1.nearmap.com/maps/hl=en&x=37&y=19&z=6&nml=MapT&nmg=1&s=2KbhmZZ             
         // http://web1.nearmap.com/maps/hl=en&x=36&y=19&z=6&nml=MapT&nmg=1&s=2YKWhQi
 
-        return string.Format(UrlFormat, GetServerNum(pos, 3), pos.X, pos.Y, zoom);
+        return string.Format(m_UrlFormat, GetServerNum(pos, 3), pos.X, pos.Y, zoom);
     }
 
-    static readonly string UrlFormat = "http://web{0}.nearmap.com/maps/hl=en&x={1}&y={2}&z={3}&nml=MapT&nmg=1";
+    static readonly string m_UrlFormat = "http://web{0}.nearmap.com/maps/hl=en&x={1}&y={2}&z={3}&nml=MapT&nmg=1";
 }

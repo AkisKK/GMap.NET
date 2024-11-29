@@ -279,7 +279,7 @@ public abstract class GoogleMapProviderBase : GMapProvider, RoutingProvider, Geo
                     routeResult = JsonConvert.DeserializeObject<StrucRute>(route);
 
                     if (GMaps.Instance.UseRouteCache && routeResult != null &&
-                        routeResult.status == RouteStatusCode.OK)
+                        routeResult.Status == RouteStatusCode.OK)
                     {
                         Cache.Instance.SaveContent(url, CacheType.RouteCache, route);
                     }
@@ -292,34 +292,34 @@ public abstract class GoogleMapProviderBase : GMapProvider, RoutingProvider, Geo
 
             if (routeResult != null)
             {
-                if (routeResult.error == null && routeResult.routes != null && routeResult.routes.Count > 0)
+                if (routeResult.Error == null && routeResult.Routes != null && routeResult.Routes.Count > 0)
                 {
-                    ret = new MapRoute(routeResult.routes[0].summary);
+                    ret = new MapRoute(routeResult.Routes[0].Summary);
                 }
                 else
                 {
                     ret = new MapRoute("Route");
                 }
 
-                if (routeResult.error == null)
+                if (routeResult.Error == null)
                 {
-                    ret.Status = routeResult.status;
+                    ret.Status = routeResult.Status;
 
-                    if (routeResult.routes != null && routeResult.routes.Count > 0)
+                    if (routeResult.Routes != null && routeResult.Routes.Count > 0)
                     {
-                        if (routeResult.routes.Count > 0)
+                        if (routeResult.Routes.Count > 0)
                         {
-                            if (routeResult.routes[0].overview_polyline != null &&
-                                routeResult.routes[0].overview_polyline.points != null)
+                            if (routeResult.Routes[0].OverviewPolyline != null &&
+                                routeResult.Routes[0].OverviewPolyline.Points != null)
                             {
                                 var points = new List<PointLatLng>();
                                 PureProjection.PolylineDecode(points,
-                                    routeResult.routes[0].overview_polyline.points);
+                                    routeResult.Routes[0].OverviewPolyline.Points);
 
                                 ret.Points.Clear();
                                 ret.Points.AddRange(points);
 
-                                ret.Duration = routeResult.routes[0].legs[0].duration.text;
+                                ret.Duration = routeResult.Routes[0].Legs[0].Duration.Text;
                                 //ret.DistanceRoute = Math.Round((RouteResult.routes[0].legs[0].distance.value / 1000.0), 1);
                             }
                         }
@@ -327,10 +327,10 @@ public abstract class GoogleMapProviderBase : GMapProvider, RoutingProvider, Geo
                 }
                 else
                 {
-                    ret.ErrorCode = routeResult.error.code;
-                    ret.ErrorMessage = routeResult.error.message;
+                    ret.ErrorCode = routeResult.Error.Code;
+                    ret.ErrorMessage = routeResult.Error.Message;
 
-                    if (Enum.TryParse(routeResult.error.status, false, out RouteStatusCode code))
+                    if (Enum.TryParse(routeResult.Error.Status, false, out RouteStatusCode code))
                     {
                         ret.Status = code;
                     }
@@ -471,9 +471,9 @@ public abstract class GoogleMapProviderBase : GMapProvider, RoutingProvider, Geo
 
                 if (geoResult != null)
                 {
-                    status = geoResult.status;
+                    status = geoResult.Status;
 
-                    if (geoResult.status == GeoCoderStatusCode.OK)
+                    if (geoResult.Status == GeoCoderStatusCode.OK)
                     {
                         if (cache && GMaps.Instance.UseGeocoderCache)
                         {
@@ -482,18 +482,18 @@ public abstract class GoogleMapProviderBase : GMapProvider, RoutingProvider, Geo
 
                         pointList = [];
 
-                        if (geoResult.results != null && geoResult.results.Count > 0)
+                        if (geoResult.Results != null && geoResult.Results.Count > 0)
                         {
-                            for (int i = 0; i < geoResult.results.Count; i++)
+                            for (int i = 0; i < geoResult.Results.Count; i++)
                             {
-                                pointList.Add(new PointLatLng(geoResult.results[i].geometry.location.lat,
-                                    geoResult.results[i].geometry.location.lng));
+                                pointList.Add(new PointLatLng(geoResult.Results[i].Geometry.Location.Latitude,
+                                    geoResult.Results[i].Geometry.Location.Longitude));
                             }
                         }
                     }
                     else
                     {
-                        Debug.WriteLine("GetLatLngFromGeocoderUrl: " + geoResult.status);
+                        Debug.WriteLine("GetLatLngFromGeocoderUrl: " + geoResult.Status);
                     }
                 }
             }
@@ -548,115 +548,117 @@ public abstract class GoogleMapProviderBase : GMapProvider, RoutingProvider, Geo
 
                 if (geoResult != null)
                 {
-                    status = geoResult.status;
+                    status = geoResult.Status;
 
-                    if (geoResult.status == GeoCoderStatusCode.OK)
+                    if (geoResult.Status == GeoCoderStatusCode.OK)
                     {
                         if (cache && GMaps.Instance.UseGeocoderCache)
+                        {
                             Cache.Instance.SaveContent(url, CacheType.GeocoderCache, reverse);
+                        }
 
                         placemarkList = [];
 
-                        if (geoResult.results != null && geoResult.results.Count > 0)
+                        if (geoResult.Results != null && geoResult.Results.Count > 0)
                         {
                             Debug.WriteLine("---------------------");
 
-                            for (int i = 0; i < geoResult.results.Count; i++)
+                            for (int i = 0; i < geoResult.Results.Count; i++)
                             {
-                                var ret = new Placemark(geoResult.results[i].formatted_address);
+                                var ret = new Placemark(geoResult.Results[i].FormattedAddress);
 
-                                Debug.WriteLine("formatted_address: [" + geoResult.results[i].formatted_address +
+                                Debug.WriteLine("formatted_address: [" + geoResult.Results[i].FormattedAddress +
                                                 "]");
 
-                                if (geoResult.results[i].types != null)
+                                if (geoResult.Results[i].Types != null)
                                 {
-                                    Debug.WriteLine("type: " + geoResult.results[i].types);
+                                    Debug.WriteLine("type: " + geoResult.Results[i].Types);
                                 }
 
-                                if (geoResult.results[i].address_components != null &&
-                                    geoResult.results[i].address_components.Count > 0)
+                                if (geoResult.Results[i].AddressComponents != null &&
+                                    geoResult.Results[i].AddressComponents.Count > 0)
                                 {
-                                    for (int j = 0; j < geoResult.results[i].address_components.Count; j++)
+                                    for (int j = 0; j < geoResult.Results[i].AddressComponents.Count; j++)
                                     {
-                                        if (geoResult.results[i].address_components[j].types != null &&
-                                            geoResult.results[i].address_components[j].types.Count > 0)
+                                        if (geoResult.Results[i].AddressComponents[j].Types != null &&
+                                            geoResult.Results[i].AddressComponents[j].Types.Count > 0)
                                         {
                                             Debug.Write(
-                                                "Type: [" + geoResult.results[i].address_components[j].types[0] +
+                                                "Type: [" + geoResult.Results[i].AddressComponents[j].Types[0] +
                                                 "], ");
                                             Debug.WriteLine(
                                                 "long_name: [" +
-                                                geoResult.results[i].address_components[j].long_name + "]");
+                                                geoResult.Results[i].AddressComponents[j].LongName + "]");
 
-                                            switch (geoResult.results[i].address_components[j].types[0])
+                                            switch (geoResult.Results[i].AddressComponents[j].Types[0])
                                             {
                                                 case "street_number":
                                                     {
-                                                        ret.StreetNumber = geoResult.results[i].address_components[j]
-                                                            .long_name;
+                                                        ret.StreetNumber = geoResult.Results[i].AddressComponents[j]
+                                                            .LongName;
                                                     }
                                                     break;
 
                                                 case "street_address":
                                                     {
-                                                        ret.StreetAddress = geoResult.results[i].address_components[j]
-                                                            .long_name;
+                                                        ret.StreetAddress = geoResult.Results[i].AddressComponents[j]
+                                                            .LongName;
                                                     }
                                                     break;
 
                                                 case "route":
                                                     {
-                                                        ret.ThoroughfareName = geoResult.results[i]
-                                                            .address_components[j].long_name;
+                                                        ret.ThoroughfareName = geoResult.Results[i]
+                                                            .AddressComponents[j].LongName;
                                                     }
                                                     break;
 
                                                 case "postal_code":
                                                     {
-                                                        ret.PostalCodeNumber = geoResult.results[i]
-                                                            .address_components[j].long_name;
+                                                        ret.PostalCodeNumber = geoResult.Results[i]
+                                                            .AddressComponents[j].LongName;
                                                     }
                                                     break;
 
                                                 case "country":
                                                     {
-                                                        ret.CountryName = geoResult.results[i].address_components[j]
-                                                            .long_name;
+                                                        ret.CountryName = geoResult.Results[i].AddressComponents[j]
+                                                            .LongName;
                                                     }
                                                     break;
 
                                                 case "locality":
                                                     {
-                                                        ret.LocalityName = geoResult.results[i].address_components[j]
-                                                            .long_name;
+                                                        ret.LocalityName = geoResult.Results[i].AddressComponents[j]
+                                                            .LongName;
                                                     }
                                                     break;
 
                                                 case "administrative_area_level_2":
                                                     {
-                                                        ret.DistrictName = geoResult.results[i].address_components[j]
-                                                            .long_name;
+                                                        ret.DistrictName = geoResult.Results[i].AddressComponents[j]
+                                                            .LongName;
                                                     }
                                                     break;
 
                                                 case "administrative_area_level_1":
                                                     {
-                                                        ret.AdministrativeAreaName = geoResult.results[i]
-                                                            .address_components[j].long_name;
+                                                        ret.AdministrativeAreaName = geoResult.Results[i]
+                                                            .AddressComponents[j].LongName;
                                                     }
                                                     break;
 
                                                 case "administrative_area_level_3":
                                                     {
-                                                        ret.SubAdministrativeAreaName = geoResult.results[i]
-                                                            .address_components[j].long_name;
+                                                        ret.SubAdministrativeAreaName = geoResult.Results[i]
+                                                            .AddressComponents[j].LongName;
                                                     }
                                                     break;
 
                                                 case "neighborhood":
                                                     {
-                                                        ret.Neighborhood = geoResult.results[i].address_components[j]
-                                                            .long_name;
+                                                        ret.Neighborhood = geoResult.Results[i].AddressComponents[j]
+                                                            .LongName;
                                                     }
                                                     break;
                                                 default:
@@ -673,7 +675,7 @@ public abstract class GoogleMapProviderBase : GMapProvider, RoutingProvider, Geo
                 }
                 else
                 {
-                    Debug.WriteLine("GetPlacemarkFromReverseGeocoderUrl: " + geoResult.status);
+                    Debug.WriteLine("GetPlacemarkFromReverseGeocoderUrl: " + geoResult.Status);
                 }
             }
         }
@@ -943,110 +945,110 @@ public abstract class GoogleMapProviderBase : GMapProvider, RoutingProvider, Geo
                         Cache.Instance.SaveContent(url, CacheType.DirectionsCache, kml);
                     }
 
-                    ret = directionResult.status;
+                    ret = directionResult.Status;
 
                     if (ret == DirectionsStatusCode.OK)
                     {
                         direction = new GDirections();
 
-                        if (directionResult.routes != null && directionResult.routes.Count > 0)
+                        if (directionResult.Routes != null && directionResult.Routes.Count > 0)
                         {
-                            direction.Summary = directionResult.routes[0].summary;
+                            direction.Summary = directionResult.Routes[0].Summary;
                             Debug.WriteLine("summary: " + direction.Summary);
 
-                            if (directionResult.routes[0].copyrights != null)
+                            if (directionResult.Routes[0].Copyrights != null)
                             {
-                                direction.Copyrights = directionResult.routes[0].copyrights;
+                                direction.Copyrights = directionResult.Routes[0].Copyrights;
                                 Debug.WriteLine("copyrights: " + direction.Copyrights);
                             }
 
-                            if (directionResult.routes[0].overview_polyline != null &&
-                                directionResult.routes[0].overview_polyline.points != null)
+                            if (directionResult.Routes[0].OverviewPolyline != null &&
+                                directionResult.Routes[0].OverviewPolyline.Points != null)
                             {
                                 direction.Route = [];
                                 PureProjection.PolylineDecode(direction.Route,
-                                    directionResult.routes[0].overview_polyline.points);
+                                    directionResult.Routes[0].OverviewPolyline.Points);
                             }
 
-                            if (directionResult.routes[0].legs != null && directionResult.routes[0].legs.Count > 0)
+                            if (directionResult.Routes[0].Legs != null && directionResult.Routes[0].Legs.Count > 0)
                             {
-                                direction.Duration = string.Join(", ", directionResult.routes[0].legs.Select(x => x.duration.text));
+                                direction.Duration = string.Join(", ", directionResult.Routes[0].Legs.Select(x => x.Duration.Text));
                                 Debug.WriteLine("duration: " + direction.Duration);
 
-                                direction.DurationValue = (uint)directionResult.routes[0].legs.Sum(x => x.duration.value);
+                                direction.DurationValue = (uint)directionResult.Routes[0].Legs.Sum(x => x.Duration.Value);
                                 Debug.WriteLine("value: " + direction.DurationValue);
 
-                                direction.Distance = string.Join(", ", directionResult.routes[0].legs.Where(x => x.distance != null).Select(x => x.distance.text));
+                                direction.Distance = string.Join(", ", directionResult.Routes[0].Legs.Where(x => x.Distance != null).Select(x => x.Distance.Text));
                                 Debug.WriteLine("distance: " + direction.Distance);
 
                                 direction.DistanceValue =
-                                    (uint)directionResult.routes[0].legs.Sum(x => x.distance?.value ?? 0);
+                                    (uint)directionResult.Routes[0].Legs.Sum(x => x.Distance?.Value ?? 0);
                                 Debug.WriteLine("value: " + direction.DistanceValue);
 
-                                if (directionResult.routes[0].legs[0].start_location != null)
+                                if (directionResult.Routes[0].Legs[0].StartLocation != null)
                                 {
                                     direction.StartLocation.Lat =
-                                        directionResult.routes[0].legs[0].start_location.lat;
+                                        directionResult.Routes[0].Legs[0].StartLocation.Latitude;
                                     direction.StartLocation.Lng =
-                                        directionResult.routes[0].legs[0].start_location.lng;
+                                        directionResult.Routes[0].Legs[0].StartLocation.Longitude;
                                 }
 
-                                if (directionResult.routes[0].legs[^1].end_location != null)
+                                if (directionResult.Routes[0].Legs[^1].EndLocation != null)
                                 {
-                                    direction.EndLocation.Lat = directionResult.routes[0].legs[^1].end_location.lat;
-                                    direction.EndLocation.Lng = directionResult.routes[0].legs[^1].end_location.lng;
+                                    direction.EndLocation.Lat = directionResult.Routes[0].Legs[^1].EndLocation.Latitude;
+                                    direction.EndLocation.Lng = directionResult.Routes[0].Legs[^1].EndLocation.Longitude;
                                 }
 
-                                if (directionResult.routes[0].legs[0].start_address != null)
+                                if (directionResult.Routes[0].Legs[0].StartAddress != null)
                                 {
-                                    direction.StartAddress = directionResult.routes[0].legs[0].start_address;
+                                    direction.StartAddress = directionResult.Routes[0].Legs[0].StartAddress;
                                     Debug.WriteLine("start_address: " + direction.StartAddress);
                                 }
 
-                                if (directionResult.routes[0].legs[^1].end_address != null)
+                                if (directionResult.Routes[0].Legs[^1].EndAddress != null)
                                 {
-                                    direction.EndAddress = directionResult.routes[0].legs[^1].end_address;
+                                    direction.EndAddress = directionResult.Routes[0].Legs[^1].EndAddress;
                                     Debug.WriteLine("end_address: " + direction.EndAddress);
                                 }
 
                                 direction.Steps = [];
 
-                                foreach (var leg in directionResult.routes[0].legs)
+                                foreach (var leg in directionResult.Routes[0].Legs)
                                 {
-                                    for (int i = 0; i < leg.steps.Count; i++)
+                                    for (int i = 0; i < leg.Steps.Count; i++)
                                     {
                                         var step = new GDirectionStep();
                                         Debug.WriteLine("----------------------");
 
-                                        step.TravelMode = leg.steps[i].travel_mode;
+                                        step.TravelMode = leg.Steps[i].TravelMode;
                                         Debug.WriteLine("travel_mode: " + step.TravelMode);
 
-                                        step.Duration = leg.steps[i].duration.text;
+                                        step.Duration = leg.Steps[i].Duration.Text;
                                         Debug.WriteLine("duration: " + step.Duration);
 
-                                        step.Distance = leg.steps[i].distance.text;
+                                        step.Distance = leg.Steps[i].Distance.Text;
                                         Debug.WriteLine("distance: " + step.Distance);
 
-                                        step.HtmlInstructions = leg.steps[i].html_instructions;
+                                        step.HtmlInstructions = leg.Steps[i].HtmlInstructions;
                                         Debug.WriteLine("html_instructions: " + step.HtmlInstructions);
 
-                                        if (leg.steps[i].start_location != null)
+                                        if (leg.Steps[i].StartLocation != null)
                                         {
-                                            step.StartLocation.Lat = leg.steps[i].start_location.lat;
-                                            step.StartLocation.Lng = leg.steps[i].start_location.lng;
+                                            step.StartLocation.Lat = leg.Steps[i].StartLocation.Latitude;
+                                            step.StartLocation.Lng = leg.Steps[i].StartLocation.Longitude;
                                         }
 
-                                        if (leg.steps[i].end_location != null)
+                                        if (leg.Steps[i].EndLocation != null)
                                         {
-                                            step.EndLocation.Lat = leg.steps[i].end_location.lat;
-                                            step.EndLocation.Lng = leg.steps[i].end_location.lng;
+                                            step.EndLocation.Lat = leg.Steps[i].EndLocation.Latitude;
+                                            step.EndLocation.Lng = leg.Steps[i].EndLocation.Longitude;
                                         }
 
-                                        if (leg.steps[i].polyline != null && leg.steps[i].polyline.points != null)
+                                        if (leg.Steps[i].Polyline != null && leg.Steps[i].Polyline.Points != null)
                                         {
                                             step.Points = [];
                                             PureProjection.PolylineDecode(step.Points,
-                                                leg.steps[i].polyline.points);
+                                                leg.Steps[i].Polyline.Points);
                                         }
 
                                         direction.Steps.Add(step);
@@ -1134,8 +1136,8 @@ public abstract class GoogleMapProviderBase : GMapProvider, RoutingProvider, Geo
                 {
                     roadsResult = JsonConvert.DeserializeObject<StrucRoads>(route);
 
-                    if (GMaps.Instance.UseRouteCache && roadsResult != null && roadsResult.error == null &&
-                        roadsResult.snappedPoints != null && roadsResult.snappedPoints.Count > 0)
+                    if (GMaps.Instance.UseRouteCache && roadsResult != null && roadsResult.Error == null &&
+                        roadsResult.SnappedPoints != null && roadsResult.SnappedPoints.Count > 0)
                     {
                         Cache.Instance.SaveContent(url, CacheType.RouteCache, route);
                     }
@@ -1151,18 +1153,18 @@ public abstract class GoogleMapProviderBase : GMapProvider, RoutingProvider, Geo
             {
                 ret = new MapRoute("Route")
                 {
-                    WarningMessage = roadsResult.warningMessage
+                    WarningMessage = roadsResult.WarningMessage
                 };
 
-                if (roadsResult.error == null)
+                if (roadsResult.Error == null)
                 {
-                    if (roadsResult.snappedPoints != null && roadsResult.snappedPoints.Count > 0)
+                    if (roadsResult.SnappedPoints != null && roadsResult.SnappedPoints.Count > 0)
                     {
                         ret.Points.Clear();
 
-                        foreach (var item in roadsResult.snappedPoints)
+                        foreach (var item in roadsResult.SnappedPoints)
                         {
-                            ret.Points.Add(new PointLatLng(item.location.latitude, item.location.longitude));
+                            ret.Points.Add(new PointLatLng(item.PointLocation.Latitude, item.PointLocation.Longitude));
                         }
 
                         ret.Status = RouteStatusCode.OK;
@@ -1170,10 +1172,10 @@ public abstract class GoogleMapProviderBase : GMapProvider, RoutingProvider, Geo
                 }
                 else
                 {
-                    ret.ErrorCode = roadsResult.error.code;
-                    ret.ErrorMessage = roadsResult.error.message;
+                    ret.ErrorCode = roadsResult.Error.Code;
+                    ret.ErrorMessage = roadsResult.Error.Message;
 
-                    if (Enum.TryParse(roadsResult.error.status, false, out RouteStatusCode code))
+                    if (Enum.TryParse(roadsResult.Error.Status, false, out RouteStatusCode code))
                     {
                         ret.Status = code;
                     }

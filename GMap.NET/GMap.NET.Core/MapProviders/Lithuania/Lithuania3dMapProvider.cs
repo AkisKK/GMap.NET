@@ -21,26 +21,20 @@ public class Lithuania3dMapProvider : LithuaniaMapProviderBase
 
     #region GMapProvider Members
 
-    public override Guid Id
-    {
-        get;
-    } = new Guid("CCC5B65F-C8BC-47CE-B39D-5E262E6BF083");
+    public override Guid Id { get; } = new Guid("CCC5B65F-C8BC-47CE-B39D-5E262E6BF083");
 
-    public override string Name
-    {
-        get;
-    } = "Lithuania 2.5d Map";
+    public override string Name { get; } = "Lithuania 2.5d Map";
 
     public override PureImage GetTileImage(GPoint pos, int zoom)
     {
-        string url = MakeTileImageUrl(pos, zoom, LanguageStr);
+        string url = MakeTileImageUrl(pos, zoom);
 
         return GetTileImageUsingHttp(url);
     }
 
     #endregion
 
-    string MakeTileImageUrl(GPoint pos, int zoom, string language)
+    static string MakeTileImageUrl(GPoint pos, int zoom)
     {
         // http://dc1.maps.lt/cache/mapslt_25d_vkkp/map/_alllayers/L01/R00007194/C0000a481.png
         int z = zoom;
@@ -49,9 +43,9 @@ public class Lithuania3dMapProvider : LithuaniaMapProviderBase
             z -= 10;
         }
 
-        return string.Format(UrlFormat, z, pos.Y, pos.X);
+        return string.Format(m_UrlFormat, z, pos.Y, pos.X);
     }
 
-    static readonly string UrlFormat =
+    static readonly string m_UrlFormat =
         "http://dc1.maps.lt/cache/mapslt_25d_vkkp/map/_alllayers/L{0:00}/R{1:x8}/C{2:x8}.png";
 }

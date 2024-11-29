@@ -26,37 +26,13 @@ public abstract class OpenStreetMapProviderBase : GMapProvider, RoutingProvider,
 
     #region GMapProvider Members
 
-    public override Guid Id
-    {
-        get
-        {
-            throw new NotImplementedException();
-        }
-    }
+    public override Guid Id => throw new NotImplementedException();
 
-    public override string Name
-    {
-        get
-        {
-            throw new NotImplementedException();
-        }
-    }
+    public override string Name => throw new NotImplementedException();
 
-    public override PureProjection Projection
-    {
-        get
-        {
-            return MercatorProjection.Instance;
-        }
-    }
+    public override PureProjection Projection => MercatorProjection.Instance;
 
-    public override GMapProvider[] Overlays
-    {
-        get
-        {
-            throw new NotImplementedException();
-        }
-    }
+    public override GMapProvider[] Overlays => throw new NotImplementedException();
 
     public override PureImage GetTileImage(GPoint pos, int zoom)
     {
@@ -69,7 +45,7 @@ public abstract class OpenStreetMapProviderBase : GMapProvider, RoutingProvider,
 
     public virtual MapRoute GetRoute(PointLatLng start, PointLatLng end, bool avoidHighways, bool walkingMode, int zoom)
     {
-        return GetRoute(MakeRoutingUrl(start, end, walkingMode ? TravelTypeFoot : TravelTypeMotorCar));
+        return GetRoute(MakeRoutingUrl(start, end, walkingMode ? m_TravelTypeFoot : m_TravelTypeMotorCar));
     }
 
     /// <summary>
@@ -83,29 +59,28 @@ public abstract class OpenStreetMapProviderBase : GMapProvider, RoutingProvider,
     /// <returns></returns>
     public virtual MapRoute GetRoute(string start, string end, bool avoidHighways, bool walkingMode, int zoom)
     {
-        return GetRoute(MakeRoutingUrl(start, end, walkingMode ? TravelTypeFoot : TravelTypeMotorCar));
+        return GetRoute(MakeRoutingUrl(start, end, walkingMode ? m_TravelTypeFoot : m_TravelTypeMotorCar));
     }
 
     #region -- internals --
-
-    string MakeRoutingUrl(PointLatLng start, PointLatLng end, string travelType)
+    static string MakeRoutingUrl(PointLatLng start, PointLatLng end, string travelType)
     {
         return string.Format(CultureInfo.InvariantCulture,
-            RoutingUrlFormat,
-            start.Lat,
-            start.Lng,
-            end.Lat,
-            end.Lng,
-            travelType);
+                             m_RoutingUrlFormat,
+                             start.Lat,
+                             start.Lng,
+                             end.Lat,
+                             end.Lng,
+                             travelType);
     }
 
-    string MakeRoutingUrl(string start, string end, string travelType)
+    static string MakeRoutingUrl(string start, string end, string travelType)
     {
         return string.Format(CultureInfo.InvariantCulture,
-            RoutingUrlFormat,
-            start,
-            end,
-            travelType);
+                             m_RoutingUrlFormat,
+                             start,
+                             end,
+                             travelType);
     }
 
     MapRoute GetRoute(string url)
@@ -167,20 +142,16 @@ public abstract class OpenStreetMapProviderBase : GMapProvider, RoutingProvider,
         return ret;
     }
 
-    static readonly string RoutingUrlFormat = "http://router.project-osrm.org/route/v1/driving/{1},{0};{3},{2}";
-
-    static readonly string TravelTypeFoot = "foot";
-    static readonly string TravelTypeMotorCar = "motorcar";
+    static readonly string m_RoutingUrlFormat = "http://router.project-osrm.org/route/v1/driving/{1},{0};{3},{2}";
+    static readonly string m_TravelTypeFoot = "foot";
+    static readonly string m_TravelTypeMotorCar = "motorcar";
 
     //static readonly string WalkingStr = "Walking";
     //static readonly string DrivingStr = "Driving";
-
     #endregion
-
     #endregion
 
     #region GeocodingProvider Members
-
     public GeoCoderStatusCode GetPoints(string keywords, out List<PointLatLng> pointList)
     {
         // http://nominatim.openstreetmap.org/search?q=lithuania,vilnius&format=xml
@@ -207,8 +178,7 @@ public abstract class OpenStreetMapProviderBase : GMapProvider, RoutingProvider,
 
     public GeoCoderStatusCode GetPlacemarks(PointLatLng location, out List<Placemark> placemarkList)
     {
-        GeoCoderStatusCode status;
-        placemarkList = GetPlacemarkFromReverseGeocoderUrl(MakeReverseGeocoderUrl(location), out status);
+        placemarkList = GetPlacemarkFromReverseGeocoderUrl(MakeReverseGeocoderUrl(location), out var status);
         return status;
     }
 
@@ -220,28 +190,27 @@ public abstract class OpenStreetMapProviderBase : GMapProvider, RoutingProvider,
     }
 
     #region -- internals --
-
-    string MakeGeocoderUrl(string keywords)
+    static string MakeGeocoderUrl(string keywords)
     {
-        return string.Format(GeocoderUrlFormat, keywords.Replace(' ', '+'));
+        return string.Format(m_GeocoderUrlFormat, keywords.Replace(' ', '+'));
     }
 
-    string MakeDetailedGeocoderUrl(Placemark placemark)
+    static string MakeDetailedGeocoderUrl(Placemark placemark)
     {
         string street = string.Join(" ", new[] { placemark.HouseNo, placemark.ThoroughfareName }).Trim();
 
-        return string.Format(GeocoderDetailedUrlFormat,
-            street.Replace(' ', '+'),
-            placemark.LocalityName.Replace(' ', '+'),
-            placemark.SubAdministrativeAreaName.Replace(' ', '+'),
-            placemark.AdministrativeAreaName.Replace(' ', '+'),
-            placemark.CountryName.Replace(' ', '+'),
-            placemark.PostalCodeNumber.Replace(' ', '+'));
+        return string.Format(m_GeocoderDetailedUrlFormat,
+                             street.Replace(' ', '+'),
+                             placemark.LocalityName.Replace(' ', '+'),
+                             placemark.SubAdministrativeAreaName.Replace(' ', '+'),
+                             placemark.AdministrativeAreaName.Replace(' ', '+'),
+                             placemark.CountryName.Replace(' ', '+'),
+                             placemark.PostalCodeNumber.Replace(' ', '+'));
     }
 
-    string MakeReverseGeocoderUrl(PointLatLng pt)
+    static string MakeReverseGeocoderUrl(PointLatLng pt)
     {
-        return string.Format(CultureInfo.InvariantCulture, ReverseGeocoderUrlFormat, pt.Lat, pt.Lng);
+        return string.Format(CultureInfo.InvariantCulture, m_ReverseGeocoderUrlFormat, pt.Lat, pt.Lng);
     }
 
     GeoCoderStatusCode GetLatLngFromGeocoderUrl(string url, out List<PointLatLng> pointList)
@@ -277,7 +246,7 @@ public abstract class OpenStreetMapProviderBase : GMapProvider, RoutingProvider,
 
             if (!string.IsNullOrEmpty(geo))
             {
-                pointList = new List<PointLatLng>();
+                pointList = [];
 
                 foreach (var item in result)
                 {
@@ -329,7 +298,7 @@ public abstract class OpenStreetMapProviderBase : GMapProvider, RoutingProvider,
 
             if (!string.IsNullOrEmpty(geo))
             {
-                ret = new List<Placemark>();
+                ret = [];
 
                 var p = new Placemark(result.DisplayName);
 
@@ -361,16 +330,14 @@ public abstract class OpenStreetMapProviderBase : GMapProvider, RoutingProvider,
         return ret;
     }
 
-    static readonly string ReverseGeocoderUrlFormat =
+    static readonly string m_ReverseGeocoderUrlFormat =
         "https://nominatim.openstreetmap.org/reverse?format=json&lat={0}&lon={1}&zoom=18&addressdetails=1";
 
-    static readonly string GeocoderUrlFormat = "https://nominatim.openstreetmap.org/search?q={0}&format=json";
+    static readonly string m_GeocoderUrlFormat = "https://nominatim.openstreetmap.org/search?q={0}&format=json";
 
-    static readonly string GeocoderDetailedUrlFormat =
+    static readonly string m_GeocoderDetailedUrlFormat =
         "https://nominatim.openstreetmap.org/search?street={0}&city={1}&county={2}&state={3}&country={4}&postalcode={5}&format=json";
-
     #endregion
-
     #endregion
 }
 
@@ -392,36 +359,27 @@ public class OpenStreetMapProvider : OpenStreetMapProviderBase
 
     #region GMapProvider Members
 
-    public override Guid Id
-    {
-        get;
-    } = new Guid("0521335C-92EC-47A8-98A5-6FD333DDA9C0");
+    public override Guid Id { get; } = new Guid("0521335C-92EC-47A8-98A5-6FD333DDA9C0");
 
-    public override string Name
-    {
-        get;
-    } = "OpenStreetMap";
+    public override string Name { get; } = "OpenStreetMap";
 
     public string YoursClientName { get; set; }
 
-    GMapProvider[] _overlays;
+    GMapProvider[] m_Overlays;
 
     public override GMapProvider[] Overlays
     {
         get
         {
-            if (_overlays == null)
-            {
-                _overlays = new GMapProvider[] { this };
-            }
+            m_Overlays ??= [this];
 
-            return _overlays;
+            return m_Overlays;
         }
     }
 
     public override PureImage GetTileImage(GPoint pos, int zoom)
     {
-        string url = MakeTileImageUrl(pos, zoom, string.Empty);
+        string url = MakeTileImageUrl(pos, zoom);
 
         return GetTileImageUsingHttp(url);
     }
@@ -438,11 +396,11 @@ public class OpenStreetMapProvider : OpenStreetMapProviderBase
 
     #endregion
 
-    string MakeTileImageUrl(GPoint pos, int zoom, string _)
+    string MakeTileImageUrl(GPoint pos, int zoom)
     {
         char letter = ServerLetters[GetServerNum(pos, 3)];
-        return string.Format(UrlFormat, letter, zoom, pos.X, pos.Y);
+        return string.Format(m_UrlFormat, letter, zoom, pos.X, pos.Y);
     }
 
-    static readonly string UrlFormat = "https://{0}.tile.openstreetmap.org/{1}/{2}/{3}.png";
+    static readonly string m_UrlFormat = "https://{0}.tile.openstreetmap.org/{1}/{2}/{3}.png";
 }

@@ -19,14 +19,14 @@ public class SwissTopoProjection : PureProjection
         get { return (1.0 / 298.257223563); }
     }
 
-    public static readonly SwissTopoProjection Instance = new SwissTopoProjection();
+    public static readonly SwissTopoProjection Instance = new();
     static readonly double MaxLatitude = 85.05112878;
     static readonly double MaxLongitude = 180;
 
     static readonly double MinLatitude = -85.05112878;
     static readonly double MinLongitude = -180;
 
-    readonly GSize tileSize = new GSize(256, 256);
+    readonly GSize tileSize = new(256, 256);
 
     public override GSize TileSize
     {
@@ -82,8 +82,8 @@ public class SwissTopoProjection : PureProjection
     }
 
     // from https://api3.geo.admin.ch/services/sdiservices.html#wmts
-    private static GSize[] TileMaxLimitsPerZoom = new GSize[]
-    {
+    private static GSize[] TileMaxLimitsPerZoom =
+    [
         new GSize(1, 1), /* zoom = 0 */
         new GSize(1, 1), /* zoom = 1 */
         new GSize(1, 1), /* zoom = 2 */
@@ -113,5 +113,5 @@ public class SwissTopoProjection : PureProjection
         new GSize(3750, 2500), /* zoom = 26 */
         new GSize(7500, 5000), /* zoom = 27 */
         new GSize(18750, 12500), /* zoom = 28 */
-    };
+    ];
 }

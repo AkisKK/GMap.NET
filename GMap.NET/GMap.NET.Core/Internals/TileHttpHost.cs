@@ -112,7 +112,7 @@ internal class TileHttpHost
 
                 if (rq.Length >= 2)
                 {
-                    string[] ids = rq[1].Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
+                    string[] ids = rq[1].Split(['/'], StringSplitOptions.RemoveEmptyEntries);
 
                     if (ids.Length == 4)
                     {

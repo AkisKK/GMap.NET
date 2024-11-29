@@ -8,7 +8,7 @@ namespace GMap.NET;
 /// </summary>
 public struct GRect
 {
-    public static readonly GRect Empty = new GRect();
+    public static readonly GRect Empty = new();
 
     public GRect(long x, long y, long width, long height)
     {
@@ -148,7 +148,9 @@ public struct GRect
     public override bool Equals(object obj)
     {
         if (!(obj is GRect))
+        {
             return false;
+        }
 
         var comp = (GRect)obj;
 

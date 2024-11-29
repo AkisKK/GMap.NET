@@ -20,39 +20,21 @@ public class LithuaniaTOP50 : GMapProvider
 
     #region GMapProvider Members
 
-    public override Guid Id
-    {
-        get;
-    } = new Guid("2920B1AF-6D57-4895-9A21-D5837CBF1049");
+    public override Guid Id { get; } = new Guid("2920B1AF-6D57-4895-9A21-D5837CBF1049");
 
-    public override string Name
-    {
-        get
-        {
-            return "LithuaniaTOP50";
-        }
-    }
+    public override string Name => "LithuaniaTOP50";
 
-    public override PureProjection Projection
-    {
-        get
-        {
-            return MercatorProjection.Instance;
-        }
-    }
+    public override PureProjection Projection => MercatorProjection.Instance;
 
-    GMapProvider[] _overlays;
+    GMapProvider[] m_Overlays;
 
     public override GMapProvider[] Overlays
     {
         get
         {
-            if (_overlays == null)
-            {
-                _overlays = new GMapProvider[] { this };
-            }
+            m_Overlays ??= [this];
 
-            return _overlays;
+            return m_Overlays;
         }
     }
 

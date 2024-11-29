@@ -20,31 +20,23 @@ public class LithuaniaHybridOldMapProvider : LithuaniaMapProviderBase
 
     #region GMapProvider Members
 
-    public override Guid Id
-    {
-        get;
-    } = new Guid("35C5C685-E868-4AC7-97BE-10A9A37A81B5");
+    public override Guid Id { get; } = new Guid("35C5C685-E868-4AC7-97BE-10A9A37A81B5");
 
-    public override string Name
-    {
-        get;
-    } = "LithuaniaHybridMapOld";
+    public override string Name { get; } = "LithuaniaHybridMapOld";
 
-    GMapProvider[] _overlays;
+    GMapProvider[] m_Overlays;
 
     public override GMapProvider[] Overlays
     {
         get
         {
-            if (_overlays == null)
-            {
-                _overlays = new GMapProvider[]
-                {
-                    LithuaniaOrtoFotoOldMapProvider.Instance, LithuaniaHybridMapProvider.Instance
-                };
-            }
+            m_Overlays ??=
+                [
+                    LithuaniaOrtoFotoOldMapProvider.Instance,
+                    LithuaniaHybridMapProvider.Instance
+                ];
 
-            return _overlays;
+            return m_Overlays;
         }
     }
 

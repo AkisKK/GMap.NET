@@ -22,45 +22,36 @@ public class OpenCycleMapProvider : OpenStreetMapProviderBase
 
     #region GMapProvider Members
 
-    public override Guid Id
-    {
-        get;
-    } = new Guid("D7E1826E-EE1E-4441-9F15-7C2DE0FE0B0A");
+    public override Guid Id { get; } = new Guid("D7E1826E-EE1E-4441-9F15-7C2DE0FE0B0A");
 
-    public override string Name
-    {
-        get;
-    } = "OpenCycleMap";
+    public override string Name { get; } = "OpenCycleMap";
 
-    GMapProvider[] _overlays;
+    GMapProvider[] m_Overlays;
 
     public override GMapProvider[] Overlays
     {
         get
         {
-            if (_overlays == null)
-            {
-                _overlays = new GMapProvider[] { this };
-            }
+            m_Overlays ??= [this];
 
-            return _overlays;
+            return m_Overlays;
         }
     }
 
     public override PureImage GetTileImage(GPoint pos, int zoom)
     {
-        string url = MakeTileImageUrl(pos, zoom, string.Empty);
+        string url = MakeTileImageUrl(pos, zoom);
 
         return GetTileImageUsingHttp(url);
     }
 
     #endregion
 
-    string MakeTileImageUrl(GPoint pos, int zoom, string language)
+    string MakeTileImageUrl(GPoint pos, int zoom)
     {
         char letter = ServerLetters[GetServerNum(pos, 3)];
-        return string.Format(UrlFormat, letter, zoom, pos.X, pos.Y);
+        return string.Format(m_UrlFormat, letter, zoom, pos.X, pos.Y);
     }
 
-    static readonly string UrlFormat = "http://{0}.tile.opencyclemap.org/cycle/{1}/{2}/{3}.png";
+    static readonly string m_UrlFormat = "http://{0}.tile.opencyclemap.org/cycle/{1}/{2}/{3}.png";
 }

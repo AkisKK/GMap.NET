@@ -15,7 +15,7 @@ public class MapRoute : ISerializable, IDeserializationCallback
     /// <summary>
     ///     points of route
     /// </summary>
-    public readonly List<PointLatLng> Points = new List<PointLatLng>();
+    public readonly List<PointLatLng> Points = [];
 
     /// <summary>
     ///     route info
@@ -32,7 +32,7 @@ public class MapRoute : ISerializable, IDeserializationCallback
     /// </summary>
     public string Duration;
 
-    public List<string> Instructions = new List<string>();
+    public List<string> Instructions = [];
 
     /// <summary>
     ///     Status of Route
@@ -142,7 +142,9 @@ public class MapRoute : ISerializable, IDeserializationCallback
                 double distance = DistanceToLinealRoute(Points[i - 1], Points[i], point);
 
                 if (distance < min)
+                {
                     min = distance;
+                }
             }
 
             return min;
@@ -231,7 +233,7 @@ public class MapRoute : ISerializable, IDeserializationCallback
         Name = info.GetString("Name");
         Tag = Extensions.GetValue<object>(info, "Tag", null);
         deserializedPoints = Extensions.GetValue<PointLatLng[]>(info, "Points");
-        Points = new List<PointLatLng>();
+        Points = [];
     }
 
     #endregion
