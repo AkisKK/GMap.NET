@@ -2,51 +2,23 @@
 
 namespace GMap.NET;
 
-public interface Interface
+public interface IInterface
 {
-    PointLatLng Position
-    {
-        get;
-        set;
-    }
+    PointLatLng Position { get; set; }
 
-    GPoint PositionPixel
-    {
-        get;
-    }
+    GPoint PositionPixel { get; }
 
-    string CacheLocation
-    {
-        get;
-        set;
-    }
+    string CacheLocation { get; set; }
 
-    bool IsDragging
-    {
-        get;
-    }
+    bool IsDragging { get; }
 
-    RectLatLng ViewArea
-    {
-        get;
-    }
+    RectLatLng ViewArea { get; }
 
-    GMapProvider MapProvider
-    {
-        get;
-        set;
-    }
+    GMapProvider MapProvider { get; set; }
 
-    bool CanDragMap
-    {
-        get;
-        set;
-    }
+    bool CanDragMap { get; set; }
 
-    RenderMode RenderMode
-    {
-        get;
-    }
+    RenderMode RenderMode { get; }
 
     // events
     event PositionChanged OnPositionChanged;

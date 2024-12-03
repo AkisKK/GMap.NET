@@ -13,8 +13,8 @@ using Newtonsoft.Json;
 
 namespace GMap.NET.MapProviders.Google;
 
-public abstract class GoogleMapProviderBase : GMapProvider, RoutingProvider, GeocodingProvider, DirectionsProvider,
-    RoadsProvider
+public abstract class GoogleMapProviderBase : GMapProvider, IRoutingProvider, IGeocodingProvider, IDirectionsProvider,
+    IRoadsProvider
 {
     public GoogleMapProviderBase()
     {

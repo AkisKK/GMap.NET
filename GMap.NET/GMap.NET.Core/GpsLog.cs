@@ -20,7 +20,7 @@ public struct GpsLog
     public FixType FixType;
     public FixSelection FixSelection;
 
-    public override string ToString()
+    public override readonly string ToString()
     {
         return string.Format("{0}: {1}", SessionCounter, TimeUTC);
     }

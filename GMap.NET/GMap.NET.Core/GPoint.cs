@@ -24,25 +24,11 @@ public struct GPoint
         Y = sz.Height;
     }
 
-    public bool IsEmpty
-    {
-        get
-        {
-            return X == 0 && Y == 0;
-        }
-    }
+    public readonly bool IsEmpty => X == 0 && Y == 0;
 
-    public long X
-    {
-        get;
-        set;
-    }
+    public long X { get; set; }
 
-    public long Y
-    {
-        get;
-        set;
-    }
+    public long Y { get; set; }
 
     public static explicit operator GSize(GPoint p)
     {
@@ -79,9 +65,9 @@ public struct GPoint
         return new GPoint(pt.X - sz.Width, pt.Y - sz.Height);
     }
 
-    public override bool Equals(object obj)
+    public override readonly bool Equals(object obj)
     {
-        if (!(obj is GPoint))
+        if (obj is not GPoint)
         {
             return false;
         }
@@ -90,7 +76,7 @@ public struct GPoint
         return comp.X == X && comp.Y == Y;
     }
 
-    public override int GetHashCode()
+    public override readonly int GetHashCode()
     {
         return (int)(X ^ Y);
     }
@@ -111,7 +97,7 @@ public struct GPoint
         Offset(-p.X, -p.Y);
     }
 
-    public override string ToString()
+    public override readonly string ToString()
     {
         return "{X=" + X.ToString(CultureInfo.CurrentCulture) + ",Y=" + Y.ToString(CultureInfo.CurrentCulture) +
                "}";

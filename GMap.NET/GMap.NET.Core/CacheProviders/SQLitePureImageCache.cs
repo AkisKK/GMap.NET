@@ -23,7 +23,7 @@ using SQLiteParameter = Mono.Data.Sqlite.SqliteParameter;
 /// <summary>
 ///     ultra fast cache system for tiles
 /// </summary>
-public class SQLitePureImageCache : PureImageCache
+public class SQLitePureImageCache : IPureImageCache
 {
 #if !MONO
     static SQLitePureImageCache()
@@ -587,7 +587,7 @@ string.Format("Version=3,URI=file://{0},FailIfMissing=True,Page Size=32768", des
 
     int m_PreAllocationPing;
 
-    bool PureImageCache.PutImageToCache(byte[] tile, int type, GPoint pos, int zoom)
+    bool IPureImageCache.PutImageToCache(byte[] tile, int type, GPoint pos, int zoom)
     {
         bool ret = true;
 
@@ -655,7 +655,7 @@ string.Format("Version=3,URI=file://{0},FailIfMissing=True,Page Size=32768", des
         return ret;
     }
 
-    PureImage PureImageCache.GetImageFromCache(int type, GPoint pos, int zoom)
+    PureImage IPureImageCache.GetImageFromCache(int type, GPoint pos, int zoom)
     {
         PureImage ret = null;
         try
@@ -713,7 +713,7 @@ string.Format("Version=3,URI=file://{0},FailIfMissing=True,Page Size=32768", des
         return ret;
     }
 
-    int PureImageCache.DeleteOlderThan(DateTime date, int? type)
+    int IPureImageCache.DeleteOlderThan(DateTime date, int? type)
     {
         int affectedRows = 0;
 

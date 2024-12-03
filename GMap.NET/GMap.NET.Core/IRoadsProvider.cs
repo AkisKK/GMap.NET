@@ -5,7 +5,7 @@ namespace GMap.NET;
 /// <summary>
 ///     roads interface
 /// </summary>
-public interface RoadsProvider
+public interface IRoadsProvider
 {
     MapRoute GetRoadsRoute(List<PointLatLng> points, bool interpolate);
 

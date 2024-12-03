@@ -185,7 +185,7 @@ public class MapyCZProjection : PureProjection
                                                              m_MaxLongitude,
                                                              m_MinLatitude);
 
-    public override GSize TileSize => new GSize(256, 256);
+    public override GSize TileSize => new(256, 256);
 
     public override double Axis => 6378137;
 

@@ -70,7 +70,7 @@ public class MapRoute : ISerializable, IDeserializationCallback
         {
             if (Points.Count > 1)
             {
-                return Points[Points.Count - 1];
+                return Points[^1];
             }
 
             return null;
@@ -202,7 +202,7 @@ public class MapRoute : ISerializable, IDeserializationCallback
     #region ISerializable Members
 
     // Temp store for de-serialization.
-    private PointLatLng[] deserializedPoints;
+    private readonly PointLatLng[] m_DeserializedPoints;
 
     /// <summary>
     ///     Populates a <see cref="T:System.Runtime.Serialization.SerializationInfo" /> with the data needed to serialize the
@@ -232,7 +232,7 @@ public class MapRoute : ISerializable, IDeserializationCallback
     {
         Name = info.GetString("Name");
         Tag = Extensions.GetValue<object>(info, "Tag", null);
-        deserializedPoints = Extensions.GetValue<PointLatLng[]>(info, "Points");
+        m_DeserializedPoints = Extensions.GetValue<PointLatLng[]>(info, "Points");
         Points = [];
     }
 
@@ -250,7 +250,7 @@ public class MapRoute : ISerializable, IDeserializationCallback
     public virtual void OnDeserialization(object sender)
     {
         // Accounts for the de-serialization being breadth first rather than depth first.
-        Points.AddRange(deserializedPoints);
+        Points.AddRange(m_DeserializedPoints);
         Points.TrimExcess();
     }
 

@@ -52,25 +52,11 @@ public struct SizeLatLng
         return new PointLatLng(size.HeightLat, size.WidthLng);
     }
 
-    public bool IsEmpty
-    {
-        get
-        {
-            return WidthLng == 0d && HeightLat == 0d;
-        }
-    }
+    public readonly bool IsEmpty => WidthLng == 0d && HeightLat == 0d;
 
-    public double WidthLng
-    {
-        get;
-        set;
-    }
+    public double WidthLng { get; set; }
 
-    public double HeightLat
-    {
-        get;
-        set;
-    }
+    public double HeightLat { get; set; }
 
     public static SizeLatLng Add(SizeLatLng sz1, SizeLatLng sz2)
     {
@@ -82,9 +68,9 @@ public struct SizeLatLng
         return new SizeLatLng(sz1.HeightLat - sz2.HeightLat, sz1.WidthLng - sz2.WidthLng);
     }
 
-    public override bool Equals(object obj)
+    public override readonly bool Equals(object obj)
     {
-        if (!(obj is SizeLatLng))
+        if (obj is not SizeLatLng)
         {
             return false;
         }
@@ -94,7 +80,7 @@ public struct SizeLatLng
                ef.GetType().Equals(GetType());
     }
 
-    public override int GetHashCode()
+    public override readonly int GetHashCode()
     {
         if (IsEmpty)
         {
@@ -104,12 +90,9 @@ public struct SizeLatLng
         return WidthLng.GetHashCode() ^ HeightLat.GetHashCode();
     }
 
-    public PointLatLng ToPointLatLng()
-    {
-        return (PointLatLng)this;
-    }
+    public readonly PointLatLng ToPointLatLng() => (PointLatLng)this;
 
-    public override string ToString()
+    public override readonly string ToString()
     {
         return "{WidthLng=" + WidthLng.ToString(CultureInfo.CurrentCulture) + ", HeightLng=" +
                HeightLat.ToString(CultureInfo.CurrentCulture) + "}";

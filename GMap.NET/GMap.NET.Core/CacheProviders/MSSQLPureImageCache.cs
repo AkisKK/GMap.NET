@@ -12,7 +12,7 @@ namespace GMap.NET.CacheProviders;
 /// <remarks>
 /// Optimized by mmurfinsimmons@gmail.com
 /// </remarks>
-public class MsSQLPureImageCache : PureImageCache, IDisposable
+public class MsSQLPureImageCache : IPureImageCache, IDisposable
 {
     string m_ConnectionString = string.Empty;
 
@@ -261,7 +261,7 @@ public class MsSQLPureImageCache : PureImageCache, IDisposable
     /// <param name="date"></param>
     /// <param name="type"></param>
     /// <returns></returns>
-    int PureImageCache.DeleteOlderThan(DateTime date, int? type)
+    int IPureImageCache.DeleteOlderThan(DateTime date, int? type)
     {
         throw new NotImplementedException();
     }

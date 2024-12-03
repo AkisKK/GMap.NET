@@ -10,7 +10,7 @@ using Newtonsoft.Json;
 
 namespace GMap.NET.MapProviders.OpenStreetMap;
 
-public abstract class OpenStreetMapProviderBase : GMapProvider, RoutingProvider, GeocodingProvider
+public abstract class OpenStreetMapProviderBase : GMapProvider, IRoutingProvider, IGeocodingProvider
 {
     public OpenStreetMapProviderBase()
     {

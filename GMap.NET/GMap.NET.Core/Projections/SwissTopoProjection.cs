@@ -4,41 +4,29 @@ using System;
 
 public class SwissTopoProjection : PureProjection
 {
-    public override double Axis
-    {
-        get { return 6378137; }
-    }
+    public override double Axis => 6378137;
 
-    public override RectLatLng Bounds
-    {
-        get { return RectLatLng.FromLTRB(MinLongitude, MaxLatitude, MaxLongitude, MinLatitude); }
-    }
+    public override RectLatLng Bounds => RectLatLng.FromLTRB(m_MinLongitude, m_MaxLatitude, m_MaxLongitude, m_MinLatitude);
 
-    public override double Flattening
-    {
-        get { return (1.0 / 298.257223563); }
-    }
+    public override double Flattening => 1.0 / 298.257223563;
 
     public static readonly SwissTopoProjection Instance = new();
-    static readonly double MaxLatitude = 85.05112878;
-    static readonly double MaxLongitude = 180;
+    static readonly double m_MaxLatitude = 85.05112878;
+    static readonly double m_MaxLongitude = 180;
 
-    static readonly double MinLatitude = -85.05112878;
-    static readonly double MinLongitude = -180;
+    static readonly double m_MinLatitude = -85.05112878;
+    static readonly double m_MinLongitude = -180;
 
-    readonly GSize tileSize = new(256, 256);
+    readonly GSize m_TileSize = new(256, 256);
 
-    public override GSize TileSize
-    {
-        get { return tileSize; }
-    }
+    public override GSize TileSize => m_TileSize;
 
     public override GPoint FromLatLngToPixel(double lat, double lng, int zoom)
     {
         var ret = GPoint.Empty;
 
-        lat = Clip(lat, MinLatitude, MaxLatitude);
-        lng = Clip(lng, MinLongitude, MaxLongitude);
+        lat = Clip(lat, m_MinLatitude, m_MaxLatitude);
+        lng = Clip(lng, m_MinLongitude, m_MaxLongitude);
 
         double x = (lng + 180) / 360;
         double sinLatitude = Math.Sin(lat * Math.PI / 180);
@@ -73,7 +61,7 @@ public class SwissTopoProjection : PureProjection
 
     public override GSize GetTileMatrixMaxXY(int zoom)
     {
-        return new GSize(TileMaxLimitsPerZoom[zoom].Width - 1, TileMaxLimitsPerZoom[zoom].Height - 1);
+        return new GSize(m_TileMaxLimitsPerZoom[zoom].Width - 1, m_TileMaxLimitsPerZoom[zoom].Height - 1);
     }
 
     public override GSize GetTileMatrixMinXY(int zoom)
@@ -82,7 +70,7 @@ public class SwissTopoProjection : PureProjection
     }
 
     // from https://api3.geo.admin.ch/services/sdiservices.html#wmts
-    private static GSize[] TileMaxLimitsPerZoom =
+    private static readonly GSize[] m_TileMaxLimitsPerZoom =
     [
         new GSize(1, 1), /* zoom = 0 */
         new GSize(1, 1), /* zoom = 1 */

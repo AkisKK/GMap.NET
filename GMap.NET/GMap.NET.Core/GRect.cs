@@ -33,10 +33,7 @@ public struct GRect
 
     public GPoint Location
     {
-        get
-        {
-            return new GPoint(X, Y);
-        }
+        readonly get => new(X, Y);
         set
         {
             X = value.X;
@@ -44,36 +41,15 @@ public struct GRect
         }
     }
 
-    public GPoint RightBottom
-    {
-        get
-        {
-            return new GPoint(Right, Bottom);
-        }
-    }
+    public readonly GPoint RightBottom => new(Right, Bottom);
 
-    public GPoint RightTop
-    {
-        get
-        {
-            return new GPoint(Right, Top);
-        }
-    }
+    public readonly GPoint RightTop => new(Right, Top);
 
-    public GPoint LeftBottom
-    {
-        get
-        {
-            return new GPoint(Left, Bottom);
-        }
-    }
+    public readonly GPoint LeftBottom => new(Left, Bottom);
 
     public GSize Size
     {
-        get
-        {
-            return new GSize(Width, Height);
-        }
+        readonly get => new(Width, Height);
         set
         {
             Width = value.Width;
@@ -81,73 +57,27 @@ public struct GRect
         }
     }
 
-    public long X
-    {
-        get;
-        set;
-    }
+    public long X { get; set; }
 
-    public long Y
-    {
-        get;
-        set;
-    }
+    public long Y { get; set; }
 
-    public long Width
-    {
-        get;
-        set;
-    }
+    public long Width { get; set; }
 
-    public long Height
-    {
-        get;
-        set;
-    }
+    public long Height { get; set; }
 
-    public long Left
-    {
-        get
-        {
-            return X;
-        }
-    }
+    public readonly long Left => X;
 
-    public long Top
-    {
-        get
-        {
-            return Y;
-        }
-    }
+    public readonly long Top => Y;
 
-    public long Right
-    {
-        get
-        {
-            return X + Width;
-        }
-    }
+    public readonly long Right => X + Width;
 
-    public long Bottom
-    {
-        get
-        {
-            return Y + Height;
-        }
-    }
+    public readonly long Bottom => Y + Height;
 
-    public bool IsEmpty
-    {
-        get
-        {
-            return Height == 0 && Width == 0 && X == 0 && Y == 0;
-        }
-    }
+    public readonly bool IsEmpty => Height == 0 && Width == 0 && X == 0 && Y == 0;
 
-    public override bool Equals(object obj)
+    public override readonly bool Equals(object obj)
     {
-        if (!(obj is GRect))
+        if (obj is not GRect)
         {
             return false;
         }
@@ -170,17 +100,17 @@ public struct GRect
         return !(left == right);
     }
 
-    public bool Contains(long x, long y)
+    public readonly bool Contains(long x, long y)
     {
         return X <= x && x < X + Width && Y <= y && y < Y + Height;
     }
 
-    public bool Contains(GPoint pt)
+    public readonly bool Contains(GPoint pt)
     {
         return Contains(pt.X, pt.Y);
     }
 
-    public bool Contains(GRect rect)
+    public readonly bool Contains(GRect rect)
     {
         return X <= rect.X &&
                rect.X + rect.Width <= X + Width &&
@@ -188,7 +118,7 @@ public struct GRect
                rect.Y + rect.Height <= Y + Height;
     }
 
-    public override int GetHashCode()
+    public override readonly int GetHashCode()
     {
         if (IsEmpty)
         {
@@ -245,7 +175,7 @@ public struct GRect
         return Empty;
     }
 
-    public bool IntersectsWith(GRect rect)
+    public readonly bool IntersectsWith(GRect rect)
     {
         return rect.X < X + Width &&
                X < rect.X + rect.Width &&
@@ -279,7 +209,7 @@ public struct GRect
         Y += y;
     }
 
-    public override string ToString()
+    public override readonly string ToString()
     {
         return "{X=" + X.ToString(CultureInfo.CurrentCulture) + ",Y=" + Y.ToString(CultureInfo.CurrentCulture) +
                ",Width=" + Width.ToString(CultureInfo.CurrentCulture) +

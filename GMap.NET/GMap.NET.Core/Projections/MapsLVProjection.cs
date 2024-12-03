@@ -575,7 +575,7 @@ public class LKS92Projection : PureProjection
 
     public override GSize GetTileMatrixMinXY(int zoom)
     {
-        if (m_ExtentMatrixMin == null)
+        if (m_ExtentMatrixMin is null)
         {
             GenerateExtents();
         }
@@ -585,7 +585,7 @@ public class LKS92Projection : PureProjection
 
     public override GSize GetTileMatrixMaxXY(int zoom)
     {
-        if (m_ExtentMatrixMax == null)
+        if (m_ExtentMatrixMax is null)
         {
             GenerateExtents();
         }

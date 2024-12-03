@@ -10,52 +10,40 @@ namespace GMap.NET;
 public struct PointLatLng
 {
     public static readonly PointLatLng Empty = new();
-    private double _lat;
-    private double _lng;
+    private double m_Latitude;
+    private double m_Longitude;
 
-    bool _notEmpty;
+    bool m_NotEmpty;
 
     public PointLatLng(double lat, double lng)
     {
-        _lat = lat;
-        _lng = lng;
-        _notEmpty = true;
+        m_Latitude = lat;
+        m_Longitude = lng;
+        m_NotEmpty = true;
     }
 
     /// <summary>
     ///     returns true if coordinates wasn't assigned
     /// </summary>
-    public bool IsEmpty
-    {
-        get
-        {
-            return !_notEmpty;
-        }
-    }
+    public readonly bool IsEmpty => !m_NotEmpty;
 
     public double Lat
     {
-        get
-        {
-            return _lat;
-        }
+        readonly get => m_Latitude;
         set
         {
-            _lat = value;
-            _notEmpty = true;
+            m_Latitude = value;
+            m_NotEmpty = true;
         }
     }
 
     public double Lng
     {
-        get
-        {
-            return _lng;
-        }
+        readonly get => m_Longitude;
         set
         {
-            _lng = value;
-            _notEmpty = true;
+            m_Longitude = value;
+            m_NotEmpty = true;
         }
     }
 
@@ -94,9 +82,9 @@ public struct PointLatLng
         return new PointLatLng(pt.Lat + sz.HeightLat, pt.Lng - sz.WidthLng);
     }
 
-    public override bool Equals(object obj)
+    public override readonly bool Equals(object obj)
     {
-        if (!(obj is PointLatLng))
+        if (obj is not PointLatLng)
         {
             return false;
         }
@@ -116,12 +104,12 @@ public struct PointLatLng
         Lat -= lat;
     }
 
-    public override int GetHashCode()
+    public override readonly int GetHashCode()
     {
         return Lng.GetHashCode() ^ Lat.GetHashCode();
     }
 
-    public override string ToString()
+    public override readonly string ToString()
     {
         return string.Format(CultureInfo.CurrentCulture, "{{Lat={0}, Lng={1}}}", Lat, Lng);
     }

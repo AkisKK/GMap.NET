@@ -46,25 +46,11 @@ public struct GSize
         return new GPoint(size.Width, size.Height);
     }
 
-    public bool IsEmpty
-    {
-        get
-        {
-            return Width == 0 && Height == 0;
-        }
-    }
+    public readonly bool IsEmpty => Width == 0 && Height == 0;
 
-    public long Width
-    {
-        get;
-        set;
-    }
+    public long Width { get; set; }
 
-    public long Height
-    {
-        get;
-        set;
-    }
+    public long Height { get; set; }
 
     public static GSize Add(GSize sz1, GSize sz2)
     {
@@ -76,9 +62,9 @@ public struct GSize
         return new GSize(sz1.Width - sz2.Width, sz1.Height - sz2.Height);
     }
 
-    public override bool Equals(object obj)
+    public override readonly bool Equals(object obj)
     {
-        if (!(obj is GSize))
+        if (obj is not GSize)
         {
             return false;
         }
@@ -90,7 +76,7 @@ public struct GSize
                comp.Height == Height;
     }
 
-    public override int GetHashCode()
+    public override readonly int GetHashCode()
     {
         if (IsEmpty)
         {
@@ -100,7 +86,7 @@ public struct GSize
         return Width.GetHashCode() ^ Height.GetHashCode();
     }
 
-    public override string ToString()
+    public override readonly string ToString()
     {
         return "{Width=" + Width.ToString(CultureInfo.CurrentCulture) + ", Height=" +
                Height.ToString(CultureInfo.CurrentCulture) + "}";

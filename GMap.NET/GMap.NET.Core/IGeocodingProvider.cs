@@ -5,7 +5,7 @@ namespace GMap.NET;
 /// <summary>
 ///     geocoding interface
 /// </summary>
-public interface GeocodingProvider
+public interface IGeocodingProvider
 {
     GeoCoderStatusCode GetPoints(string keywords, out List<PointLatLng> pointList);
 

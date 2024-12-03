@@ -16,7 +16,7 @@ public struct RectLatLng
         Lat = lat;
         WidthLng = widthLng;
         HeightLat = heightLat;
-        _notEmpty = true;
+        m_NotEmpty = true;
     }
 
     public RectLatLng(PointLatLng location, SizeLatLng size)
@@ -25,7 +25,7 @@ public struct RectLatLng
         Lat = location.Lat;
         WidthLng = size.WidthLng;
         HeightLat = size.HeightLat;
-        _notEmpty = true;
+        m_NotEmpty = true;
     }
 
     public static RectLatLng FromLTRB(double leftLng, double topLat, double rightLng, double bottomLat)
@@ -35,10 +35,7 @@ public struct RectLatLng
 
     public PointLatLng LocationTopLeft
     {
-        get
-        {
-            return new PointLatLng(Lat, Lng);
-        }
+        readonly get => new(Lat, Lng);
         set
         {
             Lng = value.Lng;
@@ -46,7 +43,7 @@ public struct RectLatLng
         }
     }
 
-    public PointLatLng LocationRightBottom
+    public readonly PointLatLng LocationRightBottom
     {
         get
         {
@@ -56,7 +53,7 @@ public struct RectLatLng
         }
     }
 
-    public PointLatLng LocationMiddle
+    public readonly PointLatLng LocationMiddle
     {
         get
         {
@@ -68,10 +65,7 @@ public struct RectLatLng
 
     public SizeLatLng Size
     {
-        get
-        {
-            return new SizeLatLng(HeightLat, WidthLng);
-        }
+        readonly get => new(HeightLat, WidthLng);
         set
         {
             WidthLng = value.WidthLng;
@@ -87,54 +81,24 @@ public struct RectLatLng
 
     public double HeightLat { get; set; }
 
-    public double Left
-    {
-        get
-        {
-            return Lng;
-        }
-    }
+    public readonly double Left => Lng;
 
-    public double Top
-    {
-        get
-        {
-            return Lat;
-        }
-    }
+    public readonly double Top => Lat;
 
-    public double Right
-    {
-        get
-        {
-            return Lng + WidthLng;
-        }
-    }
+    public readonly double Right => Lng + WidthLng;
 
-    public double Bottom
-    {
-        get
-        {
-            return Lat - HeightLat;
-        }
-    }
+    public readonly double Bottom => Lat - HeightLat;
 
-    private bool _notEmpty;
+    private readonly bool m_NotEmpty;
 
     /// <summary>
     ///     returns true if coordinates wasn't assigned
     /// </summary>
-    public bool IsEmpty
-    {
-        get
-        {
-            return !_notEmpty;
-        }
-    }
+    public readonly bool IsEmpty => !m_NotEmpty;
 
-    public override bool Equals(object obj)
+    public override readonly bool Equals(object obj)
     {
-        if (!(obj is RectLatLng))
+        if (obj is not RectLatLng)
         {
             return false;
         }
@@ -155,24 +119,21 @@ public struct RectLatLng
         return !(left == right);
     }
 
-    public bool Contains(double lat, double lng)
+    public readonly bool Contains(double lat, double lng)
     {
         return Lng <= lng && lng < Lng + WidthLng && Lat >= lat &&
                lat > Lat - HeightLat;
     }
 
-    public bool Contains(PointLatLng pt)
-    {
-        return Contains(pt.Lat, pt.Lng);
-    }
+    public readonly bool Contains(PointLatLng pt) => Contains(pt.Lat, pt.Lng);
 
-    public bool Contains(RectLatLng rect)
+    public readonly bool Contains(RectLatLng rect)
     {
         return Lng <= rect.Lng && rect.Lng + rect.WidthLng <= Lng + WidthLng &&
                Lat >= rect.Lat && rect.Lat - rect.HeightLat >= Lat - HeightLat;
     }
 
-    public override int GetHashCode()
+    public override readonly int GetHashCode()
     {
         if (IsEmpty)
         {
@@ -237,7 +198,7 @@ public struct RectLatLng
 
     // ok ???
     // http://greatmaps.codeplex.com/workitem/15981
-    public bool IntersectsWith(RectLatLng a)
+    public readonly bool IntersectsWith(RectLatLng a)
     {
         return Left < a.Right && Top > a.Bottom && Right > a.Left && Bottom < a.Top;
     }
@@ -270,7 +231,7 @@ public struct RectLatLng
         Lat -= lat;
     }
 
-    public override string ToString()
+    public override readonly string ToString()
     {
         return "{Lat=" + Lat.ToString(CultureInfo.CurrentCulture) + ",Lng=" +
                Lng.ToString(CultureInfo.CurrentCulture) + ",WidthLng=" +

@@ -6,7 +6,7 @@ namespace GMap.NET;
 /// <summary>
 ///     pure abstraction for image cache
 /// </summary>
-public interface PureImageCache
+public interface IPureImageCache
 {
     /// <summary>
     ///     puts image to db

@@ -40,37 +40,16 @@ public class PlateCarreeProjectionDarbAe : PureProjection
     public static readonly double MinLongitude = 41.522866508209;
     public static readonly double MaxLongitude = 66.2882966568906;
 
-    static readonly double orignX = -400;
-    static readonly double orignY = 400;
+    static readonly double m_OrignX = -400;
+    static readonly double m_OrignY = 400;
 
-    public override RectLatLng Bounds
-    {
-        get
-        {
-            return RectLatLng.FromLTRB(MinLongitude, MaxLatitude, MaxLongitude, MinLatitude);
-        }
-    }
+    public override RectLatLng Bounds => RectLatLng.FromLTRB(MinLongitude, MaxLatitude, MaxLongitude, MinLatitude);
 
-    public override GSize TileSize
-    {
-        get;
-    } = new GSize(256, 256);
+    public override GSize TileSize { get; } = new GSize(256, 256);
 
-    public override double Axis
-    {
-        get
-        {
-            return 6378137;
-        }
-    }
+    public override double Axis => 6378137;
 
-    public override double Flattening
-    {
-        get
-        {
-            return 1.0 / 298.257223563;
-        }
-    }
+    public override double Flattening => 1.0 / 298.257223563;
 
     public override GPoint FromLatLngToPixel(double lat, double lng, int zoom)
     {
@@ -81,8 +60,8 @@ public class PlateCarreeProjectionDarbAe : PureProjection
 
         double res = GetTileMatrixResolution(zoom);
 
-        ret.X = (long)Math.Floor((lng - orignX) / res);
-        ret.Y = (long)Math.Floor((orignY - lat) / res);
+        ret.X = (long)Math.Floor((lng - m_OrignX) / res);
+        ret.Y = (long)Math.Floor((m_OrignY - lat) / res);
 
         return ret;
     }
@@ -93,8 +72,8 @@ public class PlateCarreeProjectionDarbAe : PureProjection
 
         double res = GetTileMatrixResolution(zoom);
 
-        ret.Lat = orignY - y * res;
-        ret.Lng = x * res + orignX;
+        ret.Lat = m_OrignY - y * res;
+        ret.Lng = x * res + m_OrignX;
 
         return ret;
     }
@@ -108,84 +87,84 @@ public class PlateCarreeProjectionDarbAe : PureProjection
             #region -- sizes --
 
             case 0:
-            {
-                ret = 0.0118973050291514;
-            }
+                {
+                    ret = 0.0118973050291514;
+                }
                 break;
 
             case 1:
-            {
-                ret = 0.0059486525145757;
-            }
+                {
+                    ret = 0.0059486525145757;
+                }
                 break;
 
             case 2:
-            {
-                ret = 0.00297432625728785;
-            }
+                {
+                    ret = 0.00297432625728785;
+                }
                 break;
 
             case 3:
-            {
-                ret = 0.00118973050291514;
-            }
+                {
+                    ret = 0.00118973050291514;
+                }
                 break;
 
             case 4:
-            {
-                ret = 0.00059486525145757;
-            }
+                {
+                    ret = 0.00059486525145757;
+                }
                 break;
 
             case 5:
-            {
-                ret = 0.000356919150874542;
-            }
+                {
+                    ret = 0.000356919150874542;
+                }
                 break;
 
             case 6:
-            {
-                ret = 0.000178459575437271;
-            }
+                {
+                    ret = 0.000178459575437271;
+                }
                 break;
 
             case 7:
-            {
-                ret = 0.000118973050291514;
-            }
+                {
+                    ret = 0.000118973050291514;
+                }
                 break;
 
             case 8:
-            {
-                ret = 5.9486525145757E-05;
-            }
+                {
+                    ret = 5.9486525145757E-05;
+                }
                 break;
 
             case 9:
-            {
-                ret = 3.56919150874542E-05;
-            }
+                {
+                    ret = 3.56919150874542E-05;
+                }
                 break;
 
             case 10:
-            {
-                ret = 1.90356880466422E-05;
-            }
+                {
+                    ret = 1.90356880466422E-05;
+                }
                 break;
 
             case 11:
-            {
-                ret = 9.51784402332112E-06;
-            }
+                {
+                    ret = 9.51784402332112E-06;
+                }
                 break;
 
             case 12:
-            {
-                ret = 4.75892201166056E-06;
-            }
+                {
+                    ret = 4.75892201166056E-06;
+                }
                 break;
 
-            #endregion
+                #endregion
         }
 
         return ret;

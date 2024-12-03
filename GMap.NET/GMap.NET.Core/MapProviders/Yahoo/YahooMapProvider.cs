@@ -8,7 +8,7 @@ using GMap.NET.Projections;
 
 namespace GMap.NET.MapProviders.Yahoo;
 
-public abstract class YahooMapProviderBase : GMapProvider, GeocodingProvider
+public abstract class YahooMapProviderBase : GMapProvider, IGeocodingProvider
 {
     public YahooMapProviderBase()
     {

@@ -3,7 +3,7 @@
 /// <summary>
 ///     routing interface
 /// </summary>
-public interface RoutingProvider
+public interface IRoutingProvider
 {
     /// <summary>
     ///     get route between two points

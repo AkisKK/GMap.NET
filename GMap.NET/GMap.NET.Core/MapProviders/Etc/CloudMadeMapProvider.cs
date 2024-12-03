@@ -8,7 +8,7 @@ using GMap.NET.Projections;
 
 namespace GMap.NET.MapProviders.Etc;
 
-public abstract class CloudMadeMapProviderBase : GMapProvider, RoutingProvider, DirectionsProvider
+public abstract class CloudMadeMapProviderBase : GMapProvider, IRoutingProvider, IDirectionsProvider
 {
     public readonly string ServerLetters = "abc";
     public readonly string DoubleResolutionString = "@2x";

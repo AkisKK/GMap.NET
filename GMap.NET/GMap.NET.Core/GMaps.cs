@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
-using System.Net;
 using System.Reflection;
 using System.Text;
 using System.Threading;
@@ -58,7 +57,7 @@ public class GMaps
     /// <summary>
     ///     primary cache provider, by default: ultra fast SQLite!
     /// </summary>
-    public static PureImageCache PrimaryCache
+    public static IPureImageCache PrimaryCache
     {
         get
         {
@@ -74,7 +73,7 @@ public class GMaps
     ///     secondary cache provider, by default: none,
     ///     use it if you have server in your local network
     /// </summary>
-    public static PureImageCache SecondaryCache
+    public static IPureImageCache SecondaryCache
     {
         get
         {

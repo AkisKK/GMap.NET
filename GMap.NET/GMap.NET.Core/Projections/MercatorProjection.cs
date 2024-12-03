@@ -10,46 +10,25 @@ public class MercatorProjection : PureProjection
 {
     public static readonly MercatorProjection Instance = new();
 
-    static readonly double MinLatitude = -85.05112878;
-    static readonly double MaxLatitude = 85.05112878;
-    static readonly double MinLongitude = -180;
-    static readonly double MaxLongitude = 180;
+    static readonly double m_MinLatitude = -85.05112878;
+    static readonly double m_MaxLatitude = 85.05112878;
+    static readonly double m_MinLongitude = -180;
+    static readonly double m_MaxLongitude = 180;
 
-    public override RectLatLng Bounds
-    {
-        get
-        {
-            return RectLatLng.FromLTRB(MinLongitude, MaxLatitude, MaxLongitude, MinLatitude);
-        }
-    }
+    public override RectLatLng Bounds => RectLatLng.FromLTRB(m_MinLongitude, m_MaxLatitude, m_MaxLongitude, m_MinLatitude);
 
-    public override GSize TileSize
-    {
-        get;
-    } = new GSize(256, 256);
+    public override GSize TileSize { get; } = new GSize(256, 256);
 
-    public override double Axis
-    {
-        get
-        {
-            return 6378137;
-        }
-    }
+    public override double Axis => 6378137;
 
-    public override double Flattening
-    {
-        get
-        {
-            return 1.0 / 298.257223563;
-        }
-    }
+    public override double Flattening => 1.0 / 298.257223563;
 
     public override GPoint FromLatLngToPixel(double lat, double lng, int zoom)
     {
         var ret = GPoint.Empty;
 
-        lat = Clip(lat, MinLatitude, MaxLatitude);
-        lng = Clip(lng, MinLongitude, MaxLongitude);
+        lat = Clip(lat, m_MinLatitude, m_MaxLatitude);
+        lng = Clip(lng, m_MinLongitude, m_MaxLongitude);
 
         double x = (lng + 180) / 360;
         double sinLatitude = Math.Sin(lat * Math.PI / 180);

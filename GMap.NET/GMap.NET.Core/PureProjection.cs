@@ -12,18 +12,18 @@ namespace GMap.NET;
 /// </summary>
 public abstract class PureProjection
 {
-    private readonly List<Dictionary<PointLatLng, GPoint>> _fromLatLngToPixelCache =
+    private readonly List<Dictionary<PointLatLng, GPoint>> m_FromLatLngToPixelCache =
         new(33);
 
-    private readonly List<Dictionary<GPoint, PointLatLng>> _fromPixelToLatLngCache =
+    private readonly List<Dictionary<GPoint, PointLatLng>> m_FromPixelToLatLngCache =
         new(33);
 
     public PureProjection()
     {
-        for (int i = 0; i < _fromLatLngToPixelCache.Capacity; i++)
+        for (int i = 0; i < m_FromLatLngToPixelCache.Capacity; i++)
         {
-            _fromLatLngToPixelCache.Add([]);
-            _fromPixelToLatLngCache.Add([]);
+            m_FromLatLngToPixelCache.Add([]);
+            m_FromPixelToLatLngCache.Add([]);
         }
     }
 
@@ -85,18 +85,13 @@ public abstract class PureProjection
     {
         if (useCache)
         {
-            var ret = GPoint.Empty;
-            if (!_fromLatLngToPixelCache[zoom].TryGetValue(p, out ret))
+            if (!m_FromLatLngToPixelCache[zoom].TryGetValue(p, out var ret))
             {
                 ret = FromLatLngToPixel(p.Lat, p.Lng, zoom);
-                _fromLatLngToPixelCache[zoom].Add(p, ret);
+                m_FromLatLngToPixelCache[zoom].Add(p, ret);
 
                 // for reverse cache
-                if (!_fromPixelToLatLngCache[zoom].ContainsKey(ret))
-                {
-                    _fromPixelToLatLngCache[zoom].Add(ret, p);
-                }
-
+                m_FromPixelToLatLngCache[zoom].TryAdd(ret, p);
                 Debug.WriteLine("FromLatLngToPixelCache[" + zoom + "] added " + p + " with " + ret);
             }
 
@@ -124,18 +119,13 @@ public abstract class PureProjection
     {
         if (useCache)
         {
-            var ret = PointLatLng.Empty;
-            if (!_fromPixelToLatLngCache[zoom].TryGetValue(p, out ret))
+            if (!m_FromPixelToLatLngCache[zoom].TryGetValue(p, out var ret))
             {
                 ret = FromPixelToLatLng(p.X, p.Y, zoom);
-                _fromPixelToLatLngCache[zoom].Add(p, ret);
+                m_FromPixelToLatLngCache[zoom].Add(p, ret);
 
                 // for reverse cache
-                if (!_fromLatLngToPixelCache[zoom].ContainsKey(ret))
-                {
-                    _fromLatLngToPixelCache[zoom].Add(ret, p);
-                }
-
+                m_FromLatLngToPixelCache[zoom].TryAdd(ret, p);
                 Debug.WriteLine("FromPixelToLatLngCache[" + zoom + "] added " + p + " with " + ret);
             }
 
@@ -148,7 +138,7 @@ public abstract class PureProjection
     }
 
     /// <summary>
-    ///     gets tile coorddinate from pixel coordinates
+    ///     gets tile coordinate from pixel coordinates
     /// </summary>
     /// <param name="p"></param>
     /// <returns></returns>
@@ -298,17 +288,17 @@ public abstract class PureProjection
     /// </summary>
     protected static readonly double DblLong = 4.61168601e18;
 
-    static readonly double R2D = 180 / PI;
-    static readonly double D2R = PI / 180;
+    static readonly double m_R2D = 180 / PI;
+    static readonly double m_D2R = PI / 180;
 
     public static double DegreesToRadians(double deg)
     {
-        return D2R * deg;
+        return m_D2R * deg;
     }
 
     public static double RadiansToDegrees(double rad)
     {
-        return R2D * rad;
+        return m_R2D * rad;
     }
 
     /// <summary>
@@ -330,23 +320,23 @@ public abstract class PureProjection
             }
             else if ((long)Abs(x / PI) < 2)
             {
-                x = x - Sign(x) * TwoPi;
+                x -= Sign(x) * TwoPi;
             }
             else if ((long)Abs(x / TwoPi) < MaxLong)
             {
-                x = x - (long)(x / TwoPi) * TwoPi;
+                x -= (long)(x / TwoPi) * TwoPi;
             }
             else if ((long)Abs(x / (MaxLong * TwoPi)) < MaxLong)
             {
-                x = x - (long)(x / (MaxLong * TwoPi)) * (TwoPi * MaxLong);
+                x -= (long)(x / (MaxLong * TwoPi)) * (TwoPi * MaxLong);
             }
             else if ((long)Abs(x / (DblLong * TwoPi)) < MaxLong)
             {
-                x = x - (long)(x / (DblLong * TwoPi)) * (TwoPi * DblLong);
+                x -= (long)(x / (DblLong * TwoPi)) * (TwoPi * DblLong);
             }
             else
             {
-                x = x - Sign(x) * TwoPi;
+                x -= Sign(x) * TwoPi;
             }
 
             count++;

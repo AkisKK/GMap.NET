@@ -108,12 +108,12 @@ internal class Cache
     /// <summary>
     ///     abstract image cache
     /// </summary>
-    public PureImageCache ImageCache;
+    public IPureImageCache ImageCache;
 
     /// <summary>
     ///     second level abstract image cache
     /// </summary>
-    public PureImageCache ImageCacheSecond;
+    public IPureImageCache ImageCacheSecond;
 
     string m_Cache;
 

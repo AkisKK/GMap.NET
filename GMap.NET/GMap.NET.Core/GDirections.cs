@@ -115,7 +115,7 @@ public struct GDirectionStep
     /// </summary>
     public List<PointLatLng> Points;
 
-    public override string ToString()
+    public override readonly string ToString()
     {
         return TravelMode + " | " + Distance + " | " + Duration + " | " + HtmlInstructions;
     }

@@ -13,7 +13,7 @@ using GMap.NET.Projections;
 
 namespace GMap.NET.MapProviders.Bing;
 
-public abstract partial class BingMapProviderBase : GMapProvider, RoutingProvider, GeocodingProvider
+public abstract partial class BingMapProviderBase : GMapProvider, IRoutingProvider, IGeocodingProvider
 {
     public BingMapProviderBase()
     {

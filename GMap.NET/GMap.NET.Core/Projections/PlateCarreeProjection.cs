@@ -11,50 +11,29 @@ public class PlateCarreeProjection : PureProjection
 {
     public static readonly PlateCarreeProjection Instance = new();
 
-    static readonly double MinLatitude = -85.05112878;
-    static readonly double MaxLatitude = 85.05112878;
-    static readonly double MinLongitude = -180;
-    static readonly double MaxLongitude = 180;
+    static readonly double m_MinLatitude = -85.05112878;
+    static readonly double m_MaxLatitude = 85.05112878;
+    static readonly double m_MinLongitude = -180;
+    static readonly double m_MaxLongitude = 180;
 
-    public override RectLatLng Bounds
-    {
-        get
-        {
-            return RectLatLng.FromLTRB(MinLongitude, MaxLatitude, MaxLongitude, MinLatitude);
-        }
-    }
+    public override RectLatLng Bounds => RectLatLng.FromLTRB(m_MinLongitude, m_MaxLatitude, m_MaxLongitude, m_MinLatitude);
 
-    public override GSize TileSize
-    {
-        get;
-    } = new GSize(512, 512);
+    public override GSize TileSize { get; } = new GSize(512, 512);
 
-    public override double Axis
-    {
-        get
-        {
-            return 6378137;
-        }
-    }
+    public override double Axis => 6378137;
 
-    public override double Flattening
-    {
-        get
-        {
-            return 1.0 / 298.257223563;
-        }
-    }
+    public override double Flattening => 1.0 / 298.257223563;
 
     public override GPoint FromLatLngToPixel(double lat, double lng, int zoom)
     {
         var ret = GPoint.Empty;
 
-        lat = Clip(lat, MinLatitude, MaxLatitude);
-        lng = Clip(lng, MinLongitude, MaxLongitude);
+        lat = Clip(lat, m_MinLatitude, m_MaxLatitude);
+        lng = Clip(lng, m_MinLongitude, m_MaxLongitude);
 
         var s = GetTileMatrixSizePixel(zoom);
         double mapSizeX = s.Width;
-        double mapSizeY = s.Height;
+        // double mapSizeY = s.Height;
 
         double scale = 360.0 / mapSizeX;
 
@@ -70,7 +49,7 @@ public class PlateCarreeProjection : PureProjection
 
         var s = GetTileMatrixSizePixel(zoom);
         double mapSizeX = s.Width;
-        double mapSizeY = s.Height;
+        // double mapSizeY = s.Height;
 
         double scale = 360.0 / mapSizeX;
 
