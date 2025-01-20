@@ -2,166 +2,165 @@
 using System.Diagnostics;
 using GMap.NET.Internals;
 
-namespace GMap.NET.CacheProviders
+namespace GMap.NET.CacheProviders;
+
+public class MemoryCache : IDisposable
 {
-    public class MemoryCache : IDisposable
+    private readonly KiberTileCache m_TilesInMemory = [];
+
+    private FastReaderWriterLock m_KiberCacheLock = new();
+
+    /// <summary>
+    ///     the amount of tiles in MB to keep in memory, default: 22MB, if each ~100Kb it's ~222 tiles
+    /// </summary>
+    public int Capacity
     {
-        private readonly KiberTileCache _tilesInMemory = new KiberTileCache();
-
-        private FastReaderWriterLock _kiberCacheLock = new FastReaderWriterLock();
-
-        /// <summary>
-        ///     the amount of tiles in MB to keep in memory, default: 22MB, if each ~100Kb it's ~222 tiles
-        /// </summary>
-        public int Capacity
+        get
         {
-            get
-            {
-                _kiberCacheLock.AcquireReaderLock();
-                try
-                {
-                    return _tilesInMemory.MemoryCacheCapacity;
-                }
-                finally
-                {
-                    _kiberCacheLock.ReleaseReaderLock();
-                }
-            }
-            set
-            {
-                _kiberCacheLock.AcquireWriterLock();
-                try
-                {
-                    _tilesInMemory.MemoryCacheCapacity = value;
-                }
-                finally
-                {
-                    _kiberCacheLock.ReleaseWriterLock();
-                }
-            }
-        }
-
-        /// <summary>
-        ///     current memory cache size in MB
-        /// </summary>
-        public double Size
-        {
-            get
-            {
-                _kiberCacheLock.AcquireReaderLock();
-                try
-                {
-                    return _tilesInMemory.MemoryCacheSize;
-                }
-                finally
-                {
-                    _kiberCacheLock.ReleaseReaderLock();
-                }
-            }
-        }
-
-        public void Clear()
-        {
-            _kiberCacheLock.AcquireWriterLock();
+            m_KiberCacheLock.AcquireReaderLock();
             try
             {
-                _tilesInMemory.Clear();
+                return m_TilesInMemory.MemoryCacheCapacity;
             }
             finally
             {
-                _kiberCacheLock.ReleaseWriterLock();
+                m_KiberCacheLock.ReleaseReaderLock();
             }
         }
-
-        // ...
-
-        internal byte[] GetTileFromMemoryCache(RawTile tile)
+        set
         {
-            _kiberCacheLock.AcquireReaderLock();
+            m_KiberCacheLock.AcquireWriterLock();
             try
             {
-                if (_tilesInMemory.TryGetValue(tile, out byte[] ret))
-                {
-                    return ret;
-                }
+                m_TilesInMemory.MemoryCacheCapacity = value;
             }
             finally
             {
-                _kiberCacheLock.ReleaseReaderLock();
-            }
-
-            return null;
-        }
-
-        internal void AddTileToMemoryCache(RawTile tile, byte[] data)
-        {
-            if (data != null)
-            {
-                _kiberCacheLock.AcquireWriterLock();
-                try
-                {
-                    if (!_tilesInMemory.ContainsKey(tile))
-                    {
-                        _tilesInMemory.Add(tile, data);
-                    }
-                }
-                finally
-                {
-                    _kiberCacheLock.ReleaseWriterLock();
-                }
-            }
-#if DEBUG
-            else
-            {
-                Debug.WriteLine("adding empty data to MemoryCache ;} ");
-                if (Debugger.IsAttached)
-                {
-                    Debugger.Break();
-                }
-            }
-#endif
-        }
-
-        internal void RemoveOverload()
-        {
-            _kiberCacheLock.AcquireWriterLock();
-            try
-            {
-                _tilesInMemory.RemoveMemoryOverload();
-            }
-            finally
-            {
-                _kiberCacheLock.ReleaseWriterLock();
+                m_KiberCacheLock.ReleaseWriterLock();
             }
         }
-
-        #region IDisposable Members
-
-        ~MemoryCache()
-        {
-            Dispose(false);
-        }
-
-        void Dispose(bool disposing)
-        {
-            if (_kiberCacheLock != null)
-            {
-                if (disposing)
-                {
-                    Clear();
-                }
-
-                _kiberCacheLock.Dispose();
-                _kiberCacheLock = null;
-            }
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        #endregion
     }
+
+    /// <summary>
+    ///     current memory cache size in MB
+    /// </summary>
+    public double Size
+    {
+        get
+        {
+            m_KiberCacheLock.AcquireReaderLock();
+            try
+            {
+                return m_TilesInMemory.MemoryCacheSize;
+            }
+            finally
+            {
+                m_KiberCacheLock.ReleaseReaderLock();
+            }
+        }
+    }
+
+    public void Clear()
+    {
+        m_KiberCacheLock.AcquireWriterLock();
+        try
+        {
+            m_TilesInMemory.Clear();
+        }
+        finally
+        {
+            m_KiberCacheLock.ReleaseWriterLock();
+        }
+    }
+
+    // ...
+
+    internal byte[] GetTileFromMemoryCache(RawTile tile)
+    {
+        m_KiberCacheLock.AcquireReaderLock();
+        try
+        {
+            if (m_TilesInMemory.TryGetValue(tile, out byte[] ret))
+            {
+                return ret;
+            }
+        }
+        finally
+        {
+            m_KiberCacheLock.ReleaseReaderLock();
+        }
+
+        return null;
+    }
+
+    internal void AddTileToMemoryCache(RawTile tile, byte[] data)
+    {
+        if (data != null)
+        {
+            m_KiberCacheLock.AcquireWriterLock();
+            try
+            {
+                if (!m_TilesInMemory.ContainsKey(tile))
+                {
+                    m_TilesInMemory.Add(tile, data);
+                }
+            }
+            finally
+            {
+                m_KiberCacheLock.ReleaseWriterLock();
+            }
+        }
+#if DEBUG
+        else
+        {
+            Debug.WriteLine("adding empty data to MemoryCache ;} ");
+            if (Debugger.IsAttached)
+            {
+                Debugger.Break();
+            }
+        }
+#endif
+    }
+
+    internal void RemoveOverload()
+    {
+        m_KiberCacheLock.AcquireWriterLock();
+        try
+        {
+            m_TilesInMemory.RemoveMemoryOverload();
+        }
+        finally
+        {
+            m_KiberCacheLock.ReleaseWriterLock();
+        }
+    }
+
+    #region IDisposable Members
+
+    ~MemoryCache()
+    {
+        Dispose(false);
+    }
+
+    void Dispose(bool disposing)
+    {
+        if (m_KiberCacheLock != null)
+        {
+            if (disposing)
+            {
+                Clear();
+            }
+
+            m_KiberCacheLock.Dispose();
+            m_KiberCacheLock = null;
+        }
+    }
+
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    #endregion
 }

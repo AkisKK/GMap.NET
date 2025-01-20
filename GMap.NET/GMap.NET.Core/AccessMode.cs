@@ -1,23 +1,22 @@
-﻿namespace GMap.NET
+﻿namespace GMap.NET;
+
+/// <summary>
+///     tile access mode
+/// </summary>
+public enum AccessMode
 {
     /// <summary>
-    ///     tile access mode
+    ///     access only server
     /// </summary>
-    public enum AccessMode
-    {
-        /// <summary>
-        ///     access only server
-        /// </summary>
-        ServerOnly,
+    ServerOnly,
 
-        /// <summary>
-        ///     access first server and caches locally
-        /// </summary>
-        ServerAndCache,
+    /// <summary>
+    ///     access first server and caches locally
+    /// </summary>
+    ServerAndCache,
 
-        /// <summary>
-        ///     access only cache
-        /// </summary>
-        CacheOnly,
-    }
+    /// <summary>
+    ///     access only cache
+    /// </summary>
+    CacheOnly,
 }

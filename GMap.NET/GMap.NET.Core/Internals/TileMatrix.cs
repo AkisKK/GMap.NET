@@ -1,53 +1,114 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace GMap.NET.Internals
+namespace GMap.NET.Internals;
+
+/// <summary>
+///     matrix for tiles
+/// </summary>
+internal class TileMatrix : IDisposable
 {
-    /// <summary>
-    ///     matrix for tiles
-    /// </summary>
-    internal class TileMatrix : IDisposable
+    List<Dictionary<GPoint, Tile>> m_Levels = new(33);
+    FastReaderWriterLock m_Lock = new();
+
+    public TileMatrix()
     {
-        List<Dictionary<GPoint, Tile>> _levels = new List<Dictionary<GPoint, Tile>>(33);
-        FastReaderWriterLock _lock = new FastReaderWriterLock();
-
-        public TileMatrix()
+        for (int i = 0; i < m_Levels.Capacity; i++)
         {
-            for (int i = 0; i < _levels.Capacity; i++)
-            {
-                _levels.Add(new Dictionary<GPoint, Tile>(55, new GPointComparer()));
-            }
+            m_Levels.Add(new Dictionary<GPoint, Tile>(55, new GPointComparer()));
         }
+    }
 
-        public void ClearAllLevels()
+    public void ClearAllLevels()
+    {
+        m_Lock.AcquireWriterLock();
+        try
         {
-            _lock.AcquireWriterLock();
-            try
+            foreach (var matrix in m_Levels)
             {
-                foreach (var matrix in _levels)
+                foreach (var t in matrix)
                 {
-                    foreach (var t in matrix)
-                    {
-                        t.Value.Dispose();
-                    }
-
-                    matrix.Clear();
+                    t.Value.Dispose();
                 }
-            }
-            finally
-            {
-                _lock.ReleaseWriterLock();
+
+                matrix.Clear();
             }
         }
-
-        public void ClearLevel(int zoom)
+        finally
         {
-            _lock.AcquireWriterLock();
-            try
+            m_Lock.ReleaseWriterLock();
+        }
+    }
+
+    public void ClearLevel(int zoom)
+    {
+        m_Lock.AcquireWriterLock();
+        try
+        {
+            if (zoom < m_Levels.Count)
             {
-                if (zoom < _levels.Count)
+                var l = m_Levels[zoom];
+
+                foreach (var t in l)
                 {
-                    var l = _levels[zoom];
+                    t.Value.Dispose();
+                }
+
+                l.Clear();
+            }
+        }
+        finally
+        {
+            m_Lock.ReleaseWriterLock();
+        }
+    }
+
+    List<KeyValuePair<GPoint, Tile>> m_Tmp = new(44);
+
+    public void ClearLevelAndPointsNotIn(int zoom, List<DrawTile> list)
+    {
+        m_Lock.AcquireWriterLock();
+        try
+        {
+            if (zoom < m_Levels.Count)
+            {
+                var l = m_Levels[zoom];
+
+                m_Tmp.Clear();
+
+                foreach (var t in l)
+                {
+                    if (!list.Exists(p => p.PosXY == t.Key))
+                    {
+                        m_Tmp.Add(t);
+                    }
+                }
+
+                foreach (var r in m_Tmp)
+                {
+                    l.Remove(r.Key);
+                    r.Value.Dispose();
+                }
+
+                m_Tmp.Clear();
+            }
+        }
+        finally
+        {
+            m_Lock.ReleaseWriterLock();
+        }
+    }
+
+    public void ClearLevelsBelove(int zoom)
+    {
+        m_Lock.AcquireWriterLock();
+        try
+        {
+            if (zoom - 1 < m_Levels.Count)
+            {
+                for (int i = zoom - 1; i >= 0; i--)
+                {
+                    var l = m_Levels[i];
 
                     foreach (var t in l)
                     {
@@ -57,188 +118,126 @@ namespace GMap.NET.Internals
                     l.Clear();
                 }
             }
-            finally
-            {
-                _lock.ReleaseWriterLock();
-            }
         }
-
-        List<KeyValuePair<GPoint, Tile>> _tmp = new List<KeyValuePair<GPoint, Tile>>(44);
-
-        public void ClearLevelAndPointsNotIn(int zoom, List<DrawTile> list)
+        finally
         {
-            _lock.AcquireWriterLock();
-            try
-            {
-                if (zoom < _levels.Count)
-                {
-                    var l = _levels[zoom];
+            m_Lock.ReleaseWriterLock();
+        }
+    }
 
-                    _tmp.Clear();
+    public void ClearLevelsAbove(int zoom)
+    {
+        m_Lock.AcquireWriterLock();
+        try
+        {
+            if (zoom + 1 < m_Levels.Count)
+            {
+                for (int i = zoom + 1; i < m_Levels.Count; i++)
+                {
+                    var l = m_Levels[i];
 
                     foreach (var t in l)
                     {
-                        if (!list.Exists(p => p.PosXY == t.Key))
-                        {
-                            _tmp.Add(t);
-                        }
+                        t.Value.Dispose();
                     }
 
-                    foreach (var r in _tmp)
-                    {
-                        l.Remove(r.Key);
-                        r.Value.Dispose();
-                    }
-
-                    _tmp.Clear();
+                    l.Clear();
                 }
             }
-            finally
-            {
-                _lock.ReleaseWriterLock();
-            }
         }
-
-        public void ClearLevelsBelove(int zoom)
+        finally
         {
-            _lock.AcquireWriterLock();
-            try
-            {
-                if (zoom - 1 < _levels.Count)
-                {
-                    for (int i = zoom - 1; i >= 0; i--)
-                    {
-                        var l = _levels[i];
-
-                        foreach (var t in l)
-                        {
-                            t.Value.Dispose();
-                        }
-
-                        l.Clear();
-                    }
-                }
-            }
-            finally
-            {
-                _lock.ReleaseWriterLock();
-            }
+            m_Lock.ReleaseWriterLock();
         }
-
-        public void ClearLevelsAbove(int zoom)
-        {
-            _lock.AcquireWriterLock();
-            try
-            {
-                if (zoom + 1 < _levels.Count)
-                {
-                    for (int i = zoom + 1; i < _levels.Count; i++)
-                    {
-                        var l = _levels[i];
-
-                        foreach (var t in l)
-                        {
-                            t.Value.Dispose();
-                        }
-
-                        l.Clear();
-                    }
-                }
-            }
-            finally
-            {
-                _lock.ReleaseWriterLock();
-            }
-        }
-
-        public void EnterReadLock()
-        {
-            _lock.AcquireReaderLock();
-        }
-
-        public void LeaveReadLock()
-        {
-            _lock.ReleaseReaderLock();
-        }
-
-        public Tile GetTileWithNoLock(int zoom, GPoint p)
-        {
-            var ret = Tile.Empty;
-
-            //if(zoom < Levels.Count)
-            {
-                _levels[zoom].TryGetValue(p, out ret);
-            }
-
-            return ret;
-        }
-
-        public Tile GetTileWithReadLock(int zoom, GPoint p)
-        {
-            var ret = Tile.Empty;
-
-            _lock.AcquireReaderLock();
-            try
-            {
-                ret = GetTileWithNoLock(zoom, p);
-            }
-            finally
-            {
-                _lock.ReleaseReaderLock();
-            }
-
-            return ret;
-        }
-
-        public void SetTile(Tile t)
-        {
-            _lock.AcquireWriterLock();
-            try
-            {
-                if (t.Zoom < _levels.Count)
-                {
-                    _levels[t.Zoom][t.Pos] = t;
-                }
-            }
-            finally
-            {
-                _lock.ReleaseWriterLock();
-            }
-        }
-
-        #region IDisposable Members
-
-        ~TileMatrix()
-        {
-            Dispose(false);
-        }
-
-        void Dispose(bool disposing)
-        {
-            if (_lock != null)
-            {
-                if (disposing)
-                {
-                    ClearAllLevels();
-                }
-
-                _levels.Clear();
-                _levels = null;
-
-                _tmp.Clear();
-                _tmp = null;
-
-                _lock.Dispose();
-                _lock = null;
-            }
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        #endregion
     }
+
+    public void EnterReadLock()
+    {
+        m_Lock.AcquireReaderLock();
+    }
+
+    public void LeaveReadLock()
+    {
+        m_Lock.ReleaseReaderLock();
+    }
+
+    public Tile GetTileWithNoLock(int zoom, GPoint p)
+    {
+        Tile ret;
+
+        //if(zoom < Levels.Count)
+        {
+            m_Levels[zoom].TryGetValue(p, out ret);
+        }
+
+        return ret;
+    }
+
+    public Tile GetTileWithReadLock(int zoom, GPoint p)
+    {
+        var ret = Tile.Empty;
+
+        m_Lock.AcquireReaderLock();
+        try
+        {
+            ret = GetTileWithNoLock(zoom, p);
+        }
+        finally
+        {
+            m_Lock.ReleaseReaderLock();
+        }
+
+        return ret;
+    }
+
+    public void SetTile(Tile t)
+    {
+        m_Lock.AcquireWriterLock();
+        try
+        {
+            if (t.Zoom < m_Levels.Count)
+            {
+                m_Levels[t.Zoom][t.Pos] = t;
+            }
+        }
+        finally
+        {
+            m_Lock.ReleaseWriterLock();
+        }
+    }
+
+    #region IDisposable Members
+
+    ~TileMatrix()
+    {
+        Dispose(false);
+    }
+
+    void Dispose(bool disposing)
+    {
+        if (m_Lock != null)
+        {
+            if (disposing)
+            {
+                ClearAllLevels();
+            }
+
+            m_Levels.Clear();
+            m_Levels = null;
+
+            m_Tmp.Clear();
+            m_Tmp = null;
+
+            m_Lock.Dispose();
+            m_Lock = null;
+        }
+    }
+
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    #endregion
 }
