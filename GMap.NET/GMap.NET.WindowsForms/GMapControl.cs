@@ -111,7 +111,7 @@ public partial class GMapControl : UserControl, IInterface
     /// </summary>
     [Category("GMap.NET")]
     [Description("maximum zoom level of map")]
-    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
     public int MaxZoom
     {
         get => m_Core.m_MaxZoom;
@@ -123,7 +123,7 @@ public partial class GMapControl : UserControl, IInterface
     /// </summary>
     [Category("GMap.NET")]
     [Description("minimum zoom level of map")]
-    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
     public int MinZoom
     {
         get => m_Core.m_MinZoom;
@@ -135,7 +135,7 @@ public partial class GMapControl : UserControl, IInterface
     /// </summary>
     [Category("GMap.NET")]
     [Description("map zooming type for mouse wheel")]
-    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
     public MouseWheelZoomType MouseWheelZoomType
     {
         get => m_Core.MouseWheelZoomType;
@@ -147,7 +147,7 @@ public partial class GMapControl : UserControl, IInterface
     /// </summary>
     [Category("GMap.NET")]
     [Description("enable map zoom on mouse wheel")]
-    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
     public bool MouseWheelZoomEnabled
     {
         get => m_Core.MouseWheelZoomEnabled;
@@ -187,7 +187,7 @@ public partial class GMapControl : UserControl, IInterface
     /// </summary>
     [Category("GMap.NET")]
     [Description("background color of the selected area")]
-    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
     public Color SelectedAreaFillColor
     {
         get => m_SelectedAreaFillColor;
@@ -214,7 +214,7 @@ public partial class GMapControl : UserControl, IInterface
     ///     draw lines at the mouse pointer position
     /// </summary>
     [Browsable(false)]
-    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
     public HelperLineOptions HelperLineOption
     {
         get => m_HelperLineOption;
@@ -268,7 +268,7 @@ public partial class GMapControl : UserControl, IInterface
     /// </summary>
     [Category("GMap.NET")]
     [Description("background color of the empty tile")]
-    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
     public Color EmptyTileColor
     {
         get => m_EmptyTileColor;
@@ -313,7 +313,7 @@ public partial class GMapControl : UserControl, IInterface
     ///     retry count to get tile
     /// </summary>
     [Browsable(false)]
-    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
     public int RetryLoadTile
     {
         get => m_Core.RetryLoadTile;
@@ -324,7 +324,7 @@ public partial class GMapControl : UserControl, IInterface
     ///     how many levels of tiles are staying decompressed in memory
     /// </summary>
     [Browsable(false)]
-    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
     public int LevelsKeepInMemory
     {
         get => m_Core.LevelsKeepInMemory;
@@ -343,7 +343,7 @@ public partial class GMapControl : UserControl, IInterface
     /// </summary>
     [Category("GMap.NET")]
     [Description("shows tile grid lines")]
-    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
     public bool ShowTileGridLines
     {
         get => m_ShowTileGridLines;
@@ -421,7 +421,7 @@ public partial class GMapControl : UserControl, IInterface
     private bool m_GrayScale;
 
     [Category("GMap.NET")]
-    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
     public bool GrayScaleMode
     {
         get => m_GrayScale;
@@ -435,7 +435,7 @@ public partial class GMapControl : UserControl, IInterface
     private bool m_Negative;
 
     [Category("GMap.NET")]
-    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
     public bool NegativeMode
     {
         get => m_Negative;
@@ -1666,7 +1666,7 @@ public partial class GMapControl : UserControl, IInterface
     ///     bearing for rotation of the map
     /// </summary>
     [Category("GMap.NET")]
-    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
     public float Bearing
     {
         get
@@ -2664,7 +2664,7 @@ public partial class GMapControl : UserControl, IInterface
 
     [Category("GMap.NET")]
     [Description("map scale type")]
-    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
     public ScaleModes ScaleMode { get; set; } = ScaleModes.Integer;
 
     [Category("GMap.NET")]
@@ -2983,7 +2983,7 @@ public partial class GMapControl : UserControl, IInterface
     ///     is routes enabled
     /// </summary>
     [Category("GMap.NET")]
-    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
     public bool RoutesEnabled
     {
         get => m_Core.RoutesEnabled;
@@ -2994,7 +2994,7 @@ public partial class GMapControl : UserControl, IInterface
     ///     is polygons enabled
     /// </summary>
     [Category("GMap.NET")]
-    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
     public bool PolygonsEnabled
     {
         get => m_Core.PolygonsEnabled;
@@ -3005,7 +3005,7 @@ public partial class GMapControl : UserControl, IInterface
     ///     is markers enabled
     /// </summary>
     [Category("GMap.NET")]
-    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
     public bool MarkersEnabled
     {
         get => m_Core.MarkersEnabled;
@@ -3016,7 +3016,7 @@ public partial class GMapControl : UserControl, IInterface
     ///     can user drag map
     /// </summary>
     [Category("GMap.NET")]
-    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
     public bool CanDragMap
     {
         get => m_Core.CanDragMap;
