@@ -1,39 +1,38 @@
 ﻿using System.Collections.Generic;
 
-namespace GMap.NET.Internals
+namespace GMap.NET.Internals;
+
+/// <summary>
+///     struct for raw tile
+/// </summary>
+internal struct RawTile
 {
-    /// <summary>
-    ///     struct for raw tile
-    /// </summary>
-    internal struct RawTile
+    public int Type;
+    public GPoint Pos;
+    public int Zoom;
+
+    public RawTile(int type, GPoint pos, int zoom)
     {
-        public int Type;
-        public GPoint Pos;
-        public int Zoom;
-
-        public RawTile(int type, GPoint pos, int zoom)
-        {
-            this.Type = type;
-            this.Pos = pos;
-            this.Zoom = zoom;
-        }
-
-        public override string ToString()
-        {
-            return Type + " at zoom " + Zoom + ", pos: " + Pos;
-        }
+        Type = type;
+        Pos = pos;
+        Zoom = zoom;
     }
 
-    internal class RawTileComparer : IEqualityComparer<RawTile>
+    public override readonly string ToString()
     {
-        public bool Equals(RawTile x, RawTile y)
-        {
-            return x.Type == y.Type && x.Zoom == y.Zoom && x.Pos == y.Pos;
-        }
+        return Type + " at zoom " + Zoom + ", pos: " + Pos;
+    }
+}
 
-        public int GetHashCode(RawTile obj)
-        {
-            return obj.Type ^ obj.Zoom ^ obj.Pos.GetHashCode();
-        }
+internal class RawTileComparer : IEqualityComparer<RawTile>
+{
+    public bool Equals(RawTile x, RawTile y)
+    {
+        return x.Type == y.Type && x.Zoom == y.Zoom && x.Pos == y.Pos;
+    }
+
+    public int GetHashCode(RawTile obj)
+    {
+        return obj.Type ^ obj.Zoom ^ obj.Pos.GetHashCode();
     }
 }

@@ -1,18 +1,17 @@
-﻿namespace GMap.NET
+﻿namespace GMap.NET;
+
+/// <summary>
+///     types of map rendering
+/// </summary>
+public enum RenderMode
 {
     /// <summary>
-    ///     types of map rendering
+    ///     gdi+ should work anywhere on Windows Forms
     /// </summary>
-    public enum RenderMode
-    {
-        /// <summary>
-        ///     gdi+ should work anywhere on Windows Forms
-        /// </summary>
-        GDI_PLUS,
+    GDI_PLUS,
 
-        /// <summary>
-        ///     only on Windows Presentation Foundation
-        /// </summary>
-        WPF,
-    }
+    /// <summary>
+    ///     only on Windows Presentation Foundation
+    /// </summary>
+    WPF,
 }

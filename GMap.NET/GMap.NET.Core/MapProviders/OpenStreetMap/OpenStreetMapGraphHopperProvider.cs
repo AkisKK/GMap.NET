@@ -7,336 +7,316 @@ using GMap.NET.Entity;
 using GMap.NET.Internals;
 using Newtonsoft.Json;
 
-namespace GMap.NET.MapProviders
+namespace GMap.NET.MapProviders.OpenStreetMap;
+
+/// <summary>
+///     OpenStreetMapGraphHopper provider - http://graphhopper.com
+/// </summary>
+public class OpenStreetMapGraphHopperProvider : OpenStreetMapProviderBase
 {
-    /// <summary>
-    ///     OpenStreetMapGraphHopper provider - http://graphhopper.com
-    /// </summary>
-    public class OpenStreetMapGraphHopperProvider : OpenStreetMapProviderBase
+    public static readonly OpenStreetMapGraphHopperProvider Instance;
+
+    OpenStreetMapGraphHopperProvider()
     {
-        public static readonly OpenStreetMapGraphHopperProvider Instance;
+        RefererUrl = "http://openseamap.org/";
+    }
 
-        OpenStreetMapGraphHopperProvider()
+    static OpenStreetMapGraphHopperProvider()
+    {
+        Instance = new OpenStreetMapGraphHopperProvider();
+    }
+
+    #region GMapProvider Members
+    public override Guid Id { get; } = new Guid("FAACDE73-4B90-5AE6-BB4A-ADE4F3545559");
+
+    public override string Name { get; } = "OpenStreetMapGraphHopper";
+
+    public string ApiKey = string.Empty;
+
+    GMapProvider[] m_Overlays;
+
+    public override GMapProvider[] Overlays
+    {
+        get
         {
-            RefererUrl = "http://openseamap.org/";
+            m_Overlays ??= [OpenStreetMapProvider.Instance, this];
+
+            return m_Overlays;
         }
+    }
+    #endregion
 
-        static OpenStreetMapGraphHopperProvider()
+    #region GMapRoutingProvider Members
+    public override MapRoute GetRoute(PointLatLng start,
+                                      PointLatLng end,
+                                      bool avoidHighways,
+                                      bool walkingMode,
+                                      int zoom)
+    {
+        return GetRoute(MakeRoutingUrl(start, end, walkingMode ? m_TravelTypeFoot : m_TravelTypeMotorCar));
+    }
+
+    public override MapRoute GetRoute(string start, string end, bool avoidHighways, bool walkingMode, int zoom)
+    {
+        throw new NotImplementedException("use GetRoute(PointLatLng start, PointLatLng end...");
+    }
+
+    #region -- internals --
+    static string MakeRoutingUrl(PointLatLng start, PointLatLng end, string travelType)
+    {
+        return string.Format(CultureInfo.InvariantCulture,
+            m_RoutingUrlFormat,
+            start.Lat,
+            start.Lng,
+            end.Lat,
+            end.Lng,
+            travelType);
+    }
+
+    MapRoute GetRoute(string url)
+    {
+        MapRoute ret = null;
+        OpenStreetMapGraphHopperRouteEntity result = null;
+
+        try
         {
-            Instance = new OpenStreetMapGraphHopperProvider();
-        }
+            string route = GMaps.Instance.UseRouteCache
+                ? Cache.Instance.GetContent(url, CacheType.RouteCache, TimeSpan.FromHours(TTLCache))
+                : string.Empty;
 
-        #region GMapProvider Members
-
-        public override Guid Id
-        {
-            get;
-        } = new Guid("FAACDE73-4B90-5AE6-BB4A-ADE4F3545559");
-
-        public override string Name
-        {
-            get;
-        } = "OpenStreetMapGraphHopper";
-
-        public string ApiKey = string.Empty;
-
-        GMapProvider[] _overlays;
-
-        public override GMapProvider[] Overlays
-        {
-            get
+            if (string.IsNullOrEmpty(route))
             {
-                if (_overlays == null)
-                {
-                    _overlays = new GMapProvider[] { OpenStreetMapProvider.Instance, this };
-                }
-
-                return _overlays;
-            }
-        }
-
-        #endregion
-
-        #region GMapRoutingProvider Members
-
-        public override MapRoute GetRoute(PointLatLng start, PointLatLng end, bool avoidHighways, bool walkingMode,
-           int zoom)
-        {
-            return GetRoute(MakeRoutingUrl(start, end, walkingMode ? TravelTypeFoot : TravelTypeMotorCar));
-        }
-
-        public override MapRoute GetRoute(string start, string end, bool avoidHighways, bool walkingMode, int zoom)
-        {
-            throw new NotImplementedException("use GetRoute(PointLatLng start, PointLatLng end...");
-        }
-
-        #region -- internals --
-        string MakeRoutingUrl(PointLatLng start, PointLatLng end, string travelType)
-        {
-            return string.Format(CultureInfo.InvariantCulture,
-                RoutingUrlFormat,
-                start.Lat,
-                start.Lng,
-                end.Lat,
-                end.Lng,
-                travelType);
-        }
-
-        MapRoute GetRoute(string url)
-        {
-            MapRoute ret = null;
-            OpenStreetMapGraphHopperRouteEntity result = null;
-
-            try
-            {
-                string route = GMaps.Instance.UseRouteCache
-                    ? Cache.Instance.GetContent(url, CacheType.RouteCache, TimeSpan.FromHours(TTLCache))
-                    : string.Empty;
-
-                if (string.IsNullOrEmpty(route))
-                {
-                    route = GetContentUsingHttp(!string.IsNullOrEmpty(ApiKey) ? url + "&key=" + ApiKey : url);
-
-                    if (!string.IsNullOrEmpty(route))
-                    {
-                        result = JsonConvert.DeserializeObject<OpenStreetMapGraphHopperRouteEntity>(route);
-
-                        if (GMaps.Instance.UseRouteCache && result != null &&
-                            result.paths != null && result.paths.Count > 0)
-                        {
-                            Cache.Instance.SaveContent(url, CacheType.RouteCache, route);
-                        }
-                    }
-                }
-                else
-                {
-                    result = JsonConvert.DeserializeObject<OpenStreetMapGraphHopperRouteEntity>(route);
-                }
+                route = GetContentUsingHttp(!string.IsNullOrEmpty(ApiKey) ? url + "&key=" + ApiKey : url);
 
                 if (!string.IsNullOrEmpty(route))
                 {
-                    ret = new MapRoute("Route");
+                    result = JsonConvert.DeserializeObject<OpenStreetMapGraphHopperRouteEntity>(route);
 
-                    if (result != null)
+                    if (GMaps.Instance.UseRouteCache && result != null &&
+                        result.RoutePaths != null && result.RoutePaths.Count > 0)
                     {
-                        if (result.paths != null && result.paths.Count > 0)
-                        {
-                            ret.Status = RouteStatusCode.OK;
-
-                            ret.Duration = result.paths[0].time.ToString();
-
-                            var points = new List<PointLatLng>();
-                            PureProjection.PolylineDecode(points, result.paths[0].points);
-                            ret.Points.AddRange(points);
-
-                            foreach (var item in result.paths[0].instructions)
-                            {
-                                ret.Instructions.Add(item.text);
-                            }
-                        }
+                        Cache.Instance.SaveContent(url, CacheType.RouteCache, route);
                     }
                 }
             }
-            catch (Exception ex)
+            else
             {
-                ret = null;
-                Debug.WriteLine("GetRoute: " + ex);
+                result = JsonConvert.DeserializeObject<OpenStreetMapGraphHopperRouteEntity>(route);
             }
 
-            return ret;
-        }
-
-        static readonly string TravelTypeFoot = "foot";
-        static readonly string TravelTypeMotorCar = "car";
-
-        static readonly string RoutingUrlFormat = "https://graphhopper.com/api/1/route?point={0},{1}&point={2},{3}&vehicle={4}&type=json";
-
-        #endregion
-
-        #endregion
-
-        #region GeocodingProvider Members
-
-        public new GeoCoderStatusCode GetPoints(string keywords, out List<PointLatLng> pointList)
-        {
-            return GetLatLngFromGeocoderUrl(MakeGeocoderUrl(keywords), out pointList);
-        }
-
-        public new PointLatLng? GetPoint(string keywords, out GeoCoderStatusCode status)
-        {
-            List<PointLatLng> pointList;
-            status = GetPoints(keywords, out pointList);
-            return pointList != null && pointList.Count > 0 ? pointList[0] : (PointLatLng?)null;
-        }
-
-        public new GeoCoderStatusCode GetPoints(Placemark placemark, out List<PointLatLng> pointList)
-        {
-            throw new NotImplementedException("use GetPoint");
-            //return GetLatLngFromGeocoderUrl(MakeDetailedGeocoderUrl(placemark), out pointList);
-        }
-
-        public new PointLatLng? GetPoint(Placemark placemark, out GeoCoderStatusCode status)
-        {
-            throw new NotImplementedException("use GetPoint");
-            //List<PointLatLng> pointList;
-            //status = GetPoints(placemark, out pointList);
-            //return pointList != null && pointList.Count > 0 ? pointList[0] : (PointLatLng?)null;
-        }
-
-        public new GeoCoderStatusCode GetPlacemarks(PointLatLng location, out List<Placemark> placemarkList)
-        {
-            GeoCoderStatusCode status;
-            placemarkList = GetPlacemarkFromReverseGeocoderUrl(MakeReverseGeocoderUrl(location), out status);
-            return status;
-        }
-
-        public new Placemark? GetPlacemark(PointLatLng location, out GeoCoderStatusCode status)
-        {            
-            List<Placemark> placemarkList;
-            status = GetPlacemarks(location, out placemarkList);
-            return placemarkList != null && placemarkList.Count > 0 ? placemarkList[0] : (Placemark?)null;
-        }
-
-        #region -- internals --
-
-        string MakeGeocoderUrl(string keywords)
-        {
-            return string.Format(GeocoderUrlFormat, keywords.Replace(' ', '+'));
-        }
-
-        string MakeReverseGeocoderUrl(PointLatLng pt)
-        {
-            return string.Format(CultureInfo.InvariantCulture, ReverseGeocoderUrlFormat, pt.Lat, pt.Lng);
-        }
-
-        GeoCoderStatusCode GetLatLngFromGeocoderUrl(string url, out List<PointLatLng> pointList)
-        {
-            var status = GeoCoderStatusCode.UNKNOWN_ERROR;
-            pointList = null;
-            OpenStreetMapGraphHopperGeocodeEntity result = null;
-
-            try
+            if (!string.IsNullOrEmpty(route))
             {
-                string geo = GMaps.Instance.UseGeocoderCache
-                    ? Cache.Instance.GetContent(url, CacheType.GeocoderCache, TimeSpan.FromHours(TTLCache))
-                    : string.Empty;
+                ret = new MapRoute("Route");
 
-                if (string.IsNullOrEmpty(geo))
+                if (result != null)
                 {
-                    geo = GetContentUsingHttp(!string.IsNullOrEmpty(ApiKey) ? url + "&key=" + ApiKey : url);
-
-                    if (!string.IsNullOrEmpty(geo))
+                    if (result.RoutePaths != null && result.RoutePaths.Count > 0)
                     {
-                        result = JsonConvert.DeserializeObject<OpenStreetMapGraphHopperGeocodeEntity>(geo);
+                        ret.Status = RouteStatusCode.OK;
 
-                        if (GMaps.Instance.UseRouteCache && result != null &&
-                            result.hits != null && result.hits.Count > 0)
+                        ret.Duration = result.RoutePaths[0].Time.ToString();
+
+                        var points = new List<PointLatLng>();
+                        PureProjection.PolylineDecode(points, result.RoutePaths[0].Points);
+                        ret.Points.AddRange(points);
+
+                        foreach (var item in result.RoutePaths[0].Instructions)
                         {
-                            Cache.Instance.SaveContent(url, CacheType.GeocoderCache, geo);
+                            ret.Instructions.Add(item.Text);
                         }
                     }
                 }
-                else
+            }
+        }
+        catch (Exception ex)
+        {
+            ret = null;
+            Debug.WriteLine("GetRoute: " + ex);
+        }
+
+        return ret;
+    }
+
+    static readonly string m_TravelTypeFoot = "foot";
+    static readonly string m_TravelTypeMotorCar = "car";
+    static readonly string m_RoutingUrlFormat = "https://graphhopper.com/api/1/route?point={0},{1}&point={2},{3}&vehicle={4}&type=json";
+    #endregion
+    #endregion
+
+    #region GeocodingProvider Members
+    public new GeoCoderStatusCode GetPoints(string keywords, out List<PointLatLng> pointList)
+    {
+        return GetLatLngFromGeocoderUrl(MakeGeocoderUrl(keywords), out pointList);
+    }
+
+    public new PointLatLng? GetPoint(string keywords, out GeoCoderStatusCode status)
+    {
+        status = GetPoints(keywords, out var pointList);
+        return pointList != null && pointList.Count > 0 ? pointList[0] : null;
+    }
+
+    public new GeoCoderStatusCode GetPoints(Placemark placemark, out List<PointLatLng> pointList)
+    {
+        throw new NotImplementedException("use GetPoint");
+        //return GetLatLngFromGeocoderUrl(MakeDetailedGeocoderUrl(placemark), out pointList);
+    }
+
+    public new PointLatLng? GetPoint(Placemark placemark, out GeoCoderStatusCode status)
+    {
+        throw new NotImplementedException("use GetPoint");
+        //List<PointLatLng> pointList;
+        //status = GetPoints(placemark, out pointList);
+        //return pointList != null && pointList.Count > 0 ? pointList[0] : (PointLatLng?)null;
+    }
+
+    public new GeoCoderStatusCode GetPlacemarks(PointLatLng location, out List<Placemark> placemarkList)
+    {
+        placemarkList = GetPlacemarkFromReverseGeocoderUrl(MakeReverseGeocoderUrl(location), out var status);
+        return status;
+    }
+
+    public new Placemark? GetPlacemark(PointLatLng location, out GeoCoderStatusCode status)
+    {
+        status = GetPlacemarks(location, out var placemarkList);
+        return placemarkList != null && placemarkList.Count > 0 ? placemarkList[0] : null;
+    }
+
+    #region -- internals --
+    static string MakeGeocoderUrl(string keywords)
+    {
+        return string.Format(m_GeocoderUrlFormat, keywords.Replace(' ', '+'));
+    }
+
+    static string MakeReverseGeocoderUrl(PointLatLng pt)
+    {
+        return string.Format(CultureInfo.InvariantCulture, m_ReverseGeocoderUrlFormat, pt.Lat, pt.Lng);
+    }
+
+    GeoCoderStatusCode GetLatLngFromGeocoderUrl(string url, out List<PointLatLng> pointList)
+    {
+        var status = GeoCoderStatusCode.UNKNOWN_ERROR;
+        pointList = null;
+        OpenStreetMapGraphHopperGeocodeEntity result = null;
+
+        try
+        {
+            string geo = GMaps.Instance.UseGeocoderCache
+                ? Cache.Instance.GetContent(url, CacheType.GeocoderCache, TimeSpan.FromHours(TTLCache))
+                : string.Empty;
+
+            if (string.IsNullOrEmpty(geo))
+            {
+                geo = GetContentUsingHttp(!string.IsNullOrEmpty(ApiKey) ? url + "&key=" + ApiKey : url);
+
+                if (!string.IsNullOrEmpty(geo))
                 {
                     result = JsonConvert.DeserializeObject<OpenStreetMapGraphHopperGeocodeEntity>(geo);
-                }
 
-                if (!string.IsNullOrEmpty(geo))
-                {
-                    pointList = new List<PointLatLng>();
-
-                    foreach (var item in result.hits)
+                    if (GMaps.Instance.UseRouteCache && result != null &&
+                        result.Hits != null && result.Hits.Count > 0)
                     {
-                        pointList.Add(new PointLatLng(item.point.lat, item.point.lng));
+                        Cache.Instance.SaveContent(url, CacheType.GeocoderCache, geo);
                     }
-
-                    status = GeoCoderStatusCode.OK;                    
                 }
             }
-            catch (Exception ex)
+            else
             {
-                status = GeoCoderStatusCode.EXCEPTION_IN_CODE;
-                Debug.WriteLine("GetLatLngFromGeocoderUrl: " + ex);
+                result = JsonConvert.DeserializeObject<OpenStreetMapGraphHopperGeocodeEntity>(geo);
             }
 
-            return status;
+            if (!string.IsNullOrEmpty(geo))
+            {
+                pointList = [];
+
+                foreach (var item in result.Hits)
+                {
+                    pointList.Add(new PointLatLng(item.Point.Latitude, item.Point.Longitude));
+                }
+
+                status = GeoCoderStatusCode.OK;
+            }
+        }
+        catch (Exception ex)
+        {
+            status = GeoCoderStatusCode.EXCEPTION_IN_CODE;
+            Debug.WriteLine("GetLatLngFromGeocoderUrl: " + ex);
         }
 
-        List<Placemark> GetPlacemarkFromReverseGeocoderUrl(string url, out GeoCoderStatusCode status)
+        return status;
+    }
+
+    List<Placemark> GetPlacemarkFromReverseGeocoderUrl(string url, out GeoCoderStatusCode status)
+    {
+        status = GeoCoderStatusCode.UNKNOWN_ERROR;
+        List<Placemark> ret = null;
+        OpenStreetMapGraphHopperGeocodeEntity routeResult = null;
+
+        try
         {
-            status = GeoCoderStatusCode.UNKNOWN_ERROR;
-            List<Placemark> ret = null;
-            OpenStreetMapGraphHopperGeocodeEntity routeResult = null;
+            string geo = GMaps.Instance.UsePlacemarkCache
+                ? Cache.Instance.GetContent(url, CacheType.PlacemarkCache, TimeSpan.FromHours(TTLCache))
+                : string.Empty;
 
-            try
+            if (string.IsNullOrEmpty(geo))
             {
-                string geo = GMaps.Instance.UsePlacemarkCache
-                    ? Cache.Instance.GetContent(url, CacheType.PlacemarkCache, TimeSpan.FromHours(TTLCache))
-                    : string.Empty;
+                geo = GetContentUsingHttp(!string.IsNullOrEmpty(ApiKey) ? url + "&key=" + ApiKey : url);
 
-                if (string.IsNullOrEmpty(geo))
-                {
-                    geo = GetContentUsingHttp(!string.IsNullOrEmpty(ApiKey) ? url + "&key=" + ApiKey : url);
-
-                    if (!string.IsNullOrEmpty(geo))
-                    {
-                        routeResult = JsonConvert.DeserializeObject<OpenStreetMapGraphHopperGeocodeEntity>(geo);
-
-                        if (GMaps.Instance.UsePlacemarkCache && routeResult != null &&
-                            routeResult.hits != null && routeResult.hits.Count > 0)
-                        {
-                            Cache.Instance.SaveContent(url, CacheType.PlacemarkCache, geo);
-                        }
-                    }
-                }
-                else
+                if (!string.IsNullOrEmpty(geo))
                 {
                     routeResult = JsonConvert.DeserializeObject<OpenStreetMapGraphHopperGeocodeEntity>(geo);
-                }
 
-                if (!string.IsNullOrEmpty(geo))
-                {
-                    ret = new List<Placemark>();
-
-                    foreach (var item in routeResult.hits)
+                    if (GMaps.Instance.UsePlacemarkCache && routeResult != null &&
+                        routeResult.Hits != null && routeResult.Hits.Count > 0)
                     {
-                        var p = new Placemark(item.name);
-
-                        p = new Placemark
-                        {
-                            PlacemarkId = item.osm_id,
-                            Address = item.name,
-                            CountryName = item.country,
-                            CountryNameCode = item.countrycode,
-                            PostalCodeNumber = item.postcode,
-                            AdministrativeAreaName = item.state,
-                            SubAdministrativeAreaName = item.city,
-                            LocalityName = null,
-                            ThoroughfareName = null
-                        };
-
-                        ret.Add(p);
+                        Cache.Instance.SaveContent(url, CacheType.PlacemarkCache, geo);
                     }
-
-                    status = GeoCoderStatusCode.OK;
                 }
             }
-            catch (Exception ex)
+            else
             {
-                ret = null;
-                status = GeoCoderStatusCode.EXCEPTION_IN_CODE;
-                Debug.WriteLine("GetPlacemarkFromReverseGeocoderUrl: " + ex);
+                routeResult = JsonConvert.DeserializeObject<OpenStreetMapGraphHopperGeocodeEntity>(geo);
             }
 
-            return ret;
+            if (!string.IsNullOrEmpty(geo))
+            {
+                ret = [];
+
+                foreach (var item in routeResult.Hits)
+                {
+                    var p = new Placemark(item.Name);
+
+                    p = new Placemark
+                    {
+                        PlacemarkId = item.OsmId,
+                        Address = item.Name,
+                        CountryName = item.Country,
+                        CountryNameCode = item.CountryCode,
+                        PostalCodeNumber = item.Postcode,
+                        AdministrativeAreaName = item.State,
+                        SubAdministrativeAreaName = item.City,
+                        LocalityName = null,
+                        ThoroughfareName = null
+                    };
+
+                    ret.Add(p);
+                }
+
+                status = GeoCoderStatusCode.OK;
+            }
+        }
+        catch (Exception ex)
+        {
+            ret = null;
+            status = GeoCoderStatusCode.EXCEPTION_IN_CODE;
+            Debug.WriteLine("GetPlacemarkFromReverseGeocoderUrl: " + ex);
         }
 
-        static readonly string ReverseGeocoderUrlFormat = "https://graphhopper.com/api/1/geocode?point={0},{1}&locale=en&reverse=true";
-
-        static readonly string GeocoderUrlFormat = "https://graphhopper.com/api/1/geocode?q={0}&locale=en";       
-
-        #endregion
-
-        #endregion
+        return ret;
     }
+
+    static readonly string m_ReverseGeocoderUrlFormat = "https://graphhopper.com/api/1/geocode?point={0},{1}&locale=en&reverse=true";
+
+    static readonly string m_GeocoderUrlFormat = "https://graphhopper.com/api/1/geocode?q={0}&locale=en";
+    #endregion
+    #endregion
 }

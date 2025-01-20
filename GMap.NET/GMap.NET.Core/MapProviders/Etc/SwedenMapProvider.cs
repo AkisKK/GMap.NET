@@ -1,114 +1,87 @@
 ﻿using System;
+using GMap.NET.Internals;
 using GMap.NET.Projections;
 
-namespace GMap.NET.MapProviders
+namespace GMap.NET.MapProviders.Etc;
+
+public abstract class SwedenMapProviderBase : GMapProvider
 {
-    public abstract class SwedenMapProviderBase : GMapProvider
+    public SwedenMapProviderBase()
     {
-        public SwedenMapProviderBase()
-        {
-            RefererUrl = "https://kso.etjanster.lantmateriet.se/?lang=en";
-            Copyright = string.Format("©{0} Lantmäteriet", DateTime.Today.Year);
-            MaxZoom = 11;
-            //Area = new RectLatLng(58.0794870805093, 20.3286067123543, 7.90883164336887, 2.506129113082);
-        }
-
-        #region GMapProvider Members
-
-        public override Guid Id
-        {
-            get
-            {
-                throw new NotImplementedException();
-            }
-        }
-
-        public override string Name
-        {
-            get
-            {
-                throw new NotImplementedException();
-            }
-        }
-
-        public override PureProjection Projection
-        {
-            get
-            {
-                return SWEREF99_TMProjection.Instance;
-            }
-        }
-
-        GMapProvider[] _overlays;
-
-        public override GMapProvider[] Overlays
-        {
-            get
-            {
-                if (_overlays == null)
-                {
-                    _overlays = new GMapProvider[] {this};
-                }
-
-                return _overlays;
-            }
-        }
-
-        public override PureImage GetTileImage(GPoint pos, int zoom)
-        {
-            throw new NotImplementedException();
-        }
-
-        #endregion
+        RefererUrl = "https://kso.etjanster.lantmateriet.se/?lang=en";
+        Copyright = string.Format("©{0} Lantmäteriet", DateTime.Today.Year);
+        MaxZoom = 11;
+        //Area = new RectLatLng(58.0794870805093, 20.3286067123543, 7.90883164336887, 2.506129113082);
     }
 
-    /// <summary>
-    ///     SwedenMap provider, https://kso.etjanster.lantmateriet.se/?lang=en#
-    /// </summary>
-    public class SwedenMapProvider : SwedenMapProviderBase
+    #region GMapProvider Members
+
+    public override Guid Id => throw new NotImplementedException();
+
+    public override string Name => throw new NotImplementedException();
+
+    public override PureProjection Projection => SWEREF99_TMProjection.Instance;
+
+    GMapProvider[] m_Overlays;
+
+    public override GMapProvider[] Overlays
     {
-        public static readonly SwedenMapProvider Instance;
-
-        SwedenMapProvider()
+        get
         {
+            m_Overlays ??= [this];
+
+            return m_Overlays;
         }
-
-        static SwedenMapProvider()
-        {
-            Instance = new SwedenMapProvider();
-        }
-
-        #region GMapProvider Members
-
-        public override Guid Id
-        {
-            get;
-        } = new Guid("40890A96-6E82-4FA7-90A3-73D66B974F63");
-
-        public override string Name
-        {
-            get;
-        } = "SwedenMap";
-
-        public override PureImage GetTileImage(GPoint pos, int zoom)
-        {
-            string url = MakeTileImageUrl(pos, zoom, LanguageStr);
-
-            return GetTileImageUsingHttp(url);
-        }
-
-        #endregion
-
-        string MakeTileImageUrl(GPoint pos, int zoom, string language)
-        {
-            // https://kso.etjanster.lantmateriet.se/karta/topowebb/v1/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=topowebb&STYLE=default&TILEMATRIXSET=3006&TILEMATRIX=2&TILEROW=6&TILECOL=7&FORMAT=image%2Fpng
-
-            return string.Format(UrlFormat, zoom, pos.Y, pos.X);
-        }
-
-        private static readonly string UrlFormat =
-            "https://kso.etjanster.lantmateriet.se/karta/topowebb/v1.1/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=topowebb&STYLE=default&TILEMATRIXSET=3006&TILEMATRIX={0}&TILEROW={1}&TILECOL={2}&FORMAT=image%2Fpng";
     }
+
+    public override PureImage GetTileImage(GPoint pos, int zoom)
+    {
+        throw new NotImplementedException();
+    }
+
+    #endregion
+}
+
+/// <summary>
+///     SwedenMap provider, https://kso.etjanster.lantmateriet.se/?lang=en#
+/// </summary>
+public class SwedenMapProvider : SwedenMapProviderBase
+{
+    public static readonly SwedenMapProvider Instance;
+
+    SwedenMapProvider()
+    {
+    }
+
+    static SwedenMapProvider()
+    {
+        Instance = new SwedenMapProvider();
+    }
+
+    #region GMapProvider Members
+
+    public override Guid Id { get; } = new Guid("40890A96-6E82-4FA7-90A3-73D66B974F63");
+
+    public override string Name { get; } = "SwedenMap";
+
+    public override PureImage GetTileImage(GPoint pos, int zoom)
+    {
+        string url = MakeTileImageUrl(pos, zoom);
+
+        return GetTileImageUsingHttp(url);
+    }
+
+    #endregion
+
+    static string MakeTileImageUrl(GPoint pos, int zoom)
+    {
+        // https://kso.etjanster.lantmateriet.se/karta/topowebb/v1/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=topowebb&STYLE=default&TILEMATRIXSET=3006&TILEMATRIX=2&TILEROW=6&TILECOL=7&FORMAT=image%2Fpng
+
+        return string.Format(m_UrlFormat, zoom, pos.Y, pos.X);
+    }
+
+    private static readonly string m_UrlFormat =
+        "https://kso.etjanster.lantmateriet.se/karta/topowebb/v1.1/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=topowebb&STYLE=default&TILEMATRIXSET=3006&TILEMATRIX={0}&TILEROW={1}&TILECOL={2}&FORMAT=image%2Fpng";
 }
 
 /*
@@ -131,31 +104,31 @@ https://kso.etjanster.lantmateriet.se/?lang=en#
 	"flygbildServiceUrl" : "https://services-ver.lantmateriet.se/distribution/produkter/metabild/v1/flygbild"
 }
 
-   well known text string:
-   https://developers.arcgis.com/rest/services-reference/projected-coordinate-systems.htm
+well known text string:
+https://developers.arcgis.com/rest/services-reference/projected-coordinate-systems.htm
 PROJCS["SWEREF99 TM",
-    GEOGCS["SWEREF99",
-        DATUM["SWEREF99",
-            SPHEROID["GRS 1980",6378137,298.257222101,
-                AUTHORITY["EPSG","7019"]],
-            TOWGS84[0,0,0,0,0,0,0],
-            AUTHORITY["EPSG","6619"]],
-        PRIMEM["Greenwich",0,
-            AUTHORITY["EPSG","8901"]],
-        UNIT["degree",0.01745329251994328,
-            AUTHORITY["EPSG","9122"]],
-        AUTHORITY["EPSG","4619"]],
-    UNIT["metre",1,
-        AUTHORITY["EPSG","9001"]],
-    PROJECTION["Transverse_Mercator"],
-    PARAMETER["latitude_of_origin",0],
-    PARAMETER["central_meridian",15],
-    PARAMETER["scale_factor",0.9996],
-    PARAMETER["false_easting",500000],
-    PARAMETER["false_northing",0],
-    AUTHORITY["EPSG","3006"],
-    AXIS["y",EAST],
-    AXIS["x",NORTH]]
+GEOGCS["SWEREF99",
+    DATUM["SWEREF99",
+        SPHEROID["GRS 1980",6378137,298.257222101,
+            AUTHORITY["EPSG","7019"]],
+        TOWGS84[0,0,0,0,0,0,0],
+        AUTHORITY["EPSG","6619"]],
+    PRIMEM["Greenwich",0,
+        AUTHORITY["EPSG","8901"]],
+    UNIT["degree",0.01745329251994328,
+        AUTHORITY["EPSG","9122"]],
+    AUTHORITY["EPSG","4619"]],
+UNIT["metre",1,
+    AUTHORITY["EPSG","9001"]],
+PROJECTION["Transverse_Mercator"],
+PARAMETER["latitude_of_origin",0],
+PARAMETER["central_meridian",15],
+PARAMETER["scale_factor",0.9996],
+PARAMETER["false_easting",500000],
+PARAMETER["false_northing",0],
+AUTHORITY["EPSG","3006"],
+AXIS["y",EAST],
+AXIS["x",NORTH]]
 
 {
 	"defaultLayer" : "topowebbwmts",

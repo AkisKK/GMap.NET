@@ -2,81 +2,75 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 
-namespace GMap.NET.Internals
+namespace GMap.NET.Internals;
+
+/// <summary>
+///     kiber speed memory cache for tiles with history support ;}
+/// </summary>
+internal class KiberTileCache : Dictionary<RawTile, byte[]>
 {
-    /// <summary>
-    ///     kiber speed memory cache for tiles with history support ;}
-    /// </summary>
-    internal class KiberTileCache : Dictionary<RawTile, byte[]>
+    public KiberTileCache() : base(new RawTileComparer())
     {
-        public KiberTileCache() : base(new RawTileComparer())
+    }
+
+    readonly Queue<RawTile> m_Queue = new();
+
+    /// <summary>
+    ///     the amount of tiles in MB to keep in memory, default: 22MB, if each ~100Kb it's ~222 tiles
+    /// </summary>
+    public int MemoryCacheCapacity = 22;
+
+    long m_MemoryCacheSize;
+
+    /// <summary>
+    ///     current memory cache size in MB
+    /// </summary>
+    public double MemoryCacheSize
+    {
+        get
         {
+            return m_MemoryCacheSize / 1048576.0;
         }
+    }
 
-        readonly Queue<RawTile> _queue = new Queue<RawTile>();
+    public new void Add(RawTile key, byte[] value)
+    {
+        m_Queue.Enqueue(key);
+        base.Add(key, value);
 
-        /// <summary>
-        ///     the amount of tiles in MB to keep in memory, default: 22MB, if each ~100Kb it's ~222 tiles
-        /// </summary>
-        public int MemoryCacheCapacity = 22;
+        m_MemoryCacheSize += value.Length;
+    }
 
-        long _memoryCacheSize;
+    public new void Clear()
+    {
+        m_Queue.Clear();
+        base.Clear();
+        m_MemoryCacheSize = 0;
+    }
 
-        /// <summary>
-        ///     current memory cache size in MB
-        /// </summary>
-        public double MemoryCacheSize
+    internal void RemoveMemoryOverload()
+    {
+        while (MemoryCacheSize > MemoryCacheCapacity)
         {
-            get
+            if (Keys.Count > 0 && m_Queue.Count > 0)
             {
-                return _memoryCacheSize / 1048576.0;
+                var first = m_Queue.Dequeue();
+                try
+                {
+                    byte[] m = base[first];
+                    {
+                        base.Remove(first);
+                        m_MemoryCacheSize -= m.Length;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine("RemoveMemoryOverload: " + ex);
+                }
             }
-        }
-
-        public new void Add(RawTile key, byte[] value)
-        {
-            _queue.Enqueue(key);
-            base.Add(key, value);
-
-            _memoryCacheSize += value.Length;
-        }
-
-        // do not allow directly removal of elements
-        private new void Remove(RawTile key)
-        {
-        }
-
-        public new void Clear()
-        {
-            _queue.Clear();
-            base.Clear();
-            _memoryCacheSize = 0;
-        }
-
-        internal void RemoveMemoryOverload()
-        {
-            while (MemoryCacheSize > MemoryCacheCapacity)
+            else
             {
-                if (Keys.Count > 0 && _queue.Count > 0)
-                {
-                    var first = _queue.Dequeue();
-                    try
-                    {
-                        byte[] m = base[first];
-                        {
-                            base.Remove(first);
-                            _memoryCacheSize -= m.Length;
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        Debug.WriteLine("RemoveMemoryOverload: " + ex);
-                    }
-                }
-                else
-                {
-                    break;
-                }
+                break;
             }
         }
     }
