@@ -2323,6 +2323,91 @@ public partial class GMapControl : UserControl, IInterface
         }
     }
 
+    /// <summary>
+    /// Checks whether the specified local coordinates on the map control are over any markers, routes, or polygons.
+    /// </summary>
+    /// <param name="x">The x value of the coordinates.</param>
+    /// <param name="y">The y value of the coordinates.</param>
+    /// <returns>A tuple made of three boolean values indicating whether the coordinates are over any object.</returns>
+    public (bool isMouseOverMarker, bool isMouseOverRoute, bool isMouseOverPolygon) IsLocalPointOverObjects(int x, int y)
+    {
+        bool isMouseOverMarker = false;
+        bool isMouseOverRoute = false;
+        bool isMouseOverPolygon = false;
+
+        for (int i = Overlays.Count - 1; i >= 0; i--)
+        {
+            var o = Overlays[i];
+            if (o != null && o.IsVisibile && o.IsHitTestVisible)
+            {
+                foreach (var m in o.Markers)
+                {
+                    if (m.IsVisible && m.IsHitTestVisible)
+                    {
+                        #region Check
+                        var rp = new GPoint(x, y);
+                        if (!m_MobileMode)
+                        {
+                            rp.OffsetNegative(m_Core.m_RenderOffset);
+                        }
+
+                        if (m.LocalArea.Contains((int)rp.X, (int)rp.Y))
+                        {
+                            // Found an object, exit the loop.
+                            isMouseOverMarker = true;
+                            break;
+                        }
+                        #endregion
+                    }
+                }
+
+                foreach (var m in o.Routes)
+                {
+                    if (m.IsVisible && m.IsHitTestVisible)
+                    {
+                        #region Check
+                        var rp = new GPoint(x, y);
+                        if (!m_MobileMode)
+                        {
+                            rp.OffsetNegative(m_Core.m_RenderOffset);
+                        }
+
+                        if (m.IsInside((int)rp.X, (int)rp.Y))
+                        {
+                            // Found an object, exit the loop.
+                            isMouseOverRoute = true;
+                            break;
+                        }
+                        #endregion
+                    }
+                }
+
+                foreach (var m in o.Polygons)
+                {
+                    if (m.IsVisible && m.IsHitTestVisible)
+                    {
+                        #region Check
+                        var rp = new GPoint(x, y);
+                        if (!m_MobileMode)
+                        {
+                            rp.OffsetNegative(m_Core.m_RenderOffset);
+                        }
+
+                        if (m.IsInsideLocal((int)rp.X, (int)rp.Y))
+                        {
+                            // Found an object, exit the loop.
+                            isMouseOverPolygon = true;
+                            break;
+                        }
+                        #endregion
+                    }
+                }
+            }
+        }
+
+        return (isMouseOverMarker, isMouseOverRoute, isMouseOverPolygon);
+    }
+
     internal void RestoreCursorOnLeave()
     {
         if (m_OverObjectCount <= 0 && m_CursorBefore != null)
