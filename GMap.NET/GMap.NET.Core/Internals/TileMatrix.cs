@@ -163,12 +163,10 @@ internal class TileMatrix : IDisposable
 
     public Tile GetTileWithNoLock(int zoom, GPoint p)
     {
-        Tile ret;
+        var ret = Tile.Empty;
 
         //if(zoom < Levels.Count)
-        {
-            m_Levels[zoom].TryGetValue(p, out ret);
-        }
+        m_Levels?[zoom].TryGetValue(p, out ret);
 
         return ret;
     }
