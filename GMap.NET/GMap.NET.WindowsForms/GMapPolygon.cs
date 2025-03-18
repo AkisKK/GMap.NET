@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Runtime.Serialization;
+using System.Threading;
 using System.Windows.Forms;
 
 namespace GMap.NET.WindowsForms;
@@ -13,8 +14,17 @@ namespace GMap.NET.WindowsForms;
 [Serializable]
 public class GMapPolygon : MapRoute, ISerializable, IDeserializationCallback, IDisposable
 {
-    private bool m_Visible = true;
+    /// <summary>
+    /// Lock object for the <see cref="m_GraphicsPath"/> field.
+    /// </summary>
+    protected readonly Lock m_GraphicsPathLock = new();
 
+    /// <summary>
+    /// Lock object for the <see cref="LocalPoints"/> field.
+    /// </summary>
+    protected readonly Lock m_LocalPointsLock = new();
+
+    private bool m_Visible = true;
     /// <summary>
     ///     is polygon visible
     /// </summary>
@@ -85,6 +95,19 @@ public class GMapPolygon : MapRoute, ISerializable, IDeserializationCallback, ID
         return false;
     }
 
+    /// <summary>
+    /// Replaces the local points with the provided list of points.
+    /// </summary>
+    /// <param name="points">The list of points to replace the current local points.</param>
+    internal void ReplaceLocalPoints(List<GPoint> points)
+    {
+        lock (m_LocalPointsLock)
+        {
+            LocalPoints.Clear();
+            LocalPoints.AddRange(points);
+        }
+    }
+
     GraphicsPath m_GraphicsPath;
     internal void UpdateGraphicsPath()
     {
@@ -94,31 +117,49 @@ public class GMapPolygon : MapRoute, ISerializable, IDeserializationCallback, ID
         }
         else
         {
-            m_GraphicsPath.Reset();
+            lock (m_GraphicsPathLock)
+            {
+                m_GraphicsPath.Reset();
+            }
         }
 
-        var pnts = new Point[LocalPoints.Count];
-        for (int i = 0; i < LocalPoints.Count; i++)
+        Point[] points;
+        lock (m_LocalPointsLock)
         {
-            var p2 = new Point((int)LocalPoints[i].X, (int)LocalPoints[i].Y);
-            pnts[pnts.Length - 1 - i] = p2;
+            points = new Point[LocalPoints.Count];
+            for (int i = 0; i < LocalPoints.Count; i++)
+            {
+                var p2 = new Point((int)LocalPoints[i].X, (int)LocalPoints[i].Y);
+                points[points.Length - 1 - i] = p2;
+            }
         }
 
-        if (pnts.Length > 2)
+        if (points.Length > 2)
         {
-            m_GraphicsPath.AddPolygon(pnts);
+            lock (m_GraphicsPathLock)
+            {
+                m_GraphicsPath.AddPolygon(points);
+            }
         }
-        else if (pnts.Length == 2)
+        else if (points.Length == 2)
         {
-            m_GraphicsPath.AddLines(pnts);
+            lock (m_GraphicsPathLock)
+            {
+                m_GraphicsPath.AddLines(points);
+            }
         }
     }
 
     public virtual void OnRender(Graphics g)
     {
-        if (IsVisible)
+        if (!IsVisible)
         {
-            if (m_GraphicsPath != null)
+            return;
+        }
+
+        if (m_GraphicsPath != null)
+        {
+            lock (m_GraphicsPathLock)
             {
                 g.FillPath(Fill, m_GraphicsPath);
                 g.DrawPath(Stroke, m_GraphicsPath);
@@ -256,6 +297,7 @@ public class GMapPolygon : MapRoute, ISerializable, IDeserializationCallback, ID
     #region IDisposable Members
     bool m_Disposed;
 
+
     public virtual void Dispose()
     {
         if (m_Disposed)
@@ -264,13 +306,18 @@ public class GMapPolygon : MapRoute, ISerializable, IDeserializationCallback, ID
         }
 
         m_Disposed = true;
-
-        LocalPoints.Clear();
+        lock (m_LocalPointsLock)
+        {
+            LocalPoints.Clear();
+        }
 
         if (m_GraphicsPath != null)
         {
-            m_GraphicsPath.Dispose();
-            m_GraphicsPath = null;
+            lock (m_GraphicsPathLock)
+            {
+                m_GraphicsPath.Dispose();
+                m_GraphicsPath = null;
+            }
         }
 
         Clear();

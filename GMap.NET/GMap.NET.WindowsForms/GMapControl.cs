@@ -629,7 +629,7 @@ public partial class GMapControl : UserControl, IInterface
     /// <param name="polygon"></param>
     public void UpdatePolygonLocalPosition(GMapPolygon polygon)
     {
-        polygon.LocalPoints.Clear();
+        List<GPoint> points = [];
 
         for (int i = 0; i < polygon.Points.Count; i++)
         {
@@ -639,9 +639,10 @@ public partial class GMapControl : UserControl, IInterface
                 p.OffsetNegative(m_Core.m_RenderOffset);
             }
 
-            polygon.LocalPoints.Add(p);
+            points.Add(p);
         }
 
+        polygon.ReplaceLocalPoints(points);
         polygon.UpdateGraphicsPath();
     }
 
