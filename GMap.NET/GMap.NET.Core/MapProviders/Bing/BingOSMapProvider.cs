@@ -20,8 +20,7 @@ public class BingOSMapProvider : BingMapProviderBase
     }
 
     #region GMapProvider Members
-
-    public override Guid Id { get; } = new Guid("3C12C212-A79F-42D0-9A1B-22740E1103E8");
+    public override Guid Id { get; protected set; } = new Guid("3C12C212-A79F-42D0-9A1B-22740E1103E8");
 
     public override string Name { get; } = "BingOSMap";
 

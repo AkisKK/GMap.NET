@@ -8,11 +8,10 @@ using GMap.NET.Projections;
 
 public class SwissTopoProvider : GMapProvider
 {
-    private readonly Guid m_Id = new("0F1F1EC5-B297-4B5B-8EB4-27AA403D1860");
     private readonly string m_Name = "SwissTopo";
     private readonly Random m_RandomGen;
 
-    public override Guid Id => m_Id;
+    public override Guid Id { get; protected set; } = new("0F1F1EC5-B297-4B5B-8EB4-27AA403D1860");
 
     public static readonly SwissTopoProvider Instance;
 
@@ -34,7 +33,7 @@ public class SwissTopoProvider : GMapProvider
         string tileMatrixSet = "2056";
         string time = "current";
 
-        // <Scheme>://<ServerName>/<ProtocoleVersion>/<LayerName>/<Stylename>/<Time>/<TileMatrixSet>/<TileSetId=Zoom>/<TileRow>/<TileCol>.<FormatExtension>
+        // <Scheme>://<ServerName>/<ProtocolVersion>/<LayerName>/<StyleName>/<Time>/<TileMatrixSet>/<TileSetId=Zoom>/<TileRow>/<TileCol>.<FormatExtension>
         string formattedUrl = $"https://wmts{serverDigit}.geo.admin.ch/1.0.0/{layerName}/default/{time}/{tileMatrixSet}/{zoom}/{pos.X}/{pos.Y}.jpeg";
 
         return formattedUrl;

@@ -23,7 +23,7 @@ public abstract class SwedenMapProviderAltBase : GMapProvider
 {
     public SwedenMapProviderAltBase()
     {
-        RefererUrl = "https://kso.etjanster.lantmateriet.se/?lang=en";
+        ReferrerUrl = "https://kso.etjanster.lantmateriet.se/?lang=en";
         Copyright = string.Format("©{0} Lantmäteriet", DateTime.Today.Year);
         MaxZoom = 15;
     }
@@ -71,9 +71,7 @@ public class SwedenMapProviderAlt : SwedenMapProviderAltBase
     }
 
     #region GMapProvider Members
-
-    readonly Guid m_Id = new("d5e8e0de-3a93-4983-941e-9b66d79f50d6");
-    public override Guid Id => m_Id;
+    public override Guid Id { get; protected set; } = new("d5e8e0de-3a93-4983-941e-9b66d79f50d6");
 
     readonly string m_Name = "SwedenMapAlternative";
     public override string Name => m_Name;

@@ -22,7 +22,7 @@ public class YahooSatelliteMapProvider : YahooMapProviderBase
     public string Version = "1.9";
 
     #region GMapProvider Members
-    public override Guid Id { get; } = new Guid("55D71878-913F-4320-B5B6-B4167A3F148F");
+    public override Guid Id { get; protected set; } = new Guid("55D71878-913F-4320-B5B6-B4167A3F148F");
 
     public override string Name { get; } = "YahooSatelliteMap";
 

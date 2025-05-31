@@ -20,10 +20,9 @@ public class CzechHistoryMapProviderOld : CzechMapProviderBaseOld
     }
 
     #region GMapProvider Members
+    public override Guid Id { get; protected set; } = new Guid("C666AAF4-9D27-418F-97CB-7F0D8CC44544");
 
-    public override Guid Id    {        get;    } = new Guid("C666AAF4-9D27-418F-97CB-7F0D8CC44544");
-
-    public override string Name    {        get;    } = "CzechHistoryOldMap";
+    public override string Name { get; } = "CzechHistoryOldMap";
 
     GMapProvider[] m_Overlays;
 

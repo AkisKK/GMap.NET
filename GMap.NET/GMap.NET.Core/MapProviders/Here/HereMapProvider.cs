@@ -9,7 +9,7 @@ public abstract class HereMapProviderBase : GMapProvider
     public HereMapProviderBase()
     {
         MaxZoom = null;
-        RefererUrl = "http://wego.here.com/";
+        ReferrerUrl = "http://wego.here.com/";
         Copyright = string.Format("©{0} Here - Map data ©{0} NAVTEQ, Imagery ©{0} DigitalGlobe",
             DateTime.Today.Year);
     }
@@ -64,8 +64,7 @@ public class HereMapProvider : HereMapProviderBase
     }
 
     #region GMapProvider Members
-
-    public override Guid Id { get; } = new Guid("30DC2083-AC4D-4471-A232-D8A67AC9373A");
+    public override Guid Id { get; protected set; } = new Guid("30DC2083-AC4D-4471-A232-D8A67AC9373A");
 
     public override string Name { get; } = "HereMap";
 

@@ -20,8 +20,7 @@ public class HereHybridMapProvider : HereMapProviderBase
     }
 
     #region GMapProvider Members
-
-    public override Guid Id { get; } = new Guid("B85A8FD7-40F4-40EE-9B45-491AA45D86C1");
+    public override Guid Id { get; protected set; } = new Guid("B85A8FD7-40F4-40EE-9B45-491AA45D86C1");
 
     public override string Name { get; } = "HereHybridMap";
 

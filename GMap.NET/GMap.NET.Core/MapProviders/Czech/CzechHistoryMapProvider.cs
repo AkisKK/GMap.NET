@@ -21,8 +21,7 @@ public class CzechHistoryMapProvider : CzechMapProviderBase
     }
 
     #region GMapProvider Members
-
-    public override Guid Id { get; } = new Guid("CD44C19D-5EED-4623-B367-FB39FDC55B8F");
+    public override Guid Id { get; protected set; } = new Guid("CD44C19D-5EED-4623-B367-FB39FDC55B8F");
 
     public override string Name { get; } = "CzechHistoryMap";
 

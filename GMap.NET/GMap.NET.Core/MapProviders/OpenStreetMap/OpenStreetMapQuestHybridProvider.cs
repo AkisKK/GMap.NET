@@ -21,7 +21,7 @@ public class OpenStreetMapQuestHybridProvider : OpenStreetMapProviderBase
     }
 
     #region GMapProvider Members
-    public override Guid Id { get; } = new Guid("95E05027-F846-4429-AB7A-9445ABEEFA2A");
+    public override Guid Id { get; protected set; } = new Guid("95E05027-F846-4429-AB7A-9445ABEEFA2A");
 
     public override string Name { get; } = "OpenStreetMapQuestHybrid";
 

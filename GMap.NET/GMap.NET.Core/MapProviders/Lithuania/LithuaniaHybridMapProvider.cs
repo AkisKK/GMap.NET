@@ -20,8 +20,7 @@ public class LithuaniaHybridMapProvider : LithuaniaMapProviderBase
     }
 
     #region GMapProvider Members
-
-    public override Guid Id { get; } = new Guid("279AB0E0-4704-4AA6-86AD-87D13B1F8975");
+    public override Guid Id { get; protected set; } = new Guid("279AB0E0-4704-4AA6-86AD-87D13B1F8975");
 
     public override string Name { get; } = "LithuaniaHybridMap";
 

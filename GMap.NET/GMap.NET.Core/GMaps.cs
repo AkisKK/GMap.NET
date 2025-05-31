@@ -235,7 +235,7 @@ public class GMaps
 #if SQLite
         if (PrimaryCache is SQLitePureImageCache)
         {
-            var db = new StringBuilder((PrimaryCache as SQLitePureImageCache).GtileCache);
+            var db = new StringBuilder((PrimaryCache as SQLitePureImageCache).GTileCache);
             db.AppendFormat(CultureInfo.InvariantCulture,
                 "{0}{1}Data.gmdb",
                 GMapProvider.LanguageStr,
@@ -258,7 +258,7 @@ public class GMaps
 #if SQLite
         if (PrimaryCache is SQLitePureImageCache)
         {
-            var db = new StringBuilder((PrimaryCache as SQLitePureImageCache).GtileCache);
+            var db = new StringBuilder((PrimaryCache as SQLitePureImageCache).GTileCache);
             db.AppendFormat(CultureInfo.InvariantCulture,
                 "{0}{1}Data.gmdb",
                 GMapProvider.LanguageStr,
@@ -283,7 +283,7 @@ public class GMaps
         {
             if (string.IsNullOrEmpty(file))
             {
-                var db = new StringBuilder((PrimaryCache as SQLitePureImageCache).GtileCache);
+                var db = new StringBuilder((PrimaryCache as SQLitePureImageCache).GTileCache);
                 db.AppendFormat(CultureInfo.InvariantCulture,
                     "{0}{1}Data.gmdb",
                     GMapProvider.LanguageStr,
@@ -687,22 +687,22 @@ public class GMaps
 
         try
         {
-            var rtile = new RawTile(provider.DbId, pos, zoom);
+            var rawTile = new RawTile(provider.DatabaseId, pos, zoom);
 
-            // let't check memory first
+            // Let's check memory first.
             if (UseMemoryCache)
             {
-                byte[] m = MemoryCache.GetTileFromMemoryCache(rtile);
-                if (m != null)
+                byte[] m = MemoryCache.GetTileFromMemoryCache(rawTile);
+                if (m is not null)
                 {
-                    if (GMapProvider.m_TileImageProxy != null)
+                    if (GMapProvider.m_TileImageProxy is not null)
                     {
                         ret = GMapProvider.m_TileImageProxy.FromArray(m);
-                        if (ret == null)
+                        if (ret is null)
                         {
 #if DEBUG
                             Debug.WriteLine("Image disposed in MemoryCache o.O, should never happen ;} " +
-                                            new RawTile(provider.DbId, pos, zoom));
+                                            new RawTile(provider.DatabaseId, pos, zoom));
                             if (Debugger.IsAttached)
                             {
                                 Debugger.Break();
@@ -725,12 +725,12 @@ public class GMaps
                             Interlocked.Exchange(ref m_ReadingCache, 5);
                         }
 
-                        ret = PrimaryCache.GetImageFromCache(provider.DbId, pos, zoom);
+                        ret = PrimaryCache.GetImageFromCache(provider.DatabaseId, pos, zoom);
                         if (ret != null)
                         {
                             if (UseMemoryCache)
                             {
-                                MemoryCache.AddTileToMemoryCache(rtile, ret.Data.GetBuffer());
+                                MemoryCache.AddTileToMemoryCache(rawTile, ret.Data.GetBuffer());
                             }
 
                             return ret;
@@ -745,15 +745,15 @@ public class GMaps
                             Interlocked.Exchange(ref m_ReadingCache, 5);
                         }
 
-                        ret = SecondaryCache.GetImageFromCache(provider.DbId, pos, zoom);
+                        ret = SecondaryCache.GetImageFromCache(provider.DatabaseId, pos, zoom);
                         if (ret != null)
                         {
                             if (UseMemoryCache)
                             {
-                                MemoryCache.AddTileToMemoryCache(rtile, ret.Data.GetBuffer());
+                                MemoryCache.AddTileToMemoryCache(rawTile, ret.Data.GetBuffer());
                             }
 
-                            EnqueueCacheTask(new CacheQueueItem(rtile, ret.Data.GetBuffer(), CacheUsage.First));
+                            EnqueueCacheTask(new CacheQueueItem(rawTile, ret.Data.GetBuffer(), CacheUsage.First));
                             return ret;
                         }
                     }
@@ -768,12 +768,12 @@ public class GMaps
                         {
                             if (UseMemoryCache)
                             {
-                                MemoryCache.AddTileToMemoryCache(rtile, ret.Data.GetBuffer());
+                                MemoryCache.AddTileToMemoryCache(rawTile, ret.Data.GetBuffer());
                             }
 
                             if (Mode != AccessMode.ServerOnly && !provider.BypassCache)
                             {
-                                EnqueueCacheTask(new CacheQueueItem(rtile, ret.Data.GetBuffer(), CacheUsage.Both));
+                                EnqueueCacheTask(new CacheQueueItem(rawTile, ret.Data.GetBuffer(), CacheUsage.Both));
                             }
                         }
                     }

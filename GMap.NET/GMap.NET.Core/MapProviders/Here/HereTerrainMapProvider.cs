@@ -20,8 +20,7 @@ public class HereTerrainMapProvider : HereMapProviderBase
     }
 
     #region GMapProvider Members
-
-    public override Guid Id { get; } = new Guid("7267338C-445E-4E61-B8B8-82D0B7AAACC5");
+    public override Guid Id { get; protected set; } = new Guid("7267338C-445E-4E61-B8B8-82D0B7AAACC5");
 
     public override string Name { get; } = "HereTerrainMap";
 

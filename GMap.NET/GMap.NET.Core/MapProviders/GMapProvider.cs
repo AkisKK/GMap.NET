@@ -60,7 +60,7 @@ public class GMapProviders
 
         foreach (var p in List)
         {
-            m_DbHash.Add(p.DbId, p);
+            m_DbHash.Add(p.DatabaseId, p);
         }
     }
 
@@ -183,17 +183,10 @@ public class GMapProviders
 
     public static readonly CustomMapProvider CustomMap = CustomMapProvider.Instance;
 
-#if SQLite && !MONO
-    public static readonly MBTilesMapProvider MBTilesMap = MBTilesMapProvider.Instance;
-#endif
-
     /// <summary>
-    ///     get all instances of the supported providers
+    /// Get all instances of the supported providers
     /// </summary>
-    public static List<GMapProvider> List
-    {
-        get;
-    }
+    public static List<GMapProvider> List { get; }
 
     //public static OpenStreetMapGraphHopperProvider OpenStreetMapGraphHopperProvider => openStreetMapGraphHopperProvider;
 
@@ -240,52 +233,74 @@ public class GMapProviders
 public abstract class GMapProvider
 {
     /// <summary>
-    ///     unique provider id
+    /// A unique provider Id. This is used to identify the provider in the system for caching and other purposes.
     /// </summary>
-    public abstract Guid Id
-    {
-        get;
-    }
+    public abstract Guid Id { get; protected set; }
 
     /// <summary>
-    ///     provider name
+    /// The provider name.
     /// </summary>
-    public abstract string Name
-    {
-        get;
-    }
+    public abstract string Name { get; }
 
     /// <summary>
-    ///     provider projection
+    /// The provider projection.
     /// </summary>
-    public abstract PureProjection Projection
-    {
-        get;
-    }
+    public abstract PureProjection Projection { get; }
 
     /// <summary>
-    ///     provider overlays
+    /// The provider overlays.
     /// </summary>
-    public abstract GMapProvider[] Overlays
-    {
-        get;
-    }
+    public abstract GMapProvider[] Overlays { get; }
 
     /// <summary>
-    ///     gets tile image using implemented provider
+    /// Gets a tile image using the implemented provider.
     /// </summary>
     /// <param name="pos"></param>
     /// <param name="zoom"></param>
     /// <returns></returns>
     public abstract PureImage GetTileImage(GPoint pos, int zoom);
 
+    /// <summary>
+    /// A static, read-only list containing all available map providers.
+    /// </summary>
+    /// <remarks>This list is initialized with the available and initialized map providers. It is used to prevent
+    /// multiple instances of the a provider with the same <see cref="Id"/> to be created.</remarks>
     static readonly List<GMapProvider> m_MapProviders = [];
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="GMapProvider"/> class.
+    /// </summary>
+    /// <remarks>This constructor assigns a unique database identifier to the provider and ensures that no other
+    /// provider with the same identifier already exists. If a duplicate identifier is detected, an exception is thrown.
+    /// The provider is then registered in the global list of map providers.</remarks>
+    /// <exception cref="Exception">Thrown if a provider with the same <see cref="Id"/> or <see cref="DatabaseId"/> already
+    /// exists.</exception>
     protected GMapProvider()
     {
-        DbId = Math.Abs(BitConverter.ToInt32(SHA1.HashData(Id.ToByteArray()), 0));
+        DatabaseId = Math.Abs(BitConverter.ToInt32(SHA1.HashData(Id.ToByteArray()), 0));
 
-        if (m_MapProviders.Exists(p => p.Id == Id || p.DbId == DbId))
+        if (m_MapProviders.Exists(p => p.Id == Id || p.DatabaseId == DatabaseId))
+        {
+            throw new Exception("such provider id already exists, try regenerate your provider guid...");
+        }
+
+        m_MapProviders.Add(this);
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="GMapProvider"/> class with the specified unique identifier.
+    /// </summary>
+    /// <remarks>The <paramref name="guid"/> must be unique among all existing map providers. If a provider with the
+    /// same <paramref name="guid"/> or derived database ID already exists, an exception will be thrown.</remarks>
+    /// <param name="guid">A globally unique identifier (GUID) that represents the provider's unique identity.</param>
+    /// <exception cref="Exception">Thrown if a provider with the same <paramref name="guid"/> or database ID already
+    /// exists.</exception>
+    protected GMapProvider(Guid guid)
+    {
+        Id = guid;
+        DatabaseId = Math.Abs(BitConverter.ToInt32(SHA1.HashData(Id.ToByteArray()), 0));
+
+        if (m_MapProviders.Exists(p => p.Id == Id || p.DatabaseId == DatabaseId))
         {
             throw new Exception("such provider id already exists, try regenerate your provider guid...");
         }
@@ -316,9 +331,9 @@ public abstract class GMapProvider
     }
 
     /// <summary>
-    ///     id for database, a hash of provider guid
+    /// The Id used for database access. It is a hash of the provider's GUID (<see cref="Id"/>)."/>
     /// </summary>
-    public readonly int DbId;
+    public readonly int DatabaseId;
 
     /// <summary>
     ///     area of map
@@ -328,12 +343,12 @@ public abstract class GMapProvider
     /// <summary>
     ///     minimum level of zoom
     /// </summary>
-    public int MinZoom;
+    public virtual int MinZoom { get; protected set; }
 
     /// <summary>
     ///     maximum level of zoom
     /// </summary>
-    public int? MaxZoom = 17;
+    public virtual int? MaxZoom { get; protected set; } = 17;
 
     /// <summary>
     ///     Connect trough a SOCKS 4/5 proxy server
@@ -359,9 +374,9 @@ public abstract class GMapProvider
     public static int TTLCache { get; } = 240;
 
     /// <summary>
-    ///     Gets or sets the value of the Referer HTTP header.
+    ///     Gets or sets the value of the Referrer HTTP header.
     /// </summary>
-    public string RefererUrl = string.Empty;
+    public string ReferrerUrl = string.Empty;
 
     public string Copyright = string.Empty;
 
@@ -388,12 +403,12 @@ public abstract class GMapProvider
     }
 
     /// <summary>
-    ///     to bypass the cache, set to true
+    /// To bypass the cache, set to true.
     /// </summary>
     public bool BypassCache = false;
 
     /// <summary>
-    ///     internal proxy for image management
+    /// Internal proxy for image management.
     /// </summary>
     internal static PureImageProxy m_TileImageProxy = DefaultImageProxy.Instance;
 
@@ -448,9 +463,9 @@ public abstract class GMapProvider
             request.Headers.Add("Accept", m_RequestAccept);
         }
 
-        if (!string.IsNullOrEmpty(RefererUrl))
+        if (!string.IsNullOrEmpty(ReferrerUrl))
         {
-            request.Headers.Add("Referer", RefererUrl);
+            request.Headers.Add("Referer", ReferrerUrl);
         }
 
         InitializeWebRequest(request);
@@ -543,9 +558,9 @@ public abstract class GMapProvider
             request.Headers.Add("Accept", m_RequestAccept);
         }
 
-        if (!string.IsNullOrEmpty(RefererUrl))
+        if (!string.IsNullOrEmpty(ReferrerUrl))
         {
-            request.Headers.Add("Referer", RefererUrl);
+            request.Headers.Add("Referer", ReferrerUrl);
         }
 
         InitializeWebRequest(request);
@@ -610,7 +625,7 @@ public abstract class GMapProvider
 
     public override int GetHashCode()
     {
-        return DbId;
+        return DatabaseId;
     }
 
     public override bool Equals(object obj)
@@ -648,7 +663,7 @@ public class EmptyProvider : GMapProvider
 
     #region GMapProvider Members
 
-    public override Guid Id => Guid.Empty;
+    public override Guid Id { get; protected set; } = Guid.Empty;
 
     public override string Name { get; } = "None";
 

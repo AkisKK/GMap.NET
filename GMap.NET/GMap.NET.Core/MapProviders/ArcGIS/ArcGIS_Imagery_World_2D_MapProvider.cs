@@ -21,7 +21,7 @@ public class ArcGIS_Imagery_World_2D_MapProvider : ArcGISMapPlateCarreeProviderB
 
     #region GMapProvider Members
 
-    public override Guid Id { get; } = new Guid("FF7ADDAD-F155-41DB-BC42-CC6FD97C8B9D");
+    public override Guid Id { get; protected set; } = new Guid("FF7ADDAD-F155-41DB-BC42-CC6FD97C8B9D");
 
     public override string Name { get; } = "ArcGIS_Imagery_World_2D_Map";
 

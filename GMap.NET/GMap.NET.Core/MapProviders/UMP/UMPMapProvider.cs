@@ -21,7 +21,7 @@ public class UMPMapProvider : GMapProvider
 
     UMPMapProvider()
     {
-        RefererUrl = "http://ump.waw.pl/";
+        ReferrerUrl = "http://ump.waw.pl/";
         Copyright = "Data by UMP-pcPL";
     }
 
@@ -31,7 +31,7 @@ public class UMPMapProvider : GMapProvider
     }
 
     #region GMapProvider Members
-    public override Guid Id { get; } = new Guid("E36E311E-256A-4639-9AF7-FEB7BDEA6ABE");
+    public override Guid Id { get; protected set; } = new Guid("E36E311E-256A-4639-9AF7-FEB7BDEA6ABE");
 
     public override string Name { get; } = "UMP";
 

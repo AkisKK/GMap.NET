@@ -20,8 +20,7 @@ public class CzechSatelliteMapProvider : CzechMapProviderBase
     }
 
     #region GMapProvider Members
-
-    public override Guid Id { get; } = new Guid("30F433DB-BBF5-463D-9AB5-76383483B605");
+    public override Guid Id { get; protected set; } = new Guid("30F433DB-BBF5-463D-9AB5-76383483B605");
 
     public override string Name { get; } = "CzechSatelliteMap";
 

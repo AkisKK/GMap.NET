@@ -56,10 +56,10 @@ public class SQLitePureImageCache : IPureImageCache
     string m_Db;
     bool m_Created;
 
-    public string GtileCache { get; private set; }
+    public string GTileCache { get; private set; }
 
     /// <summary>
-    ///     local cache location
+    /// Local cache location.
     /// </summary>
     public string CacheLocation
     {
@@ -68,9 +68,9 @@ public class SQLitePureImageCache : IPureImageCache
         {
             m_Cache = value;
 
-            GtileCache = Path.Combine(m_Cache, "TileDBv5") + Path.DirectorySeparatorChar;
+            GTileCache = Path.Combine(m_Cache, "TileDBv5") + Path.DirectorySeparatorChar;
 
-            m_Directory = GtileCache + GMapProvider.LanguageStr + Path.DirectorySeparatorChar;
+            m_Directory = GTileCache + GMapProvider.LanguageStr + Path.DirectorySeparatorChar;
 
             // Pre-create directory.
             if (!Directory.Exists(m_Directory))
@@ -114,7 +114,7 @@ string.Format("Version=3,URI=file://{0},FailIfMissing=True,Page Size=32768,Pooli
 
             // clear old attachments
             m_AttachedCaches.Clear();
-            RebuildFinnalSelect();
+            RebuildFinalSelect();
 
             // attach all databases from main cache location
             string[] dbs = Directory.GetFiles(m_Directory, "*.gmdb", SearchOption.AllDirectories);
@@ -536,14 +536,22 @@ string.Format("Version=3,URI=file://{0},FailIfMissing=True,Page Size=32768", des
     string m_ConnectionString;
 
     readonly List<string> m_AttachedCaches = [];
-    string m_FinnalSqlSelect = m_SingleSqlSelect;
+    string m_FinalSqlSelect = m_SingleSqlSelect;
     string m_AttachSqlQuery = string.Empty;
     string m_DetachSqlQuery = string.Empty;
 
-    void RebuildFinnalSelect()
+    /// <summary>
+    /// Rebuilds the final SQL SELECT query and associated attach/detach SQL commands for accessing data from multiple
+    /// attached databases.
+    /// </summary>
+    /// <remarks>This method constructs the final SQL SELECT query by combining the primary query with additional UNION
+    /// SELECT statements for each attached database. It also generates the SQL commands required to attach and detach
+    /// the databases. The method resets the existing queries and rebuilds them based on the current state of the
+    /// attached caches.</remarks>
+    void RebuildFinalSelect()
     {
-        m_FinnalSqlSelect = null;
-        m_FinnalSqlSelect = m_SingleSqlSelect;
+        m_FinalSqlSelect = null;
+        m_FinalSqlSelect = m_SingleSqlSelect;
 
         m_AttachSqlQuery = null;
         m_AttachSqlQuery = string.Empty;
@@ -555,7 +563,7 @@ string.Format("Version=3,URI=file://{0},FailIfMissing=True,Page Size=32768", des
 
         foreach (string c in m_AttachedCaches)
         {
-            m_FinnalSqlSelect +=
+            m_FinalSqlSelect +=
                 string.Format(
                     "\nUNION SELECT Tile FROM db{0}.TilesData WHERE id = (SELECT id FROM db{0}.Tiles WHERE X={{0}} AND Y={{1}} AND Zoom={{2}} AND Type={{3}})",
                     i);
@@ -571,7 +579,7 @@ string.Format("Version=3,URI=file://{0},FailIfMissing=True,Page Size=32768", des
         if (!m_AttachedCaches.Contains(db))
         {
             m_AttachedCaches.Add(db);
-            RebuildFinnalSelect();
+            RebuildFinalSelect();
         }
     }
 
@@ -579,7 +587,7 @@ string.Format("Version=3,URI=file://{0},FailIfMissing=True,Page Size=32768", des
     {
         if (m_AttachedCaches.Remove(db))
         {
-            RebuildFinnalSelect();
+            RebuildFinalSelect();
         }
     }
 
@@ -673,7 +681,7 @@ string.Format("Version=3,URI=file://{0},FailIfMissing=True,Page Size=32768", des
                 }
 
                 using var cmd1 = cn.CreateCommand();
-                cmd1.CommandText = string.Format(m_FinnalSqlSelect, pos.X, pos.Y, zoom, type);
+                cmd1.CommandText = string.Format(m_FinalSqlSelect, pos.X, pos.Y, zoom, type);
 
                 using var rd = cmd1.ExecuteReader(System.Data.CommandBehavior.SequentialAccess);
                 if (rd.Read())

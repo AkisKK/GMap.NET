@@ -23,7 +23,7 @@ public class ArcGIS_World_Topo_MapProvider : ArcGISMapMercatorProviderBase
 
     public override Guid Id
     {
-        get;
+        get; protected set;
     } = new Guid("E0354A49-7447-4C9A-814F-A68565ED834B");
 
     public override string Name
