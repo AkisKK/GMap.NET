@@ -155,7 +155,7 @@ public class MBTilesMapProvider : GMapProvider, IDisposable
     public MBTilesMapProvider(string name, Guid id, string mbTilesFilePath) : base(id)
     {
         Name = name;
-        Open(mbTilesFilePath);
+        DataLoadedSuccessfully = Open(mbTilesFilePath);
     }
     #endregion
 
@@ -223,6 +223,11 @@ public class MBTilesMapProvider : GMapProvider, IDisposable
     /// other purposes.
     /// </summary>
     public Dictionary<string, string> Metadata => m_Source != null ? m_Source.metadata : [];
+
+    /// <summary>
+    /// Gets a value indicating whether the data was loaded successfully.
+    /// </summary>
+    public bool DataLoadedSuccessfully { get; }
     #endregion
 
     #region GMapProvider Members
@@ -388,6 +393,7 @@ public class MBTilesMapProvider : GMapProvider, IDisposable
             if (disposing)
             {
                 m_Source?.Dispose();
+                m_MapProviders.Remove(this);
             }
 
             m_DisposedValue = true;
