@@ -110,10 +110,9 @@ public class ArcGIS_StreetMap_World_2D_MapProvider : ArcGISMapPlateCarreeProvide
     }
 
     #region GMapProvider Members
+    public override Guid Id { get; protected set; } = new Guid("00BF56D4-4B48-4939-9B11-575BBBE4A718");
 
-    public override Guid Id    {        get;    } = new Guid("00BF56D4-4B48-4939-9B11-575BBBE4A718");
-
-    public override string Name    {        get;    } = "ArcGIS_StreetMap_World_2D_Map";
+    public override string Name { get; } = "ArcGIS_StreetMap_World_2D_Map";
 
     public override PureImage GetTileImage(GPoint pos, int zoom)
     {

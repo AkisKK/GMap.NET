@@ -20,8 +20,7 @@ public class BingSatelliteMapProvider : BingMapProviderBase
     }
 
     #region GMapProvider Members
-
-    public override Guid Id { get; } = new Guid("3AC742DD-966B-4CFB-B67D-33E7F82F2D37");
+    public override Guid Id { get; protected set; } = new Guid("3AC742DD-966B-4CFB-B67D-33E7F82F2D37");
 
     public override string Name { get; } = "BingSatelliteMap";
 

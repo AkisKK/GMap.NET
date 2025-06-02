@@ -182,16 +182,16 @@ public abstract class CloudMadeMapProviderBase : GMapProvider, IRoutingProvider,
 
             if (!string.IsNullOrEmpty(route))
             {
-                var xmldoc = new XmlDocument();
-                xmldoc.LoadXml(route);
-                var xmlnsManager = new XmlNamespaceManager(xmldoc.NameTable);
+                var xmlDoc = new XmlDocument();
+                xmlDoc.LoadXml(route);
+                var xmlnsManager = new XmlNamespaceManager(xmlDoc.NameTable);
                 xmlnsManager.AddNamespace("sm", "http://www.topografix.com/GPX/1/1");
 
-                var wpts = xmldoc.SelectNodes("/sm:gpx/sm:wpt", xmlnsManager);
-                if (wpts != null && wpts.Count > 0)
+                var waypoints = xmlDoc.SelectNodes("/sm:gpx/sm:wpt", xmlnsManager);
+                if (waypoints != null && waypoints.Count > 0)
                 {
                     points = [];
-                    foreach (XmlNode w in wpts)
+                    foreach (XmlNode w in waypoints)
                     {
                         double lat = double.Parse(w.Attributes["lat"].InnerText, CultureInfo.InvariantCulture);
                         double lng = double.Parse(w.Attributes["lon"].InnerText, CultureInfo.InvariantCulture);
@@ -416,13 +416,13 @@ public abstract class CloudMadeMapProviderBase : GMapProvider, IRoutingProvider,
 
             if (!string.IsNullOrEmpty(route))
             {
-                var xmldoc = new XmlDocument();
-                xmldoc.LoadXml(route);
-                var xmlnsManager = new XmlNamespaceManager(xmldoc.NameTable);
+                var xmlDoc = new XmlDocument();
+                xmlDoc.LoadXml(route);
+                var xmlnsManager = new XmlNamespaceManager(xmlDoc.NameTable);
                 xmlnsManager.AddNamespace("sm", "http://www.topografix.com/GPX/1/1");
 
-                var wpts = xmldoc.SelectNodes("/sm:gpx/sm:wpt", xmlnsManager);
-                if (wpts != null && wpts.Count > 0)
+                var waypoints = xmlDoc.SelectNodes("/sm:gpx/sm:wpt", xmlnsManager);
+                if (waypoints != null && waypoints.Count > 0)
                 {
                     ret = DirectionsStatusCode.OK;
 
@@ -431,7 +431,7 @@ public abstract class CloudMadeMapProviderBase : GMapProvider, IRoutingProvider,
                         Route = []
                     };
 
-                    foreach (XmlNode w in wpts)
+                    foreach (XmlNode w in waypoints)
                     {
                         double lat = double.Parse(w.Attributes["lat"].InnerText, CultureInfo.InvariantCulture);
                         double lng = double.Parse(w.Attributes["lon"].InnerText, CultureInfo.InvariantCulture);
@@ -444,43 +444,43 @@ public abstract class CloudMadeMapProviderBase : GMapProvider, IRoutingProvider,
                         direction.EndLocation = direction.Route[^1];
                     }
 
-                    var n = xmldoc.SelectSingleNode("/sm:gpx/sm:metadata/sm:copyright/sm:license",
+                    var n = xmlDoc.SelectSingleNode("/sm:gpx/sm:metadata/sm:copyright/sm:license",
                         xmlnsManager);
                     if (n != null)
                     {
                         direction.Copyrights = n.InnerText;
                     }
 
-                    n = xmldoc.SelectSingleNode("/sm:gpx/sm:extensions/sm:distance", xmlnsManager);
+                    n = xmlDoc.SelectSingleNode("/sm:gpx/sm:extensions/sm:distance", xmlnsManager);
                     if (n != null)
                     {
                         direction.Distance = n.InnerText + "m";
                     }
 
-                    n = xmldoc.SelectSingleNode("/sm:gpx/sm:extensions/sm:time", xmlnsManager);
+                    n = xmlDoc.SelectSingleNode("/sm:gpx/sm:extensions/sm:time", xmlnsManager);
                     if (n != null)
                     {
                         direction.Duration = n.InnerText + "s";
                     }
 
-                    n = xmldoc.SelectSingleNode("/sm:gpx/sm:extensions/sm:start", xmlnsManager);
+                    n = xmlDoc.SelectSingleNode("/sm:gpx/sm:extensions/sm:start", xmlnsManager);
                     if (n != null)
                     {
                         direction.StartAddress = n.InnerText;
                     }
 
-                    n = xmldoc.SelectSingleNode("/sm:gpx/sm:extensions/sm:end", xmlnsManager);
+                    n = xmlDoc.SelectSingleNode("/sm:gpx/sm:extensions/sm:end", xmlnsManager);
                     if (n != null)
                     {
                         direction.EndAddress = n.InnerText;
                     }
 
-                    wpts = xmldoc.SelectNodes("/sm:gpx/sm:rte/sm:rtept", xmlnsManager);
-                    if (wpts != null && wpts.Count > 0)
+                    waypoints = xmlDoc.SelectNodes("/sm:gpx/sm:rte/sm:rtept", xmlnsManager);
+                    if (waypoints != null && waypoints.Count > 0)
                     {
                         direction.Steps = [];
 
-                        foreach (XmlNode w in wpts)
+                        foreach (XmlNode w in waypoints)
                         {
                             var step = new GDirectionStep();
 
@@ -550,7 +550,7 @@ public class CloudMadeMapProvider : CloudMadeMapProviderBase
 
     public override Guid Id
     {
-        get;
+        get; protected set;
     } = new Guid("00403A36-725F-4BC4-934F-BFC1C164D003");
 
     public override string Name

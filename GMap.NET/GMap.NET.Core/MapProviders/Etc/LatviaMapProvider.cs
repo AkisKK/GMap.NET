@@ -8,7 +8,7 @@ public abstract class LatviaMapProviderBase : GMapProvider
 {
     public LatviaMapProviderBase()
     {
-        RefererUrl = "http://www.ikarte.lv/default.aspx?lang=en";
+        ReferrerUrl = "http://www.ikarte.lv/default.aspx?lang=en";
         Copyright = string.Format("©{0} Hnit-Baltic - Map data ©{0} LR Valsts zemes dieniests, SIA Envirotech",
             DateTime.Today.Year);
         MaxZoom = 11;
@@ -60,10 +60,9 @@ public class LatviaMapProvider : LatviaMapProviderBase
     }
 
     #region GMapProvider Members
+    public override Guid Id { get; protected set; } = new Guid("2A21CBB1-D37C-458D-905E-05F19536EF1F");
 
-    public override Guid Id    {        get;    } = new Guid("2A21CBB1-D37C-458D-905E-05F19536EF1F");
-
-    public override string Name    {        get;    } = "LatviaMap";
+    public override string Name { get; } = "LatviaMap";
 
     public override PureImage GetTileImage(GPoint pos, int zoom)
     {

@@ -30,8 +30,7 @@ public class SpainMapProvider : GMapProvider
     ];
 
     #region GMapProvider Members
-
-    public override Guid Id { get; } = new Guid("7B70ABB0-1265-4D34-9442-F0788F4F689F");
+    public override Guid Id { get; protected set; } = new Guid("7B70ABB0-1265-4D34-9442-F0788F4F689F");
 
     public override string Name { get; } = "SpainMap";
 

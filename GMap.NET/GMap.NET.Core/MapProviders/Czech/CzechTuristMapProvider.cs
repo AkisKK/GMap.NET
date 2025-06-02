@@ -20,8 +20,7 @@ public class CzechTuristMapProvider : CzechMapProviderBase
     }
 
     #region GMapProvider Members
-
-    public override Guid Id { get; } = new Guid("102A54BE-3894-439B-9C1F-CA6FF2EA1FE9");
+    public override Guid Id { get; protected set; } = new Guid("102A54BE-3894-439B-9C1F-CA6FF2EA1FE9");
 
     public override string Name { get; } = "CzechTuristMap";
 

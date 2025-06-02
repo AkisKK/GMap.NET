@@ -18,7 +18,7 @@ public abstract partial class BingMapProviderBase : GMapProvider, IRoutingProvid
     public BingMapProviderBase()
     {
         MaxZoom = null;
-        RefererUrl = "http://www.bing.com/maps/";
+        ReferrerUrl = "http://www.bing.com/maps/";
         Copyright = string.Format("©{0} Microsoft Corporation, ©{0} NAVTEQ, ©{0} Image courtesy of NASA",
             DateTime.Today.Year);
     }
@@ -190,7 +190,7 @@ public abstract partial class BingMapProviderBase : GMapProvider, IRoutingProvid
                         "Jq7FrGTyaYqcrvv9ugBKv4OVSKnmzpigqZtdvtcDdgZexmOZ2RugOexFSmVzTAhOWiHrdhFoNCoySnNF3MyyIOo5u2Y9rj88");
                 }
 
-                #region -- try get sesion key --
+                #region -- try get session key --
 
                 if (!string.IsNullOrEmpty(key))
                 {
@@ -362,9 +362,9 @@ public abstract partial class BingMapProviderBase : GMapProvider, IRoutingProvid
                     doc.LoadXml(r);
 
                     var xn = doc["Response"];
-                    string statuscode = xn["StatusCode"].InnerText;
+                    string statusCode = xn["StatusCode"].InnerText;
 
-                    if (string.Compare(statuscode, "200", true) == 0)
+                    if (string.Compare(statusCode, "200", true) == 0)
                     {
                         xn = xn["ResourceSets"]["ResourceSet"]["Resources"];
                         var xnl = xn.ChildNodes;
@@ -561,8 +561,8 @@ public abstract partial class BingMapProviderBase : GMapProvider, IRoutingProvid
                 var doc = new XmlDocument();
                 doc.LoadXml(route);
                 var xn = doc["Response"];
-                string statuscode = xn["StatusCode"].InnerText;
-                switch (statuscode)
+                string statusCode = xn["StatusCode"].InnerText;
+                switch (statusCode)
                 {
                     case "200":
                         {
@@ -583,7 +583,8 @@ public abstract partial class BingMapProviderBase : GMapProvider, IRoutingProvid
 
                             break;
                         }
-                    // no status implementation on routes yet although when introduced these are the codes. Exception will be catched.
+                    // No status implementation on routes yet although when introduced these are the codes.
+                    // Exception will be caught.
                     case "400":
                         throw new Exception("Bad Request, The request contained an error.");
                     case "401":
@@ -747,8 +748,8 @@ public abstract partial class BingMapProviderBase : GMapProvider, IRoutingProvid
                     var doc = new XmlDocument();
                     doc.LoadXml(geo);
                     var xn = doc["Response"];
-                    string statuscode = xn["StatusCode"].InnerText;
-                    switch (statuscode)
+                    string statusCode = xn["StatusCode"].InnerText;
+                    switch (statusCode)
                     {
                         case "200":
                             {
@@ -841,7 +842,7 @@ public class BingMapProvider : BingMapProviderBase
 
     #region GMapProvider Members
 
-    public override Guid Id { get; } = new Guid("D0CEB371-F10A-4E12-A2C1-DF617D6674A8");
+    public override Guid Id { get; protected set; } = new Guid("D0CEB371-F10A-4E12-A2C1-DF617D6674A8");
 
     public override string Name { get; } = "BingMap";
 

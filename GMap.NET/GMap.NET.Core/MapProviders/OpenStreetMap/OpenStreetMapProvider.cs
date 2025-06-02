@@ -15,9 +15,9 @@ public abstract class OpenStreetMapProviderBase : GMapProvider, IRoutingProvider
     public OpenStreetMapProviderBase()
     {
         MaxZoom = null;
-        //Tile usage policy of openstreetmap (https://operations.osmfoundation.org/policies/tiles/) define as optional and providing referer 
+        //Tile usage policy of OpenStreetMap (https://operations.osmfoundation.org/policies/tiles/) define as optional and providing referrer 
         //only if one valid available. by providing http://www.openstreetmap.org/ a 418 error is given by the server.
-        //RefererUrl = "http://www.openstreetmap.org/";
+        //ReferrerUrl = "http://www.openstreetmap.org/";
         Copyright = string.Format("© OpenStreetMap - Map data ©{0} OpenStreetMap", DateTime.Today.Year);
     }
 
@@ -358,8 +358,7 @@ public class OpenStreetMapProvider : OpenStreetMapProviderBase
     }
 
     #region GMapProvider Members
-
-    public override Guid Id { get; } = new Guid("0521335C-92EC-47A8-98A5-6FD333DDA9C0");
+    public override Guid Id { get; protected set; } = new Guid("0521335C-92EC-47A8-98A5-6FD333DDA9C0");
 
     public override string Name { get; } = "OpenStreetMap";
 

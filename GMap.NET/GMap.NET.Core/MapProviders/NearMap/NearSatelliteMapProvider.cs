@@ -20,8 +20,7 @@ public class NearSatelliteMapProvider : NearMapProviderBase
     }
 
     #region GMapProvider Members
-
-    public override Guid Id { get; } = new Guid("56D00148-05B7-408D-8F7A-8D7250FF8121");
+    public override Guid Id { get; protected set; } = new Guid("56D00148-05B7-408D-8F7A-8D7250FF8121");
 
     public override string Name { get; } = "NearSatelliteMap";
 

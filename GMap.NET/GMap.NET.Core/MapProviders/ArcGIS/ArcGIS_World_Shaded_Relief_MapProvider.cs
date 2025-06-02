@@ -20,8 +20,7 @@ public class ArcGIS_World_Shaded_Relief_MapProvider : ArcGISMapMercatorProviderB
     }
 
     #region GMapProvider Members
-
-    public override Guid Id { get; } = new Guid("2E821FEF-8EA1-458A-BC82-4F699F4DEE79");
+    public override Guid Id { get; protected set; } = new Guid("2E821FEF-8EA1-458A-BC82-4F699F4DEE79");
 
     public override string Name { get; } = "ArcGIS_World_Shaded_Relief_Map";
 

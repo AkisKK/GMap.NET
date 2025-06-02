@@ -6,7 +6,7 @@ namespace GMap.NET.MapProviders.NearMap;
 
 /// <summary>
 ///     http://en.wikipedia.org/wiki/NearMap
-///     nearmap originally allowed personal use of images for free for non-enterprise users.
+///     NearMap originally allowed personal use of images for free for non-enterprise users.
 ///     However this free access ended in December 2012, when the company modified its business model to user-pay
 /// </summary>
 public abstract class NearMapProviderBase : GMapProvider
@@ -14,7 +14,7 @@ public abstract class NearMapProviderBase : GMapProvider
     public NearMapProviderBase()
     {
         // credentials doesn't work ;/
-        //Credential = new NetworkCredential("greatmaps", "greatmaps");
+        //Credential = new NetworkCredential("-", "-");
 
         //try ForceBasicHttpAuthentication(...);
     }
@@ -61,8 +61,8 @@ public abstract class NearMapProviderBase : GMapProvider
         /*
         TileLayer.prototype.differenceEngine=function(s,a)
         {
-            var offset=0,result="",alen=a.length,v,p;
-            for(var i=0; i<alen; i++)
+            var offset=0,result="",aLen=a.length,v,p;
+            for(var i=0; i<aLen; i++)
             {
                 v=parseInt(a.charAt(i),10);
                 if(!isNaN(v))
@@ -111,7 +111,7 @@ public class NearMapProvider : NearMapProviderBase
 
     NearMapProvider()
     {
-        RefererUrl = "http://www.nearmap.com/";
+        ReferrerUrl = "http://www.nearmap.com/";
     }
 
     static NearMapProvider()
@@ -120,8 +120,7 @@ public class NearMapProvider : NearMapProviderBase
     }
 
     #region GMapProvider Members
-
-    public override Guid Id { get; } = new Guid("E33803DF-22CB-4FFA-B8E3-15383ED9969D");
+    public override Guid Id { get; protected set; } = new Guid("E33803DF-22CB-4FFA-B8E3-15383ED9969D");
 
     public override string Name { get; } = "NearMap";
 
@@ -136,15 +135,6 @@ public class NearMapProvider : NearMapProviderBase
 
     static string MakeTileImageUrl(GPoint pos, int zoom)
     {
-        // http://web1.nearmap.com/maps/hl=en&x=18681&y=10415&z=15&nml=Map_&nmg=1&s=kY8lZssipLIJ7c5
-        // http://web1.nearmap.com/kh/v=nm&hl=en&x=20&y=8&z=5&nml=Map_&s=55KUZ
-
-        //http://maps.au.nearmap.com/api/0/authentication/checkticket?nmf=json&return200=true&callback=jQuery110206126813754172529_1431499242400&_=1431499242401
-        //jQuery110206126813754172529_1431499242400({"IncidentId":null,"AccountContext":{"AccountId":"account2574457","Username":"demo"},"Result":{"Ticket":{"Ticket":"1637726D061CB8B8A28BC98064443C96FB07008C16531B2F5100F98B9EBFE69C4083C88C920D3BF4C0768A27ADE9ECADF324A380DBF80C3C0982DC83374FE8EBF0F70868735351FC7","Expires":"\/Date(1432103400000)\/","CookieName":"nearmap_web3_app"},"Status":"Ok","Username":"demo","AccountId":"account2574457"}})
-
-        // http://web1.au.nearmap.com/maps/hl=en&x=1855837&y=1265913&z=21&nml=V&httpauth=false&version=2
-        // http://web2.au.nearmap.com/maps/hl=en&x=231977&y=158238&z=18&nml=Dem&httpauth=false&version=2
-
         return string.Format(m_UrlFormat, GetServerNum(pos, 3), pos.X, pos.Y, zoom, GetSafeString(pos));
     }
 

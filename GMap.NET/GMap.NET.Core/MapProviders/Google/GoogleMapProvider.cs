@@ -19,7 +19,7 @@ public abstract class GoogleMapProviderBase : GMapProvider, IRoutingProvider, IG
     public GoogleMapProviderBase()
     {
         MaxZoom = null;
-        RefererUrl = string.Format("https://maps.{0}/", Server);
+        ReferrerUrl = string.Format("https://maps.{0}/", Server);
         Copyright = string.Format("©{0} Google - Map data ©{0} Tele Atlas, Imagery ©{0} TerraMetrics",
             DateTime.Today.Year);
     }
@@ -207,8 +207,8 @@ public abstract class GoogleMapProviderBase : GMapProvider, IRoutingProvider, IG
     internal void GetSecureWords(GPoint pos, out string sec1, out string sec2)
     {
         sec1 = string.Empty; // after &x=...
-        int seclen = (int)(pos.X * 3 + pos.Y) % 8;
-        sec2 = SecureWord[..seclen];
+        int secureLength = (int)(pos.X * 3 + pos.Y) % 8;
+        sec2 = SecureWord[..secureLength];
 
         if (pos.Y >= 10000 && pos.Y < 100000)
         {
@@ -408,7 +408,7 @@ public abstract class GoogleMapProviderBase : GMapProvider, IRoutingProvider, IG
 
     #region -- internals --
 
-    // The Coogle Geocoding API: http://tinyurl.com/cdlj889
+    // The Google Geocoding API: http://tinyurl.com/cdlj889
 
     string MakeGeocoderUrl(string keywords, string language)
     {
@@ -803,7 +803,7 @@ public abstract class GoogleMapProviderBase : GMapProvider, IRoutingProvider, IG
 
     #region -- internals --
 
-    // The Coogle Directions API: http://tinyurl.com/6vv4cac
+    // The Google Directions API: http://tinyurl.com/6vv4cac
 
     string MakeDirectionsUrl(PointLatLng start, PointLatLng end, string language, bool avoidHighways,
         bool avoidTolls, bool walkingMode, bool sensor, bool metric)
@@ -1101,14 +1101,14 @@ public abstract class GoogleMapProviderBase : GMapProvider, IRoutingProvider, IG
 
     string MakeRoadsUrl(List<PointLatLng> points, string interpolate)
     {
-        string pointstr = "";
+        string pointString = "";
 
         foreach (var item in points)
         {
-            pointstr += string.Format("{2}{0},{1}", item.Lat, item.Lng, pointstr == "" ? "" : "|");
+            pointString += string.Format("{2}{0},{1}", item.Lat, item.Lng, pointString == "" ? "" : "|");
         }
 
-        return string.Format(m_RoadsUrlFormatStr, interpolate, pointstr, ServerAPIs);
+        return string.Format(m_RoadsUrlFormatStr, interpolate, pointString, ServerAPIs);
     }
 
     string MakeRoadsUrl(string points, string interpolate)
@@ -1271,7 +1271,7 @@ public class GoogleMapProvider : GoogleMapProviderBase
 
     public override Guid Id
     {
-        get;
+        get; protected set;
     } = new Guid("D7287DA0-A7FF-405F-8166-B6BAF26D066C");
 
     public override string Name

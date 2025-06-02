@@ -8,7 +8,7 @@ public abstract class CzechMapProviderBase : GMapProvider
 {
     public CzechMapProviderBase()
     {
-        RefererUrl = "http://www.mapy.cz/";
+        ReferrerUrl = "http://www.mapy.cz/";
         Area = new RectLatLng(51.2024819920053, 11.8401353319027, 7.22833716731277, 2.78312271922872);
     }
 
@@ -57,8 +57,7 @@ public class CzechMapProvider : CzechMapProviderBase
     }
 
     #region GMapProvider Members
-
-    public override Guid Id { get; } = new Guid("13AB92EF-8C3B-4FAC-B2CD-2594C05F8BFC");
+    public override Guid Id { get; protected set; } = new Guid("13AB92EF-8C3B-4FAC-B2CD-2594C05F8BFC");
 
     public override string Name { get; } = "CzechMap";
 

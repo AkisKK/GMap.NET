@@ -10,11 +10,9 @@ namespace GMap.NET.MapProviders.Etc;
 
 /// <summary>Map provider for MBTiles files (https://github.com/mapbox/mbtiles-spec/blob/master/1.3/spec.md)</summary>
 /// <remarks>Sample files are available at https://ftp.gwdg.de/pub/misc/openstreetmap/openseamap/charts/mbtiles/.</remarks>
-public class MBTilesMapProvider : GMapProvider
+public class MBTilesMapProvider : GMapProvider, IDisposable
 {
-    public static readonly MBTilesMapProvider Instance;
-
-    private class MBTiles
+    private class MBTiles : IDisposable
     {
         private System.Data.SQLite.SQLiteConnection m_Db = null;
         public Dictionary<string, string> metadata = [];
@@ -31,19 +29,21 @@ public class MBTilesMapProvider : GMapProvider
             }
         }
 
-        ~MBTiles()
-        {
-            if (m_Db != null)
-            {
-                m_Db.Close();
-                m_Db = null;
-            }
-        }
-
-        public PureImage GetImage(GPoint pos, int zoom)
+        /// <summary>
+        /// Retrieves a tile image from the database for the specified position and zoom level.
+        /// </summary>
+        /// <remarks>The method queries a SQLite database to retrieve the tile image data for the specified position and
+        /// zoom level. The tile data is converted into a <see cref="PureImage"/> object using the configured tile image
+        /// proxy. If no tile is found in the database, the method returns <see langword="null"/>.</remarks>
+        /// <param name="position">The position of the tile, represented as a <see cref="GPoint"/> object, where
+        /// <c>X</c> is the column and <c>Y</c> is the row.</param>
+        /// <param name="zoom">The zoom level of the tile. Must be a non-negative integer.</param>
+        /// <returns>A <see cref="PureImage"/> object representing the tile image, or <see langword="null"/> if no tile
+        /// is found for the specified position and zoom level.</returns>
+        public PureImage GetImage(GPoint position, int zoom)
         {
             PureImage ret = null;
-            using (var cmd = new System.Data.SQLite.SQLiteCommand(string.Format("SELECT tile_data FROM tiles WHERE zoom_level={2} AND tile_column={0} AND tile_row={1} LIMIT 1", pos.X, (long)Math.Pow(2, zoom) - 1 - pos.Y, zoom), m_Db))
+            using (var cmd = new System.Data.SQLite.SQLiteCommand(string.Format("SELECT tile_data FROM tiles WHERE zoom_level={2} AND tile_column={0} AND tile_row={1} LIMIT 1", position.X, (long)Math.Pow(2, zoom) - 1 - position.Y, zoom), m_Db))
             {
                 using var rd = cmd.ExecuteReader(System.Data.CommandBehavior.SequentialAccess);
                 if (rd.Read())
@@ -62,6 +62,12 @@ public class MBTilesMapProvider : GMapProvider
             return ret;
         }
 
+        /// <summary>
+        /// Retrieves the minimum zoom level available in the tiles database by querying the "tiles" table.
+        /// </summary>
+        /// <remarks>This method queries the database for the minimum zoom level stored in the "tiles" table. If the
+        /// query fails or no data is available, the method returns <c>-1</c>.</remarks>
+        /// <returns>The minimum zoom level as an integer if the query succeeds; otherwise, <c>-1</c>.</returns>
         public int GetZoomMin()
         {
             try
@@ -77,6 +83,12 @@ public class MBTilesMapProvider : GMapProvider
             return -1;
         }
 
+        /// <summary>
+        /// Retrieves the maximum zoom level available in the tiles database by querying the "tiles" table.
+        /// </summary>
+        /// <remarks>This method queries the database for the highest zoom level in the "tiles" table. If the query
+        /// fails or no data is available, the method returns <c>-1</c>.</remarks>
+        /// <returns>The maximum zoom level as an integer if the query succeeds; otherwise, <c>-1</c>.</returns>
         public int GetZoomMax()
         {
             try
@@ -91,18 +103,61 @@ public class MBTilesMapProvider : GMapProvider
             catch { }
             return -1;
         }
+
+        #region IDisposable implementation
+        private bool m_DisposedValue;
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!m_DisposedValue)
+            {
+                if (disposing)
+                {
+                    if (m_Db != null)
+                    {
+                        m_Db.Close();
+                        m_Db = null;
+                    }
+                }
+
+                m_DisposedValue = true;
+            }
+        }
+
+        ~MBTiles()
+        {
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: false);
+        }
+
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
+        }
+        #endregion
     }
 
     private MBTiles m_Source = null;
 
-    MBTilesMapProvider()
+    #region Constructor
+    /// <summary>
+    /// Initializes a new instance of the <see cref="MBTilesMapProvider"/> class with the specified name, identifier,
+    /// and MBTiles file path.
+    /// </summary>
+    /// <remarks>The constructor initializes the map provider and opens the specified MBTiles file for use. Ensure that
+    /// the file path provided is valid and accessible.</remarks>
+    /// <param name="name">The name of the map provider.</param>
+    /// <param name="id">The unique identifier for the map provider.</param>
+    /// <param name="mbTilesFilePath">The file path to the MBTiles database. Must not be <see langword="null"/> or
+    /// empty.</param>
+    public MBTilesMapProvider(string name, Guid id, string mbTilesFilePath) : base(id)
     {
+        Name = name;
+        DataLoadedSuccessfully = Open(mbTilesFilePath);
     }
-
-    static MBTilesMapProvider()
-    {
-        Instance = new MBTilesMapProvider();
-    }
+    #endregion
 
     #region Properties
     /// <summary>
@@ -117,29 +172,31 @@ public class MBTilesMapProvider : GMapProvider
     public string Format { get; private set; }
 
     /// <summary>
-    /// The maximum extent of the rendered map area. Bounds must define an area covered by all zoom levels. The bounds are represented as WGS 84 latitude and longitude values, in the OpenLayers Bounds format (left, bottom, right, top). For example, the bounds of the full Earth, minus the poles, would be: -180.0,-85,180,85.
+    /// The maximum extent of the rendered map area. Bounds must define an area covered by all zoom levels. The bounds
+    /// are represented as WGS 84 latitude and longitude values, in the OpenLayers Bounds format (left, bottom, right,
+    /// top). For example, the bounds of the full Earth, minus the poles, would be: -180.0,-85,180,85.
     /// </summary>
     public PointLatLng[] Bounds { get; private set; }
 
     /// <summary>
-    /// The longitude, latitude, and zoom level of the default view of the map. Example: -122.1906,37.7599,11
+    /// The longitude, latitude, and zoom level of the default view of the map. Example: -122.1906,37.7599,11.
     /// </summary>
     public PointLatLng CenterLocation { get; private set; }
 
     /// <summary>
-    /// The longitude, latitude, and zoom level of the default view of the map. Example: -122.1906,37.7599,11
+    /// The longitude, latitude, and zoom level of the default view of the map. Example: -122.1906,37.7599,11.
     /// </summary>
     public int CenterZoom { get; private set; }
 
     /// <summary>
-    /// The lowest zoom level for which the tileset provides data
+    /// The lowest zoom level for which the tileset provides data.
     /// </summary>
-    public new int MinZoom { get; private set; }
+    public override int MinZoom { get; protected set; }
 
     /// <summary>
-    /// The highest zoom level for which the tileset provides data
+    /// The highest zoom level for which the tileset provides data.
     /// </summary>
-    public new int MaxZoom { get; private set; }
+    public override int? MaxZoom { get; protected set; }
 
     /// <summary>
     /// An attribution string, which explains the sources of data and/or style for the map.
@@ -152,48 +209,53 @@ public class MBTilesMapProvider : GMapProvider
     public string Description { get; private set; }
 
     /// <summary>
-    /// overlay or baselayer
+    /// Overlay or baselayer
     /// </summary>
     public string Type { get; private set; }
 
     /// <summary>
     /// The version of the tileset. This refers to a revision of the tileset itself, not of the MBTiles specification.
     /// </summary>
-    public long Version { get; private set; }
+    public string Version { get; private set; }
 
     /// <summary>
-    /// The metadata table MAY contain additional rows for tilesets that implement UTFGrid-based interaction or for other purposes.
+    /// The metadata table MAY contain additional rows for tilesets that implement UTFGrid-based interaction or for
+    /// other purposes.
     /// </summary>
     public Dictionary<string, string> Metadata => m_Source != null ? m_Source.metadata : [];
+
+    /// <summary>
+    /// Gets a value indicating whether the data was loaded successfully.
+    /// </summary>
+    public bool DataLoadedSuccessfully { get; }
     #endregion
 
     #region GMapProvider Members
+    /// <inheritdoc />
+    public override Guid Id { get; protected set; }
 
-    public override Guid Id
-    {
-        get;
-    } = new Guid("CD2A114E-188C-423F-BBCC-FB7849333AE4");
+    /// <inheritdoc />
+    public override string Name { get; } = "MBTilesMapProvider";
 
-    public override string Name
-    {
-        get;
-    } = "MBTilesMapProvider";
-
+    /// <summary>
+    /// Backing field for the <see cref="Overlays"/> property.
+    /// </summary>
     GMapProvider[] m_Overlays;
 
+    /// <inheritdoc />
     public override GMapProvider[] Overlays
     {
         get
         {
             m_Overlays ??= [this];
-
             return m_Overlays;
         }
     }
 
+    /// <inheritdoc />
     public override PureImage GetTileImage(GPoint pos, int zoom)
     {
-        if (m_Source == null)
+        if (m_Source is null)
         {
             return null;
         }
@@ -206,25 +268,32 @@ public class MBTilesMapProvider : GMapProvider
         return m_Source.GetImage(pos, zoom);
     }
 
-    public override PureProjection Projection
-    {
-        get
-        {
-            return MercatorProjection.Instance;
-        }
-    }
+    /// <inheritdoc />
+    public override PureProjection Projection => MercatorProjection.Instance;
     #endregion
 
-    public bool Open(string MBTilesFilePath)
+    /// <summary>
+    /// Opens an MBTiles file and initializes the metadata and configuration properties for the map provider.
+    /// </summary>
+    /// <remarks>This method attempts to load the specified MBTiles file and extract its metadata to configure the map
+    /// provider. The metadata fields "name" and "format" are required for successful initialization. If the format is
+    /// "pbf", the metadata must also include a "json" row. If any required metadata is missing or invalid, the method
+    /// will fail.</remarks>
+    /// <param name="mbTilesFilePath">The file path to the MBTiles file to be opened. The file must exist and be
+    /// accessible.</param>
+    /// <returns><see langword="true"/> if the MBTiles file was successfully opened and its metadata was loaded;
+    /// otherwise, <see langword="false"/> if the file does not exist, is invalid, or required metadata is missing.
+    /// </returns>
+    public bool Open(string mbTilesFilePath)
     {
-        if (!File.Exists(MBTilesFilePath))
+        if (!File.Exists(mbTilesFilePath))
         {
             return false;
         }
 
         try
         {
-            m_Source = new MBTiles(MBTilesFilePath);
+            m_Source = new MBTiles(mbTilesFilePath);
             DataName = string.Empty;
             Format = string.Empty;
             Bounds = null;
@@ -235,7 +304,7 @@ public class MBTilesMapProvider : GMapProvider
             Attribution = string.Empty;
             Description = string.Empty;
             Type = string.Empty;
-            Version = 0;
+            Version = "0";
             foreach (var kvp in m_Source.metadata)
             {
                 switch (kvp.Key.ToLower())
@@ -266,10 +335,9 @@ public class MBTilesMapProvider : GMapProvider
                     case "attribution": Attribution = kvp.Value; break;
                     case "description": Description = kvp.Value; break;
                     case "type": Type = kvp.Value; break;
-                    case "version": Version = long.Parse(kvp.Value); break;
+                    case "version": Version = kvp.Value; break;
                     default: break;
                 }
-
             }
             if (string.IsNullOrEmpty(DataName) || string.IsNullOrEmpty(Format))
             {
@@ -304,7 +372,7 @@ public class MBTilesMapProvider : GMapProvider
 
             if (CenterZoom < 0)
             {
-                CenterZoom = MinZoom + (MaxZoom - MinZoom) / 2;
+                CenterZoom = MinZoom + (MaxZoom.Value - MinZoom) / 2;
             }
 
             return true;
@@ -314,6 +382,31 @@ public class MBTilesMapProvider : GMapProvider
             return false;
         }
     }
+
+    #region IDisposable implementation
+    private bool m_DisposedValue;
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (!m_DisposedValue)
+        {
+            if (disposing)
+            {
+                m_Source?.Dispose();
+                m_MapProviders.Remove(this);
+            }
+
+            m_DisposedValue = true;
+        }
+    }
+
+    public void Dispose()
+    {
+        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+        Dispose(disposing: true);
+        GC.SuppressFinalize(this);
+    }
+    #endregion
 }
 
 #endif

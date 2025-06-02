@@ -20,8 +20,7 @@ public class ArcGIS_Topo_US_2D_MapProvider : ArcGISMapPlateCarreeProviderBase
     }
 
     #region GMapProvider Members
-
-    public override Guid Id { get; } = new Guid("7652CC72-5C92-40F5-B572-B8FEAA728F6D");
+    public override Guid Id { get; protected set; } = new Guid("7652CC72-5C92-40F5-B572-B8FEAA728F6D");
 
     public override string Name { get; } = "ArcGIS_Topo_US_2D_Map";
 

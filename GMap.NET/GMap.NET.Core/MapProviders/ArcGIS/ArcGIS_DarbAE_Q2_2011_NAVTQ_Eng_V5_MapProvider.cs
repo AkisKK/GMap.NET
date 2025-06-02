@@ -25,8 +25,7 @@ public class ArcGIS_DarbAE_Q2_2011_NAVTQ_Eng_V5_MapProvider : GMapProvider
     }
 
     #region GMapProvider Members
-
-    public override Guid Id { get; } = new Guid("E03CFEDF-9277-49B3-9912-D805347F934B");
+    public override Guid Id { get; protected set; } = new Guid("E03CFEDF-9277-49B3-9912-D805347F934B");
 
     public override string Name { get; } = "ArcGIS_DarbAE_Q2_2011_NAVTQ_Eng_V5_MapProvider";
 

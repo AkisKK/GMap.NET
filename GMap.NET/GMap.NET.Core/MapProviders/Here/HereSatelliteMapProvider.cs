@@ -20,8 +20,7 @@ public class HereSatelliteMapProvider : HereMapProviderBase
     }
 
     #region GMapProvider Members
-
-    public override Guid Id { get; } = new Guid("6696CE15-7694-4073-BC48-79EE849F2563");
+    public override Guid Id { get; protected set; } = new Guid("6696CE15-7694-4073-BC48-79EE849F2563");
 
     public override string Name { get; } = "HereSatelliteMap";
 

@@ -19,8 +19,7 @@ public class LithuaniaTOP50 : GMapProvider
     }
 
     #region GMapProvider Members
-
-    public override Guid Id { get; } = new Guid("2920B1AF-6D57-4895-9A21-D5837CBF1049");
+    public override Guid Id { get; protected set; } = new Guid("2920B1AF-6D57-4895-9A21-D5837CBF1049");
 
     public override string Name => "LithuaniaTOP50";
 

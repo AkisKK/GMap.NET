@@ -24,10 +24,9 @@ public class TurkeyMapProvider : GMapProvider
     }
 
     #region GMapProvider Members
+    public override Guid Id { get; protected set; } = new Guid("EDE895BD-756D-4BE4-8D03-D54DD8856F1D");
 
-    public override Guid Id    {        get;    } = new Guid("EDE895BD-756D-4BE4-8D03-D54DD8856F1D");
-
-    public override string Name    {        get;    } = "TurkeyMap";
+    public override string Name { get; } = "TurkeyMap";
 
     GMapProvider[] m_Overlays;
 

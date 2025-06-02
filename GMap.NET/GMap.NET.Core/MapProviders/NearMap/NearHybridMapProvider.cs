@@ -20,8 +20,7 @@ public class NearHybridMapProvider : NearMapProviderBase
     }
 
     #region GMapProvider Members
-
-    public override Guid Id { get; } = new Guid("4BF8819A-635D-4A94-8DC7-94C0E0F04BFD");
+    public override Guid Id { get; protected set; } = new Guid("4BF8819A-635D-4A94-8DC7-94C0E0F04BFD");
 
     public override string Name { get; } = "NearHybridMap";
 
