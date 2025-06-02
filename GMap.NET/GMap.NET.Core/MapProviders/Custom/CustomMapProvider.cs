@@ -10,7 +10,7 @@ public class CustomMapProvider : GMapProvider
 
     CustomMapProvider()
     {
-        RefererUrl = CustomServerUrl;
+        ReferrerUrl = CustomServerUrl;
     }
 
     static CustomMapProvider()
@@ -19,10 +19,9 @@ public class CustomMapProvider : GMapProvider
     }
 
     #region GMapProvider Members
+    public override Guid Id { get; protected set; } = new Guid("BEAB409B-6ED0-443F-B8E3-E6CC6F019F66");
 
-    public override Guid Id    {        get;    } = new Guid("BEAB409B-6ED0-443F-B8E3-E6CC6F019F66");
-
-    public override string Name    {        get;    } = "CustomMapProvider";
+    public override string Name { get; } = "CustomMapProvider";
 
     GMapProvider[] m_Overlays;
 

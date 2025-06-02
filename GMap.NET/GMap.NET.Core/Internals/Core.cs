@@ -89,6 +89,11 @@ internal sealed class Core : IDisposable
     /// </summary>
     public bool IsDragging;
 
+    /// <summary>
+    /// Gets a value indicating whether the map control core has started.
+    /// </summary>
+    public bool IsStarted => m_IsStarted;
+
     public Core()
     {
         Provider = EmptyProvider.Instance;

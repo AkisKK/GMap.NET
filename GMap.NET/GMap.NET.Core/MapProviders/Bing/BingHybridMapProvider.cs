@@ -23,7 +23,7 @@ public class BingHybridMapProvider : BingMapProviderBase
 
     public override Guid Id
     {
-        get;
+        get; protected set;
     } = new Guid("94E2FCB4-CAAC-45EA-A1F9-8147C4B14970");
 
     public override string Name

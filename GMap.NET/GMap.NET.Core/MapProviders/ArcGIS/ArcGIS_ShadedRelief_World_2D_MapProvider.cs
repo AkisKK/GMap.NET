@@ -21,7 +21,7 @@ public class ArcGIS_ShadedRelief_World_2D_MapProvider : ArcGISMapPlateCarreeProv
 
     #region GMapProvider Members
 
-    public override Guid Id { get; } = new Guid("A8995FA4-D9D8-415B-87D0-51A7E53A90D4");
+    public override Guid Id { get; protected set; } = new Guid("A8995FA4-D9D8-415B-87D0-51A7E53A90D4");
 
     public override string Name { get; } = "ArcGIS_ShadedRelief_World_2D_Map";
 

@@ -22,8 +22,7 @@ public class GoogleHybridMapProvider : GoogleMapProviderBase
     public string Version = "h@333000000";
 
     #region GMapProvider Members
-
-    public override Guid Id { get; } = new Guid("B076C255-6D12-4466-AAE0-4A73D20A7E6A");
+    public override Guid Id { get; protected set; } = new Guid("B076C255-6D12-4466-AAE0-4A73D20A7E6A");
 
     public override string Name { get; } = "GoogleHybridMap";
 

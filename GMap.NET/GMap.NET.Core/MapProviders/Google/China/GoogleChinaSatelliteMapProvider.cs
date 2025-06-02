@@ -12,7 +12,7 @@ public class GoogleChinaSatelliteMapProvider : GoogleMapProviderBase
 
     GoogleChinaSatelliteMapProvider()
     {
-        RefererUrl = string.Format("http://ditu.{0}/", ServerChina);
+        ReferrerUrl = string.Format("http://ditu.{0}/", ServerChina);
     }
 
     static GoogleChinaSatelliteMapProvider()
@@ -26,7 +26,7 @@ public class GoogleChinaSatelliteMapProvider : GoogleMapProviderBase
 
     public override Guid Id
     {
-        get;
+        get; protected set;
     } = new Guid("543009AC-3379-4893-B580-DBE6372B1753");
 
     public override string Name

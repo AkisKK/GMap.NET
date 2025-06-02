@@ -22,7 +22,7 @@ public class YandexSatelliteMapProvider : YandexMapProviderBase
     public new string Version = "3.135.0";
 
     #region GMapProvider Members
-    public override Guid Id { get; } = new Guid("2D4CE763-0F91-40B2-A511-13EF428237AD");
+    public override Guid Id { get; protected set; } = new Guid("2D4CE763-0F91-40B2-A511-13EF428237AD");
 
     public override string Name { get; } = "YandexSatelliteMap";
 

@@ -20,8 +20,7 @@ public class YandexHybridMapProvider : YandexMapProviderBase
     }
 
     #region GMapProvider Members
-
-    public override Guid Id { get; } = new Guid("78A3830F-5EE3-432C-A32E-91B7AF6BBCB9");
+    public override Guid Id { get; protected set; } = new Guid("78A3830F-5EE3-432C-A32E-91B7AF6BBCB9");
 
     public override string Name { get; } = "YandexHybridMap";
 

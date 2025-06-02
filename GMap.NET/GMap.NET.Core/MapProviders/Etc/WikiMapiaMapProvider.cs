@@ -9,7 +9,7 @@ public abstract class WikiMapiaMapProviderBase : GMapProvider
     public WikiMapiaMapProviderBase()
     {
         MaxZoom = 22;
-        RefererUrl = "http://wikimapia.org/";
+        ReferrerUrl = "http://wikimapia.org/";
         Copyright = string.Format("© WikiMapia.org - Map data ©{0} WikiMapia", DateTime.Today.Year);
     }
 
@@ -77,10 +77,9 @@ public class WikiMapiaMapProvider : WikiMapiaMapProviderBase
     }
 
     #region GMapProvider Members
+    public override Guid Id { get; protected set; } = new Guid("7974022B-1AA6-41F1-8D01-F49940E4B48C");
 
-    public override Guid Id    {        get;    } = new Guid("7974022B-1AA6-41F1-8D01-F49940E4B48C");
-
-    public override string Name    {        get;    } = "WikiMapiaMap";
+    public override string Name { get; } = "WikiMapiaMap";
 
     GMapProvider[] m_Overlays;
 

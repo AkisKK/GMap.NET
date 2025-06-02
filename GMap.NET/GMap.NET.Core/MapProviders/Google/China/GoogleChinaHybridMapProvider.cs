@@ -12,7 +12,7 @@ public class GoogleChinaHybridMapProvider : GoogleMapProviderBase
 
     GoogleChinaHybridMapProvider()
     {
-        RefererUrl = string.Format("http://ditu.{0}/", ServerChina);
+        ReferrerUrl = string.Format("http://ditu.{0}/", ServerChina);
     }
 
     static GoogleChinaHybridMapProvider()
@@ -23,10 +23,9 @@ public class GoogleChinaHybridMapProvider : GoogleMapProviderBase
     public string Version = "h@298";
 
     #region GMapProvider Members
+    public override Guid Id { get; protected set; } = new Guid("B8A2A78D-1C49-45D0-8F03-9B95C83116B7");
 
-    public override Guid Id    {        get;    } = new Guid("B8A2A78D-1C49-45D0-8F03-9B95C83116B7");
-
-    public override string Name    {        get;    } = "GoogleChinaHybridMap";
+    public override string Name { get; } = "GoogleChinaHybridMap";
 
     GMapProvider[] m_Overlays;
 

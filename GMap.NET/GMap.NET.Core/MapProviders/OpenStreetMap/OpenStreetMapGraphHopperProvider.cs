@@ -18,7 +18,7 @@ public class OpenStreetMapGraphHopperProvider : OpenStreetMapProviderBase
 
     OpenStreetMapGraphHopperProvider()
     {
-        RefererUrl = "http://openseamap.org/";
+        ReferrerUrl = "http://openseamap.org/";
     }
 
     static OpenStreetMapGraphHopperProvider()
@@ -27,7 +27,7 @@ public class OpenStreetMapGraphHopperProvider : OpenStreetMapProviderBase
     }
 
     #region GMapProvider Members
-    public override Guid Id { get; } = new Guid("FAACDE73-4B90-5AE6-BB4A-ADE4F3545559");
+    public override Guid Id { get; protected set; } = new Guid("FAACDE73-4B90-5AE6-BB4A-ADE4F3545559");
 
     public override string Name { get; } = "OpenStreetMapGraphHopper";
 

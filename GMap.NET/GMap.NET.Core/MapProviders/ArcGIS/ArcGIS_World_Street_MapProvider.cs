@@ -23,7 +23,7 @@ public class ArcGIS_World_Street_MapProvider : ArcGISMapMercatorProviderBase
 
     public override Guid Id
     {
-        get;
+        get; protected set;
     } = new Guid("E1FACDF6-E535-4D69-A49F-12B623A467A9");
 
     public override string Name

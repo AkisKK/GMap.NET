@@ -7,6 +7,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading;
 using GMap.NET.Internals;
 using GMap.NET.Internals.SocksProxySocket;
 using GMap.NET.MapProviders.ArcGIS;
@@ -36,7 +37,8 @@ public class GMapProviders
 {
     static GMapProviders()
     {
-        List = [];
+        #region Populate the list of supported built-in providers
+        MapProviderList = [];
 
         var type = typeof(GMapProviders);
 
@@ -45,23 +47,24 @@ public class GMapProviders
             // static classes cannot be instanced, so use null...
             if (p.GetValue(null) is GMapProvider v)
             {
-                List.Add(v);
+                MapProviderList.Add(v);
             }
         }
+        #endregion
 
-        m_Hash = [];
-
-        foreach (var p in List)
+        #region Populate the hash tables for fast access
+        m_ProviderGuidDictionary = [];
+        foreach (var p in MapProviderList)
         {
-            m_Hash.Add(p.Id, p);
+            m_ProviderGuidDictionary.Add(p.Id, p);
         }
 
-        m_DbHash = [];
-
-        foreach (var p in List)
+        m_ProviderDatabaseIdHashDictionary = [];
+        foreach (var p in MapProviderList)
         {
-            m_DbHash.Add(p.DbId, p);
+            m_ProviderDatabaseIdHashDictionary.Add(p.DatabaseId, p);
         }
+        #endregion
     }
 
     GMapProviders()
@@ -183,53 +186,111 @@ public class GMapProviders
 
     public static readonly CustomMapProvider CustomMap = CustomMapProvider.Instance;
 
-#if SQLite && !MONO
-    public static readonly MBTilesMapProvider MBTilesMap = MBTilesMapProvider.Instance;
-#endif
+    /// <summary>
+    /// Get all instances of the supported map providers.
+    /// </summary>
+    protected static List<GMapProvider> MapProviderList { get; }
 
     /// <summary>
-    ///     get all instances of the supported providers
+    /// A static lock object used to synchronize access to the <see cref="MapProviderList"/> of supported map providers.
     /// </summary>
-    public static List<GMapProvider> List
-    {
-        get;
-    }
+    protected static readonly Lock m_MapProviderListLock = new();
 
     //public static OpenStreetMapGraphHopperProvider OpenStreetMapGraphHopperProvider => openStreetMapGraphHopperProvider;
 
-    static readonly Dictionary<Guid, GMapProvider> m_Hash;
+    /// <summary>
+    /// A dictionary that maps each provider's unique identifier (<see cref="Guid"/>) to the corresponding
+    /// <see cref="GMapProvider"/> instance.
+    /// </summary>
+    /// <remarks>This dictionary is used to associate a globally unique identifier (GUID) with specific
+    /// <see cref="GMapProvider"/> objects, enabling efficient lookups and management of map providers.</remarks>
+    static readonly Dictionary<Guid, GMapProvider> m_ProviderGuidDictionary;
 
+    /// <summary>
+    /// A static lock object used to synchronize access to the provider GUID dictionary.
+    /// </summary>
+    static readonly Lock m_ProviderGuidDictionaryLock = new();
+
+    /// <summary>
+    /// Attempts to retrieve a <see cref="GMapProvider"/> instance associated with the specified unique identifier.
+    /// </summary>
+    /// <remarks>This method is thread-safe and ensures synchronized access to the underlying provider dictionary.
+    /// </remarks>
+    /// <param name="id">The unique identifier of the provider to retrieve.</param>
+    /// <returns>The <see cref="GMapProvider"/> instance associated with the specified <paramref name="id"/>, or
+    /// <see langword="null"/> if no provider is found.</returns>
     public static GMapProvider TryGetProvider(Guid id)
     {
-        if (m_Hash.TryGetValue(id, out var ret))
+        lock (m_ProviderGuidDictionaryLock)
         {
-            return ret;
+            if (m_ProviderGuidDictionary.TryGetValue(id, out var ret))
+            {
+                return ret;
+            }
         }
 
         return null;
     }
 
-    static readonly Dictionary<int, GMapProvider> m_DbHash;
+    /// <summary>
+    /// A static, read-only dictionary that maps database IDs to their corresponding <see cref="GMapProvider"/>
+    /// instances.
+    /// </summary>
+    /// <remarks>This dictionary is used to efficiently retrieve a <see cref="GMapProvider"/> based on its associated
+    /// database ID. The keys represent unique integer IDs, and the values are <see cref="GMapProvider"/>objects. The
+    /// database ID is derived from the provider's GUID (<see cref="GMapProvider.Id"/>) using a hash function.
+    /// </remarks>
+    static readonly Dictionary<int, GMapProvider> m_ProviderDatabaseIdHashDictionary;
 
-    public static GMapProvider TryGetProvider(int dbId)
+    /// <summary>
+    /// A static lock object used to synchronize access to the provider database ID hash dictionary.
+    /// </summary>
+    static readonly Lock m_ProviderDatabaseIdHashDictionaryLock = new();
+
+    /// <summary>
+    /// Attempts to retrieve a <see cref="GMapProvider"/> instance associated with the specified database Id.
+    /// </summary>
+    /// <remarks>This method is thread-safe and ensures synchronized access to the underlying provider dictionary.
+    /// </remarks>
+    /// <param name="databaseId">The unique identifier of the provider in the database.</param>
+    /// <returns>The <see cref="GMapProvider"/> instance associated with the specified database Id, or
+    /// <see langword="null"/> if no provider is found for the given Id.</returns>
+    public static GMapProvider TryGetProvider(int databaseId)
     {
-        if (m_DbHash.TryGetValue(dbId, out var ret))
+        lock (m_ProviderDatabaseIdHashDictionaryLock)
         {
-            return ret;
+            // Check if the database ID exists in the dictionary.
+            if (m_ProviderDatabaseIdHashDictionary.TryGetValue(databaseId, out var ret))
+            {
+                return ret;
+            }
         }
 
         return null;
     }
 
+    /// <summary>
+    /// Attempts to retrieve a map provider by its name.
+    /// </summary>
+    /// <remarks>This method searches the list of available map providers for a provider with a name that matches the
+    /// specified <paramref name="providerName"/>. If multiple providers share the same name, the first
+    /// match is returned. The search is thread-safe.</remarks>
+    /// <param name="providerName">The name of the map provider to retrieve. This value is case-sensitive and cannot be
+    /// <see langword="null"/>.</param>
+    /// <returns>The <see cref="GMapProvider"/> instance matching the specified name, or <see langword="null"/> if no
+    /// provider with the given name exists.</returns>
     public static GMapProvider TryGetProvider(string providerName)
     {
-        if (List.Exists(x => x.Name == providerName))
+        lock (m_MapProviderListLock)
         {
-            return List.Find(x => x.Name == providerName);
-        }
-        else
-        {
-            return null;
+            if (MapProviderList.Exists(x => x.Name == providerName))
+            {
+                return MapProviderList.Find(x => x.Name == providerName);
+            }
+            else
+            {
+                return null;
+            }
         }
     }
 }
@@ -240,52 +301,74 @@ public class GMapProviders
 public abstract class GMapProvider
 {
     /// <summary>
-    ///     unique provider id
+    /// A unique provider Id. This is used to identify the provider in the system for caching and other purposes.
     /// </summary>
-    public abstract Guid Id
-    {
-        get;
-    }
+    public abstract Guid Id { get; protected set; }
 
     /// <summary>
-    ///     provider name
+    /// The provider name.
     /// </summary>
-    public abstract string Name
-    {
-        get;
-    }
+    public abstract string Name { get; }
 
     /// <summary>
-    ///     provider projection
+    /// The provider projection.
     /// </summary>
-    public abstract PureProjection Projection
-    {
-        get;
-    }
+    public abstract PureProjection Projection { get; }
 
     /// <summary>
-    ///     provider overlays
+    /// The provider overlays.
     /// </summary>
-    public abstract GMapProvider[] Overlays
-    {
-        get;
-    }
+    public abstract GMapProvider[] Overlays { get; }
 
     /// <summary>
-    ///     gets tile image using implemented provider
+    /// Gets a tile image using the implemented provider.
     /// </summary>
     /// <param name="pos"></param>
     /// <param name="zoom"></param>
     /// <returns></returns>
     public abstract PureImage GetTileImage(GPoint pos, int zoom);
 
-    static readonly List<GMapProvider> m_MapProviders = [];
+    /// <summary>
+    /// A static, read-only list containing all available map providers.
+    /// </summary>
+    /// <remarks>This list is initialized with the available and initialized map providers. It is used to prevent
+    /// multiple instances of the a provider with the same <see cref="Id"/> to be created.</remarks>
+    protected static readonly List<GMapProvider> m_MapProviders = [];
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="GMapProvider"/> class.
+    /// </summary>
+    /// <remarks>This constructor assigns a unique database identifier to the provider and ensures that no other
+    /// provider with the same identifier already exists. If a duplicate identifier is detected, an exception is thrown.
+    /// The provider is then registered in the global list of map providers.</remarks>
+    /// <exception cref="Exception">Thrown if a provider with the same <see cref="Id"/> or <see cref="DatabaseId"/> already
+    /// exists.</exception>
     protected GMapProvider()
     {
-        DbId = Math.Abs(BitConverter.ToInt32(SHA1.HashData(Id.ToByteArray()), 0));
+        DatabaseId = Math.Abs(BitConverter.ToInt32(SHA1.HashData(Id.ToByteArray()), 0));
 
-        if (m_MapProviders.Exists(p => p.Id == Id || p.DbId == DbId))
+        if (m_MapProviders.Exists(p => p.Id == Id || p.DatabaseId == DatabaseId))
+        {
+            throw new Exception("such provider id already exists, try regenerate your provider guid...");
+        }
+
+        m_MapProviders.Add(this);
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="GMapProvider"/> class with the specified unique identifier.
+    /// </summary>
+    /// <remarks>The <paramref name="guid"/> must be unique among all existing map providers. If a provider with the
+    /// same <paramref name="guid"/> or derived database ID already exists, an exception will be thrown.</remarks>
+    /// <param name="guid">A globally unique identifier (GUID) that represents the provider's unique identity.</param>
+    /// <exception cref="Exception">Thrown if a provider with the same <paramref name="guid"/> or database ID already
+    /// exists.</exception>
+    protected GMapProvider(Guid guid)
+    {
+        Id = guid;
+        DatabaseId = Math.Abs(BitConverter.ToInt32(SHA1.HashData(Id.ToByteArray()), 0));
+
+        if (m_MapProviders.Exists(p => p.Id == Id || p.DatabaseId == DatabaseId))
         {
             throw new Exception("such provider id already exists, try regenerate your provider guid...");
         }
@@ -316,9 +399,9 @@ public abstract class GMapProvider
     }
 
     /// <summary>
-    ///     id for database, a hash of provider guid
+    /// The Id used for database access. It is a hash of the provider's GUID (<see cref="Id"/>)."/>
     /// </summary>
-    public readonly int DbId;
+    public readonly int DatabaseId;
 
     /// <summary>
     ///     area of map
@@ -328,12 +411,12 @@ public abstract class GMapProvider
     /// <summary>
     ///     minimum level of zoom
     /// </summary>
-    public int MinZoom;
+    public virtual int MinZoom { get; protected set; }
 
     /// <summary>
     ///     maximum level of zoom
     /// </summary>
-    public int? MaxZoom = 17;
+    public virtual int? MaxZoom { get; protected set; } = 17;
 
     /// <summary>
     ///     Connect trough a SOCKS 4/5 proxy server
@@ -359,9 +442,9 @@ public abstract class GMapProvider
     public static int TTLCache { get; } = 240;
 
     /// <summary>
-    ///     Gets or sets the value of the Referer HTTP header.
+    ///     Gets or sets the value of the Referrer HTTP header.
     /// </summary>
-    public string RefererUrl = string.Empty;
+    public string ReferrerUrl = string.Empty;
 
     public string Copyright = string.Empty;
 
@@ -388,12 +471,12 @@ public abstract class GMapProvider
     }
 
     /// <summary>
-    ///     to bypass the cache, set to true
+    /// To bypass the cache, set to true.
     /// </summary>
     public bool BypassCache = false;
 
     /// <summary>
-    ///     internal proxy for image management
+    /// Internal proxy for image management.
     /// </summary>
     internal static PureImageProxy m_TileImageProxy = DefaultImageProxy.Instance;
 
@@ -448,9 +531,9 @@ public abstract class GMapProvider
             request.Headers.Add("Accept", m_RequestAccept);
         }
 
-        if (!string.IsNullOrEmpty(RefererUrl))
+        if (!string.IsNullOrEmpty(ReferrerUrl))
         {
-            request.Headers.Add("Referer", RefererUrl);
+            request.Headers.Add("Referer", ReferrerUrl);
         }
 
         InitializeWebRequest(request);
@@ -543,9 +626,9 @@ public abstract class GMapProvider
             request.Headers.Add("Accept", m_RequestAccept);
         }
 
-        if (!string.IsNullOrEmpty(RefererUrl))
+        if (!string.IsNullOrEmpty(ReferrerUrl))
         {
-            request.Headers.Add("Referer", RefererUrl);
+            request.Headers.Add("Referer", ReferrerUrl);
         }
 
         InitializeWebRequest(request);
@@ -610,7 +693,7 @@ public abstract class GMapProvider
 
     public override int GetHashCode()
     {
-        return DbId;
+        return DatabaseId;
     }
 
     public override bool Equals(object obj)
@@ -648,7 +731,7 @@ public class EmptyProvider : GMapProvider
 
     #region GMapProvider Members
 
-    public override Guid Id => Guid.Empty;
+    public override Guid Id { get; protected set; } = Guid.Empty;
 
     public override string Name { get; } = "None";
 

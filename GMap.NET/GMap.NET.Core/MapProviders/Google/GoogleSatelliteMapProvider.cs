@@ -22,8 +22,7 @@ public class GoogleSatelliteMapProvider : GoogleMapProviderBase
     public string Version = "192";
 
     #region GMapProvider Members
-
-    public override Guid Id { get; } = new Guid("9CB89D76-67E9-47CF-8137-B9EE9FC46388");
+    public override Guid Id { get; protected set; } = new Guid("9CB89D76-67E9-47CF-8137-B9EE9FC46388");
 
     public override string Name { get; } = "GoogleSatelliteMap";
 

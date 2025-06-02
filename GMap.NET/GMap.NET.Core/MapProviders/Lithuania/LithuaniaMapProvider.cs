@@ -8,7 +8,7 @@ public abstract class LithuaniaMapProviderBase : GMapProvider
 {
     public LithuaniaMapProviderBase()
     {
-        RefererUrl = "http://www.maps.lt/map/";
+        ReferrerUrl = "http://www.maps.lt/map/";
         Copyright = string.Format("©{0} Hnit-Baltic - Map data ©{0} ESRI", DateTime.Today.Year);
         MaxZoom = 12;
         Area = new RectLatLng(56.431489960361, 20.8962105239809, 5.8924169643369, 2.58940626652217);
@@ -59,8 +59,7 @@ public class LithuaniaMapProvider : LithuaniaMapProviderBase
     }
 
     #region GMapProvider Members
-
-    public override Guid Id { get; } = new Guid("5859079F-1B5E-484B-B05C-41CE664D8A93");
+    public override Guid Id { get; protected set; } = new Guid("5859079F-1B5E-484B-B05C-41CE664D8A93");
 
     public override string Name { get; } = "LithuaniaMap";
 

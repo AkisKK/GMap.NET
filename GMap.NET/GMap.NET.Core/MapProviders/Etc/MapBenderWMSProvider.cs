@@ -22,8 +22,7 @@ public class MapBenderWMSProvider : GMapProvider
     }
 
     #region GMapProvider Members
-
-    public override Guid Id { get; } = new Guid("45742F8D-B552-4CAF-89AE-F20951BBDB2B");
+    public override Guid Id { get; protected set; } = new Guid("45742F8D-B552-4CAF-89AE-F20951BBDB2B");
 
     public override string Name { get; } = "MapBender, WMS demo";
 

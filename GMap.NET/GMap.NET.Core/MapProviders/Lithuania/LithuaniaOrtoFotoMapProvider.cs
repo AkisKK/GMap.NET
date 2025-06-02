@@ -20,8 +20,7 @@ public class LithuaniaOrtoFotoMapProvider : LithuaniaMapProviderBase
     }
 
     #region GMapProvider Members
-
-    public override Guid Id { get; } = new Guid("043FF9EF-612C-411F-943C-32C787A88D6A");
+    public override Guid Id { get; protected set; } = new Guid("043FF9EF-612C-411F-943C-32C787A88D6A");
 
     public override string Name { get; } = "LithuaniaOrtoFotoMap";
 

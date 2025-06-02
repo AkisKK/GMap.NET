@@ -12,7 +12,7 @@ public abstract class YahooMapProviderBase : GMapProvider, IGeocodingProvider
 {
     public YahooMapProviderBase()
     {
-        RefererUrl = "http://maps.yahoo.com/";
+        ReferrerUrl = "http://maps.yahoo.com/";
         Copyright = string.Format("© Yahoo! Inc. - Map data & Imagery ©{0} NAVTEQ", DateTime.Today.Year);
     }
 
@@ -390,7 +390,7 @@ public class YahooMapProvider : YahooMapProviderBase
     public string Version = "2.1";
 
     #region GMapProvider Members
-    public override Guid Id { get; } = new Guid("65DB032C-6869-49B0-A7FC-3AE41A26AF4D");
+    public override Guid Id { get; protected set; } = new Guid("65DB032C-6869-49B0-A7FC-3AE41A26AF4D");
 
     public override string Name { get; } = "YahooMap";
 

@@ -54,7 +54,7 @@ public class YandexMapProvider : YandexMapProviderBase
 
     YandexMapProvider()
     {
-        RefererUrl = "http://" + ServerCom + "/";
+        ReferrerUrl = "http://" + ServerCom + "/";
     }
 
     static YandexMapProvider()
@@ -63,8 +63,7 @@ public class YandexMapProvider : YandexMapProviderBase
     }
 
     #region GMapProvider Members
-
-    public override Guid Id { get; } = new Guid("82DC969D-0491-40F3-8C21-4D90B67F47EB");
+    public override Guid Id { get; protected set; } = new Guid("82DC969D-0491-40F3-8C21-4D90B67F47EB");
 
     public override string Name { get; } = "YandexMap";
 

@@ -12,7 +12,7 @@ public class OpenCycleLandscapeMapProvider : OpenStreetMapProviderBase
 
     OpenCycleLandscapeMapProvider()
     {
-        RefererUrl = "http://www.opencyclemap.org/";
+        ReferrerUrl = "http://www.opencyclemap.org/";
     }
 
     static OpenCycleLandscapeMapProvider()
@@ -21,8 +21,7 @@ public class OpenCycleLandscapeMapProvider : OpenStreetMapProviderBase
     }
 
     #region GMapProvider Members
-
-    public override Guid Id { get; } = new Guid("BDBAA939-6597-4D87-8F4F-261C49E35F56");
+    public override Guid Id { get; protected set; } = new Guid("BDBAA939-6597-4D87-8F4F-261C49E35F56");
 
     public override string Name { get; } = "OpenCycleLandscapeMap";
 

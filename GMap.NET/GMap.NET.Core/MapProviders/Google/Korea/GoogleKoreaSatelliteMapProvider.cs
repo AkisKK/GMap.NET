@@ -22,8 +22,7 @@ public class GoogleKoreaSatelliteMapProvider : GoogleMapProviderBase
     public string Version = "170";
 
     #region GMapProvider Members
-
-    public override Guid Id { get; } = new Guid("70370941-D70C-4123-BE4A-AEE6754047F5");
+    public override Guid Id { get; protected set; } = new Guid("70370941-D70C-4123-BE4A-AEE6754047F5");
 
     public override string Name { get; } = "GoogleKoreaSatelliteMap";
 

@@ -12,7 +12,7 @@ public class OpenSeaMapHybridProvider : OpenStreetMapProviderBase
 
     OpenSeaMapHybridProvider()
     {
-        RefererUrl = "http://openseamap.org/";
+        ReferrerUrl = "http://openseamap.org/";
     }
 
     static OpenSeaMapHybridProvider()
@@ -21,8 +21,7 @@ public class OpenSeaMapHybridProvider : OpenStreetMapProviderBase
     }
 
     #region GMapProvider Members
-
-    public override Guid Id { get; } = new Guid("FAACDE73-4B90-4AE6-BB4A-ADE4F3545592");
+    public override Guid Id { get; protected set; } = new Guid("FAACDE73-4B90-4AE6-BB4A-ADE4F3545592");
 
     public override string Name { get; } = "OpenSeaMapHybrid";
 

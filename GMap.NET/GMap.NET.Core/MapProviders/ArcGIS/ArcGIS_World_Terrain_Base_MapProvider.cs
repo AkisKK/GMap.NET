@@ -23,7 +23,7 @@ public class ArcGIS_World_Terrain_Base_MapProvider : ArcGISMapMercatorProviderBa
 
     public override Guid Id
     {
-        get;
+        get; protected set;
     } = new Guid("927F175B-5200-4D95-A99B-1C87C93099DA");
 
     public override string Name

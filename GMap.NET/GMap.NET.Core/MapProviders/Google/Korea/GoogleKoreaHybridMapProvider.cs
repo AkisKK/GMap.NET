@@ -22,8 +22,7 @@ public class GoogleKoreaHybridMapProvider : GoogleMapProviderBase
     public string Version = "kr1t.12";
 
     #region GMapProvider Members
-
-    public override Guid Id { get; } = new Guid("41A91842-04BC-442B-9AC8-042156238A5B");
+    public override Guid Id { get; protected set; } = new Guid("41A91842-04BC-442B-9AC8-042156238A5B");
 
     public override string Name { get; } = "GoogleKoreaHybridMap";
 
