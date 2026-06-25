@@ -6,18 +6,17 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Globalization;
 using System.IO;
-using System.Net;
-using System.Net.NetworkInformation;
+using System.Reflection;
 using System.Threading;
 using System.Windows.Forms;
-using System.Xml;
 using Demo.WindowsForms.CustomMarkers;
 using GMap.NET;
 using GMap.NET.MapProviders;
+using GMap.NET.MapProviders.Google;
+using GMap.NET.MapProviders.OpenStreetMap;
 using GMap.NET.WindowsForms;
 using GMap.NET.WindowsForms.Markers;
 using GMap.NET.WindowsForms.ToolTips;
-using System.Reflection;
 using MessagePack;
 using MessagePack.Resolvers;
 
@@ -68,7 +67,7 @@ namespace Demo.WindowsForms
                 // set cache mode only if no internet available
                 if (!Stuff.PingNetwork("google.com"))
                 {
-                    MainMap.Manager.Mode = AccessMode.CacheOnly;
+                    GMapControl.Manager.Mode = AccessMode.CacheOnly;
                     MessageBox.Show("No internet connection available, going to CacheOnly mode.", "GMap.NET - Demo.WindowsForms", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 }
 
@@ -96,7 +95,7 @@ namespace Demo.WindowsForms
                 textBoxLat.Text = MainMap.Position.Lat.ToString(CultureInfo.InvariantCulture);
                 textBoxLng.Text = MainMap.Position.Lng.ToString(CultureInfo.InvariantCulture);
                 textBoxGeo.Text = "Lithuania, Vilnius";
-              
+
 
                 MainMap.ScaleMode = ScaleModes.Fractional;
 
@@ -129,9 +128,9 @@ namespace Demo.WindowsForms
                 MainMap.OnRouteClick += MainMap_OnRouteClick;
                 MainMap.OnRouteDoubleClick += MainMap_OnRouteDoubleClick;
 
-                MainMap.Manager.OnTileCacheComplete += OnTileCacheComplete;
-                MainMap.Manager.OnTileCacheStart += OnTileCacheStart;
-                MainMap.Manager.OnTileCacheProgress += OnTileCacheProgress;
+                GMapControl.Manager.OnTileCacheComplete += OnTileCacheComplete;
+                GMapControl.Manager.OnTileCacheStart += OnTileCacheStart;
+                GMapControl.Manager.OnTileCacheProgress += OnTileCacheProgress;
 
                 MainMap.MouseMove += MainMap_MouseMove;
                 MainMap.MouseDown += MainMap_MouseDown;
@@ -170,15 +169,15 @@ namespace Demo.WindowsForms
                 //----------------------------------------
 #if !MONO       // mono doesn't handle it, so we 'lost' provider list ;]
                 comboBoxMapType.ValueMember = "Name";
-                comboBoxMapType.DataSource = GMapProviders.List;
+                comboBoxMapType.DataSource = GMapProviders.GetProviderList();
                 comboBoxMapType.SelectedItem = MainMap.MapProvider;
 #endif
-                // acccess mode
-                comboBoxMode.DataSource = Enum.GetValues(typeof(AccessMode));
-                comboBoxMode.SelectedItem = MainMap.Manager.Mode;
+                // access mode
+                comboBoxMode.DataSource = Enum.GetValues<AccessMode>();
+                comboBoxMode.SelectedItem = GMapControl.Manager.Mode;
 
                 // get cache modes
-                checkBoxUseRouteCache.Checked = MainMap.Manager.UseRouteCache;
+                checkBoxUseRouteCache.Checked = GMapControl.Manager.UseRouteCache;
 
                 // get zoom  
                 //trackBarZoom.Minimum = MainMap.MinZoom * 100;
@@ -269,27 +268,27 @@ namespace Demo.WindowsForms
 
         private void MainMap_OnRouteDoubleClick(GMapRoute item, MouseEventArgs e)
         {
-            
+
         }
 
         private void MainMap_OnRouteClick(GMapRoute item, MouseEventArgs e)
         {
-           
+
         }
 
         private void MainMap_OnPolygonDoubleClick(GMapPolygon item, MouseEventArgs e)
         {
-            
+
         }
 
         private void MainMap_OnPolygonClick(GMapPolygon item, MouseEventArgs e)
         {
-            
+
         }
 
         private void MainMap_OnMarkerDoubleClick(GMapMarker item, MouseEventArgs e)
         {
-            
+
         }
 
         public static T DeepClone<T>(T obj)
@@ -299,12 +298,12 @@ namespace Demo.WindowsForms
             return MessagePackSerializer.Deserialize<T>(bytes, options);
         }
 
-        void Markers_CollectionChanged(object sender, GMap.NET.ObjectModel.NotifyCollectionChangedEventArgs e)
+        void Markers_CollectionChanged(object sender, GMap.NET.WindowsForms.ObjectModel.NotifyCollectionChangedEventArgs e)
         {
             //textBoxMarkerCount.Text = Objects.Markers.Count.ToString();
         }
 
-        void Routes_CollectionChanged(object sender, GMap.NET.ObjectModel.NotifyCollectionChangedEventArgs e)
+        void Routes_CollectionChanged(object sender, GMap.NET.WindowsForms.ObjectModel.NotifyCollectionChangedEventArgs e)
         {
             //textBoxRouteCount.Text = Routes.Routes.Count.ToString();
         }
@@ -662,7 +661,7 @@ namespace Demo.WindowsForms
                 System.Windows.Forms.MethodInvoker m = delegate
                 {
                     progressBar1.Visible = true;
-                    progressBar1.Value = (progressBar1.Value < progressBar1.Maximum) ?  (progressBar1.Value + 1) : progressBar1.Minimum;
+                    progressBar1.Value = (progressBar1.Value < progressBar1.Maximum) ? (progressBar1.Value + 1) : progressBar1.Minimum;
                     groupBoxProgress.Text = left + " tiles to save...";
                 };
                 Invoke(m);
@@ -880,7 +879,7 @@ namespace Demo.WindowsForms
 
             System.Windows.Forms.MethodInvoker m = delegate ()
             {
-                
+
                 // HACK JKU CLEAN
                 //panelMenu.Text = "Menu, last load in " + MainMap.ElapsedMilliseconds + "ms";
                 //textBoxMemory.Text = string.Format(CultureInfo.InvariantCulture, "{0:0.00} MB of {1:0.00} MB", MainMap.Manager.MemoryCache.Size, MainMap.Manager.MemoryCache.Capacity);
@@ -917,7 +916,7 @@ namespace Demo.WindowsForms
                 if (File.Exists(AppDomain.CurrentDomain.BaseDirectory + Path.DirectorySeparatorChar + "License.txt"))
                 {
                     string txt = File.ReadAllText(AppDomain.CurrentDomain.BaseDirectory + Path.DirectorySeparatorChar + "License.txt");
-                    
+
                     var d = new Demo.WindowsForms.Forms.Message();
                     d.richTextBox1.Text = txt;
 
@@ -948,7 +947,7 @@ namespace Demo.WindowsForms
         // change mode
         private void comboBoxMode_DropDownClosed(object sender, EventArgs e)
         {
-            MainMap.Manager.Mode = (AccessMode)comboBoxMode.SelectedValue;
+            GMapControl.Manager.Mode = (AccessMode)comboBoxMode.SelectedValue;
             MainMap.ReloadMap();
         }
 
@@ -986,10 +985,10 @@ namespace Demo.WindowsForms
         // cache config
         private void checkBoxUseCache_CheckedChanged(object sender, EventArgs e)
         {
-            MainMap.Manager.UseRouteCache = checkBoxUseRouteCache.Checked;
-            MainMap.Manager.UseGeocoderCache = checkBoxUseRouteCache.Checked;
-            MainMap.Manager.UsePlacemarkCache = checkBoxUseRouteCache.Checked;
-            MainMap.Manager.UseDirectionsCache = checkBoxUseRouteCache.Checked;
+            GMapControl.Manager.UseRouteCache = checkBoxUseRouteCache.Checked;
+            GMapControl.Manager.UseGeocoderCache = checkBoxUseRouteCache.Checked;
+            GMapControl.Manager.UsePlacemarkCache = checkBoxUseRouteCache.Checked;
+            GMapControl.Manager.UseDirectionsCache = checkBoxUseRouteCache.Checked;
         }
 
         // clear cache
@@ -999,7 +998,7 @@ namespace Demo.WindowsForms
             {
                 try
                 {
-                    MainMap.Manager.PrimaryCache.DeleteOlderThan(DateTime.Now, null);
+                    GMaps.PrimaryCache.DeleteOlderThan(DateTime.Now, null);
                     MessageBox.Show("Done. Cache is clear.");
                 }
                 catch (Exception ex)
@@ -1146,11 +1145,11 @@ namespace Demo.WindowsForms
                         {
                             obj.Overlay = Objects; // set overlay if you want to see cache progress on the map
 
-                            obj.Shuffle = MainMap.Manager.Mode != AccessMode.CacheOnly;
+                            obj.Shuffle = GMapControl.Manager.Mode != AccessMode.CacheOnly;
 
                             obj.Owner = this;
                             obj.ShowCompleteMessage = true;
-                            obj.Start(area, i, MainMap.MapProvider, MainMap.Manager.Mode == AccessMode.CacheOnly ? 0 : 100, MainMap.Manager.Mode == AccessMode.CacheOnly ? 0 : 1);
+                            obj.Start(area, i, MainMap.MapProvider, GMapControl.Manager.Mode == AccessMode.CacheOnly ? 0 : 100, GMapControl.Manager.Mode == AccessMode.CacheOnly ? 0 : 1);
                         }
                     }
                     else if (res == DialogResult.No)
@@ -1313,7 +1312,7 @@ namespace Demo.WindowsForms
             {
                 try
                 {
-                    MainMap.Manager.EnableTileHost(8844);
+                    GMapControl.Manager.EnableTileHost(8844);
                     TryExtractLeafletjs();
                 }
                 catch (Exception ex)
@@ -1323,14 +1322,12 @@ namespace Demo.WindowsForms
             }
             else
             {
-                MainMap.Manager.DisableTileHost();
+                GMapControl.Manager.DisableTileHost();
             }
         }
-
         #endregion
 
         #region -- UNUSED CODE --
-
         // zoom
         private void UNUSED_trackBarZoom_ValueChanged(object sender, EventArgs e)
         {
@@ -1399,7 +1396,7 @@ namespace Demo.WindowsForms
                     {
                         string gpx = File.ReadAllText(dlg.FileName);
 
-                        var r = MainMap.Manager.DeserializeGPX(gpx);
+                        var r = GMaps.DeserializeGPX(gpx);
                         if (r != null)
                         {
                             if (r.trk.Length > 0)
@@ -1505,7 +1502,5 @@ namespace Demo.WindowsForms
 
 
         #endregion
-
-
     }
 }

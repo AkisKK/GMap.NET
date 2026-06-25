@@ -9,6 +9,7 @@ using System.Text;
 using GMap.NET;
 using GMap.NET.MapProviders;
 using System.Net.NetworkInformation;
+using GMap.NET.Internals;
 
 #if !MONO
 #if SQLite
@@ -243,8 +244,8 @@ namespace Demo.WindowsForms
                 var request = (HttpWebRequest)WebRequest.Create(url);
 
                 request.UserAgent = GMapProvider.UserAgent;
-                request.Timeout = GMapProvider.TimeoutMs;
-                request.ReadWriteTimeout = GMapProvider.TimeoutMs * 6;
+                request.Timeout = HttpClientFactory.TimeoutMs;
+                request.ReadWriteTimeout = HttpClientFactory.TimeoutMs * 6;
                 request.Accept = "*/*";
                 request.KeepAlive = true;
 
@@ -482,8 +483,8 @@ namespace Demo.WindowsForms
             var request = (HttpWebRequest)WebRequest.Create(url);
 
             request.UserAgent = GMapProvider.UserAgent;
-            request.Timeout = GMapProvider.TimeoutMs;
-            request.ReadWriteTimeout = GMapProvider.TimeoutMs * 6;
+            request.Timeout = HttpClientFactory.TimeoutMs;
+            request.ReadWriteTimeout = HttpClientFactory.TimeoutMs * 6;
             request.Accept = "*/*";
             request.Referer = "http://www.flightradar24.com/";
             request.KeepAlive = true;
