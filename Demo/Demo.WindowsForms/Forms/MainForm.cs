@@ -6,18 +6,18 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Globalization;
 using System.IO;
-using System.Net;
-using System.Net.NetworkInformation;
+using System.Reflection;
 using System.Threading;
 using System.Windows.Forms;
-using System.Xml;
 using Demo.WindowsForms.CustomMarkers;
+using Demo.WindowsForms.Source;
 using GMap.NET;
 using GMap.NET.MapProviders;
+using GMap.NET.MapProviders.Google;
+using GMap.NET.MapProviders.OpenStreetMap;
 using GMap.NET.WindowsForms;
 using GMap.NET.WindowsForms.Markers;
 using GMap.NET.WindowsForms.ToolTips;
-using System.Reflection;
 using MessagePack;
 using MessagePack.Resolvers;
 
@@ -26,22 +26,21 @@ namespace Demo.WindowsForms
     public partial class MainForm : Form
     {
         // layers
-        readonly GMapOverlay _top = new GMapOverlay();
-        internal readonly GMapOverlay Objects = new GMapOverlay("objects");
-        internal readonly GMapOverlay Routes = new GMapOverlay("routes");
-        internal readonly GMapOverlay Polygons = new GMapOverlay("polygons");
+        readonly GMapOverlay _top = new();
+        internal readonly GMapOverlay Objects = new("objects");
+        internal readonly GMapOverlay Routes = new("routes");
+        internal readonly GMapOverlay Polygons = new("polygons");
 
         // marker
-        GMapMarker _currentMarker;
+        readonly GMapMarker _currentMarker;
 
         // polygons
         GMapPolygon _polygon;
 
         // etc
-        readonly Random _rnd = new Random();
-        readonly DescendingComparer _comparerIpStatus = new DescendingComparer();
+        readonly Random _rnd = new();
+        readonly DescendingComparer _comparerIpStatus = new();
         GMapMarkerRect _curentRectMarker;
-        string _mobileGpsLog = string.Empty;
         bool _isMouseDown;
         PointLatLng _start;
         PointLatLng _end;
@@ -68,7 +67,7 @@ namespace Demo.WindowsForms
                 // set cache mode only if no internet available
                 if (!Stuff.PingNetwork("google.com"))
                 {
-                    MainMap.Manager.Mode = AccessMode.CacheOnly;
+                    GMapControl.Manager.Mode = AccessMode.CacheOnly;
                     MessageBox.Show("No internet connection available, going to CacheOnly mode.", "GMap.NET - Demo.WindowsForms", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 }
 
@@ -96,7 +95,7 @@ namespace Demo.WindowsForms
                 textBoxLat.Text = MainMap.Position.Lat.ToString(CultureInfo.InvariantCulture);
                 textBoxLng.Text = MainMap.Position.Lng.ToString(CultureInfo.InvariantCulture);
                 textBoxGeo.Text = "Lithuania, Vilnius";
-              
+
 
                 MainMap.ScaleMode = ScaleModes.Fractional;
 
@@ -129,9 +128,9 @@ namespace Demo.WindowsForms
                 MainMap.OnRouteClick += MainMap_OnRouteClick;
                 MainMap.OnRouteDoubleClick += MainMap_OnRouteDoubleClick;
 
-                MainMap.Manager.OnTileCacheComplete += OnTileCacheComplete;
-                MainMap.Manager.OnTileCacheStart += OnTileCacheStart;
-                MainMap.Manager.OnTileCacheProgress += OnTileCacheProgress;
+                GMapControl.Manager.OnTileCacheComplete += OnTileCacheComplete;
+                GMapControl.Manager.OnTileCacheStart += OnTileCacheStart;
+                GMapControl.Manager.OnTileCacheProgress += OnTileCacheProgress;
 
                 MainMap.MouseMove += MainMap_MouseMove;
                 MainMap.MouseDown += MainMap_MouseDown;
@@ -170,15 +169,15 @@ namespace Demo.WindowsForms
                 //----------------------------------------
 #if !MONO       // mono doesn't handle it, so we 'lost' provider list ;]
                 comboBoxMapType.ValueMember = "Name";
-                comboBoxMapType.DataSource = GMapProviders.List;
+                comboBoxMapType.DataSource = GMapProviders.GetProviderList();
                 comboBoxMapType.SelectedItem = MainMap.MapProvider;
 #endif
-                // acccess mode
-                comboBoxMode.DataSource = Enum.GetValues(typeof(AccessMode));
-                comboBoxMode.SelectedItem = MainMap.Manager.Mode;
+                // access mode
+                comboBoxMode.DataSource = Enum.GetValues<AccessMode>();
+                comboBoxMode.SelectedItem = GMapControl.Manager.Mode;
 
                 // get cache modes
-                checkBoxUseRouteCache.Checked = MainMap.Manager.UseRouteCache;
+                checkBoxUseRouteCache.Checked = GMapControl.Manager.UseRouteCache;
 
                 // get zoom  
                 //trackBarZoom.Minimum = MainMap.MinZoom * 100;
@@ -191,23 +190,26 @@ namespace Demo.WindowsForms
 #endif
 
                 // set current marker
-                _currentMarker = new GMarkerGoogle(MainMap.Position, GMarkerGoogleType.arrow);
-                _currentMarker.IsHitTestVisible = false;
+                _currentMarker = new GMarkerGoogle(MainMap.Position, GMarkerGoogleType.arrow)
+                {
+                    IsHitTestVisible = false
+                };
                 _top.Markers.Add(_currentMarker);
 
 
                 // add my city location for demo
                 // [jokubokla]: The stuff down below doesn't work anymore either, but I leave it in case someone wants to fix it
-                GeoCoderStatusCode status;
-                var pos = MainMap.GeocodingProvider.GetPoint("Lithuania, Vilnius", out status);
+                var pos = MainMap.GeocodingProvider.GetPoint("Lithuania, Vilnius", out var status);
 
                 if (pos != null && status == GeoCoderStatusCode.OK)
                 {
                     _currentMarker.Position = pos.Value;
 
-                    GMapMarker myCity = new GMarkerGoogle(pos.Value, GMarkerGoogleType.green_small);
-                    myCity.ToolTipMode = MarkerTooltipMode.Always;
-                    myCity.ToolTipText = "Welcome to Lithuania! ;}";
+                    GMapMarker myCity = new GMarkerGoogle(pos.Value, GMarkerGoogleType.green_small)
+                    {
+                        ToolTipMode = MarkerTooltipMode.Always,
+                        ToolTipText = "Welcome to Lithuania! ;}"
+                    };
                     Objects.Markers.Add(myCity);
 
                     // add some more points in lithuania
@@ -269,27 +271,27 @@ namespace Demo.WindowsForms
 
         private void MainMap_OnRouteDoubleClick(GMapRoute item, MouseEventArgs e)
         {
-            
+
         }
 
         private void MainMap_OnRouteClick(GMapRoute item, MouseEventArgs e)
         {
-           
+
         }
 
         private void MainMap_OnPolygonDoubleClick(GMapPolygon item, MouseEventArgs e)
         {
-            
+
         }
 
         private void MainMap_OnPolygonClick(GMapPolygon item, MouseEventArgs e)
         {
-            
+
         }
 
         private void MainMap_OnMarkerDoubleClick(GMapMarker item, MouseEventArgs e)
         {
-            
+
         }
 
         public static T DeepClone<T>(T obj)
@@ -299,19 +301,18 @@ namespace Demo.WindowsForms
             return MessagePackSerializer.Deserialize<T>(bytes, options);
         }
 
-        void Markers_CollectionChanged(object sender, GMap.NET.ObjectModel.NotifyCollectionChangedEventArgs e)
+        void Markers_CollectionChanged(object sender, GMap.NET.WindowsForms.ObjectModel.NotifyCollectionChangedEventArgs e)
         {
             //textBoxMarkerCount.Text = Objects.Markers.Count.ToString();
         }
 
-        void Routes_CollectionChanged(object sender, GMap.NET.ObjectModel.NotifyCollectionChangedEventArgs e)
+        void Routes_CollectionChanged(object sender, GMap.NET.WindowsForms.ObjectModel.NotifyCollectionChangedEventArgs e)
         {
             //textBoxRouteCount.Text = Routes.Routes.Count.ToString();
         }
 
         #region -- performance test --
-
-        double NextDouble(Random rng, double min, double max)
+        static double NextDouble(Random rng, double min, double max)
         {
             return min + (rng.NextDouble() * (max - min));
         }
@@ -335,23 +336,22 @@ namespace Demo.WindowsForms
             }
         }
 
-        System.Windows.Forms.Timer _timerPerf = new System.Windows.Forms.Timer();
+        readonly System.Windows.Forms.Timer _timerPerf = new();
         #endregion
-
 
         #region -- transport demo --
 
         // [jokubokla]: The transport demo doesn't seem to work. Presumably because a public transportation
         // webservice in Vilnius has a new API
 
-        BackgroundWorker _transportWorker = new BackgroundWorker();
+        readonly BackgroundWorker _transportWorker = new();
 
 
-        readonly List<VehicleData> _trolleybus = new List<VehicleData>();
-        readonly Dictionary<int, GMapMarker> _trolleybusMarkers = new Dictionary<int, GMapMarker>();
+        readonly List<VehicleData> _trolleybus = [];
+        readonly Dictionary<int, GMapMarker> _trolleybusMarkers = [];
 
-        readonly List<VehicleData> _bus = new List<VehicleData>();
-        readonly Dictionary<int, GMapMarker> _busMarkers = new Dictionary<int, GMapMarker>();
+        readonly List<VehicleData> _bus = [];
+        readonly Dictionary<int, GMapMarker> _busMarkers = [];
 
         bool _firstLoadTrasport = true;
         GMapMarker _currentTransport;
@@ -366,13 +366,13 @@ namespace Demo.WindowsForms
             {
                 foreach (var d in _trolleybus)
                 {
-                    GMapMarker marker;
-
-                    if (!_trolleybusMarkers.TryGetValue(d.Id, out marker))
+                    if (!_trolleybusMarkers.TryGetValue(d.Id, out var marker))
                     {
-                        marker = new GMarkerGoogle(new PointLatLng(d.Lat, d.Lng), GMarkerGoogleType.red_small);
-                        marker.Tag = d.Id;
-                        marker.ToolTipMode = MarkerTooltipMode.OnMouseOver;
+                        marker = new GMarkerGoogle(new PointLatLng(d.Lat, d.Lng), GMarkerGoogleType.red_small)
+                        {
+                            Tag = d.Id,
+                            ToolTipMode = MarkerTooltipMode.OnMouseOver
+                        };
 
                         _trolleybusMarkers[d.Id] = marker;
                         Objects.Markers.Add(marker);
@@ -399,13 +399,13 @@ namespace Demo.WindowsForms
             {
                 foreach (var d in _bus)
                 {
-                    GMapMarker marker;
-
-                    if (!_busMarkers.TryGetValue(d.Id, out marker))
+                    if (!_busMarkers.TryGetValue(d.Id, out var marker))
                     {
-                        marker = new GMarkerGoogle(new PointLatLng(d.Lat, d.Lng), GMarkerGoogleType.green_small);
-                        marker.Tag = d.Id;
-                        marker.ToolTipMode = MarkerTooltipMode.OnMouseOver;
+                        marker = new GMarkerGoogle(new PointLatLng(d.Lat, d.Lng), GMarkerGoogleType.green_small)
+                        {
+                            Tag = d.Id,
+                            ToolTipMode = MarkerTooltipMode.OnMouseOver
+                        };
 
                         _busMarkers[d.Id] = marker;
                         Objects.Markers.Add(marker);
@@ -470,9 +470,7 @@ namespace Demo.WindowsForms
 
         #endregion
 
-
         #region -- some functions --
-
         void RegeneratePolygon()
         {
             var polygonPoints = new List<PointLatLng>();
@@ -488,8 +486,10 @@ namespace Demo.WindowsForms
 
             if (_polygon == null)
             {
-                _polygon = new GMapPolygon(polygonPoints, "polygon test");
-                _polygon.IsHitTestVisible = true;
+                _polygon = new GMapPolygon(polygonPoints, "polygon test")
+                {
+                    IsHitTestVisible = true
+                };
                 Polygons.Polygons.Add(_polygon);
             }
             else
@@ -515,8 +515,7 @@ namespace Demo.WindowsForms
         /// <param name="place"></param>
         void AddLocationLithuania(string place)
         {
-            GeoCoderStatusCode status;
-            var pos = MainMap.GeocodingProvider.GetPoint("Lithuania, " + place, out status);
+            var pos = MainMap.GeocodingProvider.GetPoint("Lithuania, " + place, out var status);
             if (pos != null && status == GeoCoderStatusCode.OK)
             {
                 var m = new GMarkerGoogle(pos.Value, GMarkerGoogleType.green);
@@ -547,36 +546,32 @@ namespace Demo.WindowsForms
                     {
                         string fName = f.Replace("Demo.WindowsForms.", string.Empty);
                         fName = fName.Replace(".", "\\");
-                        int ll = fName.LastIndexOf("\\");
-                        string name = fName.Substring(0, ll) + "." + fName.Substring(ll + 1, fName.Length - ll - 1);
+                        int ll = fName.LastIndexOf('\\');
+                        string name = string.Concat(fName.AsSpan(0, ll), ".", fName.AsSpan(ll + 1, fName.Length - ll - 1));
 
                         //Demo.WindowsForms.leafletjs.dist.leaflet.js
 
-                        using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(f))
+                        using var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(f);
+                        string fileFullPath = MainMap.CacheLocation + name;
+
+                        if (fileFullPath.Contains("gmap.html"))
                         {
-                            string fileFullPath = MainMap.CacheLocation + name;
-
-                            if (fileFullPath.Contains("gmap.html"))
-                            {
-                                launch = fileFullPath;
-                            }
-
-                            string dir = Path.GetDirectoryName(fileFullPath);
-                            if (!Directory.Exists(dir))
-                            {
-                                Directory.CreateDirectory(dir);
-                            }
-
-                            using (var fileStream = File.Create(fileFullPath, (int)stream.Length))
-                            {
-                                // Fill the bytes[] array with the stream data
-                                byte[] bytesInStream = new byte[stream.Length];
-                                stream.Read(bytesInStream, 0, bytesInStream.Length);
-
-                                // Use FileStream object to write to the specified file
-                                fileStream.Write(bytesInStream, 0, bytesInStream.Length);
-                            }
+                            launch = fileFullPath;
                         }
+
+                        string dir = Path.GetDirectoryName(fileFullPath);
+                        if (!Directory.Exists(dir))
+                        {
+                            Directory.CreateDirectory(dir);
+                        }
+
+                        using var fileStream = File.Create(fileFullPath, (int)stream.Length);
+                        // Fill the bytes[] array with the stream data
+                        byte[] bytesInStream = new byte[stream.Length];
+                        stream.ReadExactly(bytesInStream);
+
+                        // Use FileStream object to write to the specified file
+                        fileStream.Write(bytesInStream, 0, bytesInStream.Length);
                     }
                 }
 
@@ -592,12 +587,9 @@ namespace Demo.WindowsForms
             }
             return true;
         }
-
         #endregion
 
-
         #region -- cache events --
-
         void OnTileCacheComplete()
         {
             Debug.WriteLine("OnTileCacheComplete");
@@ -662,19 +654,15 @@ namespace Demo.WindowsForms
                 System.Windows.Forms.MethodInvoker m = delegate
                 {
                     progressBar1.Visible = true;
-                    progressBar1.Value = (progressBar1.Value < progressBar1.Maximum) ?  (progressBar1.Value + 1) : progressBar1.Minimum;
+                    progressBar1.Value = (progressBar1.Value < progressBar1.Maximum) ? (progressBar1.Value + 1) : progressBar1.Minimum;
                     groupBoxProgress.Text = left + " tiles to save...";
                 };
                 Invoke(m);
             }
         }
-
         #endregion
 
-
         #region -- map events --
-
-
         void MainMap_OnMarkerLeave(GMapMarker item)
         {
             if (item is GMapMarkerRect)
@@ -804,10 +792,7 @@ namespace Demo.WindowsForms
                     }
                     _curentRectMarker.Position = pnew;
 
-                    if (_curentRectMarker.InnerMarker != null)
-                    {
-                        _curentRectMarker.InnerMarker.Position = pnew;
-                    }
+                    _curentRectMarker.InnerMarker?.Position = pnew;
                 }
 
                 MainMap.Refresh(); // force instant invalidation
@@ -828,8 +813,7 @@ namespace Demo.WindowsForms
             {
                 if (item is GMapMarkerRect)
                 {
-                    GeoCoderStatusCode status;
-                    var pos = MainMap.GeocodingProvider.GetPlacemark(item.Position, out status);
+                    var pos = MainMap.GeocodingProvider.GetPlacemark(item.Position, out var status);
                     if (status == GeoCoderStatusCode.OK && pos != null)
                     {
                         var v = item as GMapMarkerRect;
@@ -843,11 +827,8 @@ namespace Demo.WindowsForms
                 {
                     if (item.Tag != null)
                     {
-                        if (_currentTransport != null)
-                        {
-                            _currentTransport.ToolTipMode = MarkerTooltipMode.OnMouseOver;
-                            _currentTransport = null;
-                        }
+                        _currentTransport?.ToolTipMode = MarkerTooltipMode.OnMouseOver;
+                        _currentTransport = null;
                         _currentTransport = item;
                         _currentTransport.ToolTipMode = MarkerTooltipMode.Always;
                     }
@@ -880,7 +861,7 @@ namespace Demo.WindowsForms
 
             System.Windows.Forms.MethodInvoker m = delegate ()
             {
-                
+
                 // HACK JKU CLEAN
                 //panelMenu.Text = "Menu, last load in " + MainMap.ElapsedMilliseconds + "ms";
                 //textBoxMemory.Text = string.Format(CultureInfo.InvariantCulture, "{0:0.00} MB of {1:0.00} MB", MainMap.Manager.MemoryCache.Size, MainMap.Manager.MemoryCache.Capacity);
@@ -904,7 +885,6 @@ namespace Demo.WindowsForms
 
         #endregion
 
-
         #region -- ui events --
 
         bool _userAcceptedLicenseOnce;
@@ -917,7 +897,7 @@ namespace Demo.WindowsForms
                 if (File.Exists(AppDomain.CurrentDomain.BaseDirectory + Path.DirectorySeparatorChar + "License.txt"))
                 {
                     string txt = File.ReadAllText(AppDomain.CurrentDomain.BaseDirectory + Path.DirectorySeparatorChar + "License.txt");
-                    
+
                     var d = new Demo.WindowsForms.Forms.Message();
                     d.richTextBox1.Text = txt;
 
@@ -948,7 +928,7 @@ namespace Demo.WindowsForms
         // change mode
         private void comboBoxMode_DropDownClosed(object sender, EventArgs e)
         {
-            MainMap.Manager.Mode = (AccessMode)comboBoxMode.SelectedValue;
+            GMapControl.Manager.Mode = (AccessMode)comboBoxMode.SelectedValue;
             MainMap.ReloadMap();
         }
 
@@ -986,10 +966,10 @@ namespace Demo.WindowsForms
         // cache config
         private void checkBoxUseCache_CheckedChanged(object sender, EventArgs e)
         {
-            MainMap.Manager.UseRouteCache = checkBoxUseRouteCache.Checked;
-            MainMap.Manager.UseGeocoderCache = checkBoxUseRouteCache.Checked;
-            MainMap.Manager.UsePlacemarkCache = checkBoxUseRouteCache.Checked;
-            MainMap.Manager.UseDirectionsCache = checkBoxUseRouteCache.Checked;
+            GMapControl.Manager.UseRouteCache = checkBoxUseRouteCache.Checked;
+            GMapControl.Manager.UseGeocoderCache = checkBoxUseRouteCache.Checked;
+            GMapControl.Manager.UsePlacemarkCache = checkBoxUseRouteCache.Checked;
+            GMapControl.Manager.UseDirectionsCache = checkBoxUseRouteCache.Checked;
         }
 
         // clear cache
@@ -999,7 +979,7 @@ namespace Demo.WindowsForms
             {
                 try
                 {
-                    MainMap.Manager.PrimaryCache.DeleteOlderThan(DateTime.Now, null);
+                    GMaps.PrimaryCache.DeleteOlderThan(DateTime.Now, null);
                     MessageBox.Show("Done. Cache is clear.");
                 }
                 catch (Exception ex)
@@ -1018,18 +998,24 @@ namespace Demo.WindowsForms
             if (route != null)
             {
                 // add route
-                var r = new GMapRoute(route.Points, route.Name);
-                r.IsHitTestVisible = true;
+                var r = new GMapRoute(route.Points, route.Name)
+                {
+                    IsHitTestVisible = true
+                };
                 Routes.Routes.Add(r);
 
                 // add route start/end marks
-                GMapMarker m1 = new GMarkerGoogle(_start, GMarkerGoogleType.green_big_go);
-                m1.ToolTipText = "Start: " + route.Name;
-                m1.ToolTipMode = MarkerTooltipMode.Always;
+                GMapMarker m1 = new GMarkerGoogle(_start, GMarkerGoogleType.green_big_go)
+                {
+                    ToolTipText = "Start: " + route.Name,
+                    ToolTipMode = MarkerTooltipMode.Always
+                };
 
-                GMapMarker m2 = new GMarkerGoogle(_end, GMarkerGoogleType.red_big_stop);
-                m2.ToolTipText = "End: " + _end.ToString();
-                m2.ToolTipMode = MarkerTooltipMode.Always;
+                GMapMarker m2 = new GMarkerGoogle(_end, GMarkerGoogleType.red_big_stop)
+                {
+                    ToolTipText = "End: " + _end.ToString(),
+                    ToolTipMode = MarkerTooltipMode.Always
+                };
 
                 Objects.Markers.Add(m1);
                 Objects.Markers.Add(m2);
@@ -1057,8 +1043,7 @@ namespace Demo.WindowsForms
             Placemark? p = null;
             if (checkBoxPlacemarkInfo.Checked)
             {
-                GeoCoderStatusCode status;
-                var ret = MainMap.GeocodingProvider.GetPlacemark(_currentMarker.Position, out status);
+                var ret = MainMap.GeocodingProvider.GetPlacemark(_currentMarker.Position, out var status);
                 if (status == GeoCoderStatusCode.OK && ret != null)
                 {
                     p = ret;
@@ -1142,16 +1127,14 @@ namespace Demo.WindowsForms
 
                     if (res == DialogResult.Yes)
                     {
-                        using (var obj = new TilePrefetcher())
-                        {
-                            obj.Overlay = Objects; // set overlay if you want to see cache progress on the map
+                        using var obj = new TilePrefetcher();
+                        obj.Overlay = Objects; // set overlay if you want to see cache progress on the map
 
-                            obj.Shuffle = MainMap.Manager.Mode != AccessMode.CacheOnly;
+                        obj.Shuffle = GMapControl.Manager.Mode != AccessMode.CacheOnly;
 
-                            obj.Owner = this;
-                            obj.ShowCompleteMessage = true;
-                            obj.Start(area, i, MainMap.MapProvider, MainMap.Manager.Mode == AccessMode.CacheOnly ? 0 : 100, MainMap.Manager.Mode == AccessMode.CacheOnly ? 0 : 1);
-                        }
+                        obj.Owner = this;
+                        obj.ShowCompleteMessage = true;
+                        obj.Start(area, i, MainMap.MapProvider, GMapControl.Manager.Mode == AccessMode.CacheOnly ? 0 : 100, GMapControl.Manager.Mode == AccessMode.CacheOnly ? 0 : 1);
                     }
                     else if (res == DialogResult.No)
                     {
@@ -1178,8 +1161,10 @@ namespace Demo.WindowsForms
         // launch static map maker
         private void btnSave_Click(object sender, EventArgs e)
         {
-            var st = new StaticImage(this);
-            st.Owner = this;
+            var st = new StaticImage(this)
+            {
+                Owner = this
+            };
             st.Show();
         }
 
@@ -1313,7 +1298,7 @@ namespace Demo.WindowsForms
             {
                 try
                 {
-                    MainMap.Manager.EnableTileHost(8844);
+                    GMapControl.Manager.EnableTileHost(8844);
                     TryExtractLeafletjs();
                 }
                 catch (Exception ex)
@@ -1323,14 +1308,12 @@ namespace Demo.WindowsForms
             }
             else
             {
-                MainMap.Manager.DisableTileHost();
+                GMapControl.Manager.DisableTileHost();
             }
         }
-
         #endregion
 
         #region -- UNUSED CODE --
-
         // zoom
         private void UNUSED_trackBarZoom_ValueChanged(object sender, EventArgs e)
         {
@@ -1352,22 +1335,20 @@ namespace Demo.WindowsForms
         {
             try
             {
-                using (var sfd = new SaveFileDialog())
+                using var sfd = new SaveFileDialog();
+                sfd.Filter = "PNG (*.png)|*.png";
+                sfd.FileName = "GMap.NET image";
+
+                var tmpImage = MainMap.ToImage();
+                if (tmpImage != null)
                 {
-                    sfd.Filter = "PNG (*.png)|*.png";
-                    sfd.FileName = "GMap.NET image";
-
-                    var tmpImage = MainMap.ToImage();
-                    if (tmpImage != null)
+                    using (tmpImage)
                     {
-                        using (tmpImage)
+                        if (sfd.ShowDialog() == DialogResult.OK)
                         {
-                            if (sfd.ShowDialog() == DialogResult.OK)
-                            {
-                                tmpImage.Save(sfd.FileName);
+                            tmpImage.Save(sfd.FileName);
 
-                                MessageBox.Show("Image saved: " + sfd.FileName, "GMap.NET", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                            }
+                            MessageBox.Show("Image saved: " + sfd.FileName, "GMap.NET", MessageBoxButtons.OK, MessageBoxIcon.Information);
                         }
                     }
                 }
@@ -1381,64 +1362,62 @@ namespace Demo.WindowsForms
         // load gpx file
         private void UNUSED_btnLoadGpxFile(object sender, EventArgs e)
         {
-            using (FileDialog dlg = new OpenFileDialog())
+            using var dlg = new OpenFileDialog();
+            dlg.CheckPathExists = true;
+            dlg.CheckFileExists = false;
+            dlg.AddExtension = true;
+            dlg.DefaultExt = "gpx";
+            dlg.ValidateNames = true;
+            dlg.Title = "GMap.NET: open gpx log";
+            dlg.Filter = "gpx files (*.gpx)|*.gpx";
+            dlg.FilterIndex = 1;
+            dlg.RestoreDirectory = true;
+
+            if (dlg.ShowDialog() == DialogResult.OK)
             {
-                dlg.CheckPathExists = true;
-                dlg.CheckFileExists = false;
-                dlg.AddExtension = true;
-                dlg.DefaultExt = "gpx";
-                dlg.ValidateNames = true;
-                dlg.Title = "GMap.NET: open gpx log";
-                dlg.Filter = "gpx files (*.gpx)|*.gpx";
-                dlg.FilterIndex = 1;
-                dlg.RestoreDirectory = true;
-
-                if (dlg.ShowDialog() == DialogResult.OK)
+                try
                 {
-                    try
+                    string gpx = File.ReadAllText(dlg.FileName);
+
+                    var r = GMaps.DeserializeGPX(gpx);
+                    if (r != null)
                     {
-                        string gpx = File.ReadAllText(dlg.FileName);
-
-                        var r = MainMap.Manager.DeserializeGPX(gpx);
-                        if (r != null)
+                        if (r.trk.Length > 0)
                         {
-                            if (r.trk.Length > 0)
+                            foreach (var trk in r.trk)
                             {
-                                foreach (var trk in r.trk)
+                                var points = new List<PointLatLng>();
+
+                                foreach (var seg in trk.trkseg)
                                 {
-                                    var points = new List<PointLatLng>();
-
-                                    foreach (var seg in trk.trkseg)
+                                    foreach (var p in seg.trkpt)
                                     {
-                                        foreach (var p in seg.trkpt)
-                                        {
-                                            points.Add(new PointLatLng((double)p.lat, (double)p.lon));
-                                        }
+                                        points.Add(new PointLatLng((double)p.lat, (double)p.lon));
                                     }
-
-                                    var rt = new GMapRoute(points, string.Empty);
-                                    {
-                                        rt.Stroke = new Pen(Color.FromArgb(144, Color.Red));
-                                        rt.Stroke.Width = 5;
-                                        rt.Stroke.DashStyle = DashStyle.DashDot;
-                                    }
-                                    Routes.Routes.Add(rt);
                                 }
 
-                                MainMap.ZoomAndCenterRoutes(null);
+                                var rt = new GMapRoute(points, string.Empty);
+                                {
+                                    rt.Stroke = new Pen(Color.FromArgb(144, Color.Red))
+                                    {
+                                        Width = 5,
+                                        DashStyle = DashStyle.DashDot
+                                    };
+                                }
+                                Routes.Routes.Add(rt);
                             }
+
+                            MainMap.ZoomAndCenterRoutes(null);
                         }
                     }
-                    catch (Exception ex)
-                    {
-                        Debug.WriteLine("GPX import: " + ex.ToString());
-                        MessageBox.Show("Error importing gpx: " + ex.Message, "GMap.NET", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine("GPX import: " + ex.ToString());
+                    MessageBox.Show("Error importing gpx: " + ex.Message, "GMap.NET", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 }
             }
         }
-
-
 
         // open disk cache location
         private void UNUSED_btnOpenDiskCacheLocation_Click(object sender, EventArgs e)
@@ -1453,7 +1432,6 @@ namespace Demo.WindowsForms
                 MessageBox.Show("Failed to open: " + ex.Message, "GMap.NET", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-
 
         // export mobile gps log to gpx file
         /*
@@ -1502,10 +1480,6 @@ namespace Demo.WindowsForms
             }
         }
         */
-
-
         #endregion
-
-
     }
 }

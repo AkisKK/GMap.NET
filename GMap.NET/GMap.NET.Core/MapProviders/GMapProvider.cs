@@ -233,6 +233,18 @@ public class GMapProviders
     }
 
     /// <summary>
+    /// Retrieves a list of all available <see cref="GMapProvider"/> instances.
+    /// </summary>
+    /// <returns>A list of <see cref="GMapProvider"/> instances.</returns>
+    public static List<GMapProvider> GetProviderList()
+    {
+        lock (m_MapProviderListLock)
+        {
+            return [.. MapProviderList];
+        }
+    }
+
+    /// <summary>
     /// A static, read-only dictionary that maps database IDs to their corresponding <see cref="GMapProvider"/>
     /// instances.
     /// </summary>

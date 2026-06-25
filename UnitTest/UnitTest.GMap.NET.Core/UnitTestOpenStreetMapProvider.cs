@@ -1,105 +1,95 @@
 ﻿using GMap.NET;
 using GMap.NET.MapProviders;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace UnitTest.GMap.NET.Core
+namespace UnitTest.GMap.NET.Core;
+
+[TestClass]
+public class UnitTestOpenStreetMapProvider
 {
-    [TestClass]
-    public class UnitTestOpenStreetMapProvider
+    [TestMethod]
+    [TestCategory("Integration")]
+    public void TestGetPoint()
     {
-        [TestMethod]
-        public void TestGetPoint()
-        {
-            var mapProvider = GMapProviders.OpenStreetMap;
+        var mapProvider = GMapProviders.OpenStreetMap;
 
-            GeoCoderStatusCode status;
+        var point = mapProvider.GetPoint("Barranquilla", out var status);
 
-            var point = mapProvider.GetPoint("Barranquilla", out status);
+        Assert.AreEqual(GeoCoderStatusCode.OK, status);
+        Assert.IsNotNull(point);
+    }
 
-            Assert.AreEqual(status, GeoCoderStatusCode.OK);
-            Assert.AreNotEqual(point, null);
-        }
+    [TestMethod]
+    [TestCategory("Integration")]
+    public void TestGetPoints()
+    {
+        var mapProvider = GMapProviders.OpenStreetMap;
 
-        [TestMethod]
-        public void TestGetPoints()
-        {
-            var mapProvider = GMapProviders.OpenStreetMap;
+        GeoCoderStatusCode status;
 
-            GeoCoderStatusCode status;
-            List<PointLatLng> pointList;
+        status = mapProvider.GetPoints("Barranquilla", out var pointList);
 
-            status = mapProvider.GetPoints("Barranquilla", out pointList);
+        Assert.AreEqual(GeoCoderStatusCode.OK, status);
+        Assert.IsNotNull(pointList);
+    }
 
-            Assert.AreEqual(status, GeoCoderStatusCode.OK);
-            Assert.AreNotEqual(pointList, null);
-        }
+    [TestMethod]
+    [TestCategory("Integration")]
+    public void TestGetPoints2()
+    {
+        var mapProvider = GMapProviders.OpenStreetMap;
 
-        [TestMethod]
-        public void TestGetPoints2()
-        {
-            var mapProvider = GMapProviders.OpenStreetMap;
+        var location = new PointLatLng { Lat = 10.98335, Lng = -74.802319 };
+        var point = mapProvider.GetPlacemark(location, out var status);
 
-            GeoCoderStatusCode status;
-            List<PointLatLng> pointList;
+        Assert.AreEqual(GeoCoderStatusCode.OK, status);
+        Assert.IsNotNull(point);
 
-            var location = new PointLatLng { Lat = 10.98335, Lng = -74.802319 };
-            var point = mapProvider.GetPlacemark(location, out status);
+        status = mapProvider.GetPoints(point!.Value, out var pointList);
 
-            Assert.AreEqual(status, GeoCoderStatusCode.OK);
-            Assert.AreNotEqual(point, null);            
+        Assert.AreEqual(GeoCoderStatusCode.OK, status);
+        Assert.IsNotNull(pointList);
+    }
 
-            status = mapProvider.GetPoints(point.Value, out pointList);
+    [TestMethod]
+    [TestCategory("Integration")]
+    public void TestGetPlacemark()
+    {
+        var mapProvider = GMapProviders.OpenStreetMap;
 
-            Assert.AreEqual(status, GeoCoderStatusCode.OK);
-            Assert.AreNotEqual(pointList, null);
-        }
+        var location = new PointLatLng { Lat = 10.98335, Lng = -74.802319 };
 
-        [TestMethod]
-        public void TestGetPlacemark()
-        {
-            var mapProvider = GMapProviders.OpenStreetMap;
+        var point = mapProvider.GetPlacemark(location, out var status);
 
-            GeoCoderStatusCode status;
+        Assert.AreEqual(GeoCoderStatusCode.OK, status);
+        Assert.IsNotNull(point);
+    }
 
-            var location = new PointLatLng { Lat = 10.98335, Lng = -74.802319 };
+    [TestMethod]
+    [TestCategory("Integration")]
+    public void TestGetPlacemarks()
+    {
+        var mapProvider = GMapProviders.OpenStreetMap;
 
-            var point = mapProvider.GetPlacemark(location, out status);
+        var location = new PointLatLng { Lat = 10.98335, Lng = -74.802319 };
 
-            Assert.AreEqual(status, GeoCoderStatusCode.OK);
-            Assert.AreNotEqual(point, null);
-        }
+        var status = mapProvider.GetPlacemarks(location, out var placemarkList);
 
-        [TestMethod]
-        public void TestGetPlacemarks()
-        {
-            var mapProvider = GMapProviders.OpenStreetMap;
+        Assert.AreEqual(GeoCoderStatusCode.OK, status);
+        Assert.IsNotNull(placemarkList);
+    }
 
-            List<Placemark> placemarkList;
+    [TestMethod]
+    [TestCategory("Integration")]
+    public void TestGetRoute()
+    {
+        var mapProvider = GMapProviders.OpenStreetMap;
 
-            var location = new PointLatLng { Lat = 10.98335, Lng = -74.802319 };
+        var point1 = new PointLatLng(8.681495, 49.41461);
+        var point2 = new PointLatLng(8.687872, 49.420318);
 
-            var status = mapProvider.GetPlacemarks(location, out placemarkList);
+        var mapRoute = mapProvider.GetRoute(point1, point2, false, false, 15);
 
-            Assert.AreEqual(status, GeoCoderStatusCode.OK);
-            Assert.AreNotEqual(placemarkList, null);
-        }
-
-        [TestMethod]
-        public void TestGetRoute()
-        {
-            var mapProvider = GMapProviders.OpenStreetMap;
-
-            var point1 = new PointLatLng(8.681495, 49.41461);
-            var point2 = new PointLatLng(8.687872, 49.420318);
-
-            var mapRoute = mapProvider.GetRoute(point1, point2, false, false, 15);
-
-            Assert.AreEqual(mapRoute?.Status, RouteStatusCode.OK);
-            Assert.AreNotEqual(mapRoute, null);
-        }
+        Assert.AreEqual(RouteStatusCode.OK, mapRoute?.Status);
+        Assert.IsNotNull(mapRoute);
     }
 }

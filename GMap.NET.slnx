@@ -1,0 +1,40 @@
+<Solution>
+  <Configurations>
+    <BuildType Name="Debug" />
+    <BuildType Name="Release" />
+    <BuildType Name="v4.0-Debug" />
+    <BuildType Name="v4.0-Release" />
+  </Configurations>
+  <Folder Name="/Demo/">
+    <Project Path="Demo/Demo.WindowsForms/Demo.WindowsForms.csproj">
+      <BuildType Solution="v4.0-Debug|*" Project="Debug" />
+      <BuildType Solution="v4.0-Release|*" Project="Release" />
+    </Project>
+  </Folder>
+  <Folder Name="/GMap.NET/">
+    <Project Path="GMap.NET/GMap.NET.Core/GMap.NET.Core.csproj">
+      <BuildType Solution="v4.0-Debug|*" Project="Debug" />
+      <BuildType Solution="v4.0-Release|*" Project="Release" />
+    </Project>
+    <Project Path="GMap.NET/GMap.NET.WindowsForms/GMap.NET.WindowsForms.csproj">
+      <BuildType Solution="v4.0-Debug|*" Project="Debug" />
+      <BuildType Solution="v4.0-Release|*" Project="Release" />
+    </Project>
+  </Folder>
+  <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+    <File Path="Directory.Build.props" />
+  </Folder>
+  <Folder Name="/Tools/">
+    <Project Path="Tools/MapCruncher/MapCruncher.csproj">
+      <BuildType Solution="v4.0-Debug|*" Project="Debug" />
+      <BuildType Solution="v4.0-Release|*" Project="Release" />
+    </Project>
+  </Folder>
+  <Folder Name="/UnitTest/">
+    <Project Path="UnitTest/UnitTest.GMap.NET.Core/UnitTest.GMap.NET.Core.csproj">
+      <BuildType Solution="v4.0-Debug|*" Project="Debug" />
+      <BuildType Solution="v4.0-Release|*" Project="Release" />
+    </Project>
+  </Folder>
+</Solution>
