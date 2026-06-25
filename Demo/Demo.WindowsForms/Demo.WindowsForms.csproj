@@ -12,6 +12,7 @@
         <DefineConstants>MONO_disabled;SQLite;$(DefineConstants)</DefineConstants>
         <Prefer32Bit>false</Prefer32Bit>
         <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">

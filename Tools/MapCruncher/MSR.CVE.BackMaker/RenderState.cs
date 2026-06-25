@@ -54,21 +54,21 @@ namespace MSR.CVE.BackMaker
 
         private class LayerApplierMaker
         {
-            private CachePackage cachePackage;
+            private CachePackage m_CachePackage;
 
             private Dictionary<IRenderableSource, OneLayerBoundApplier> dict =
                 new Dictionary<IRenderableSource, OneLayerBoundApplier>();
 
             public LayerApplierMaker(CachePackage cachePackage)
             {
-                cachePackage = cachePackage;
+                m_CachePackage = cachePackage;
             }
 
             public OneLayerBoundApplier MakeApplier(IRenderableSource source, Layer layer)
             {
                 if (!dict.ContainsKey(source))
                 {
-                    dict[source] = new OneLayerBoundApplier(source, layer, cachePackage);
+                    dict[source] = new OneLayerBoundApplier(source, layer, m_CachePackage);
                 }
 
                 return dict[source];
@@ -915,7 +915,7 @@ namespace MSR.CVE.BackMaker
                 {
                     string outputFolder =
                         ((RenderToFileOptions)mashupScratchCopy.GetRenderOptions().renderToOptions).outputFolder;
-                    var directories = Directory.GetDirectories(outputFolder, "Layer_*");
+                    string[] directories = Directory.GetDirectories(outputFolder, "Layer_*");
                     for (int i = 0; i < directories.Length; i++)
                     {
                         string path = directories[i];

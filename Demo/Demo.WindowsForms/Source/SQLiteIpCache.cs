@@ -1,8 +1,6 @@
-﻿
-namespace Demo.WindowsForms
+﻿namespace Demo.WindowsForms.Source
 {
 #if SQLite
-    using System.Collections.Generic;
     using System.Data.Common;
 #if !MONO
     using System.Data.SQLite;
@@ -14,7 +12,6 @@ namespace Demo.WindowsForms
    using SQLiteParameter=Mono.Data.Sqlite.SqliteParameter;
 #endif
     using System.IO;
-    using System.Text;
     using System;
     using System.Diagnostics;
 
@@ -73,38 +70,36 @@ namespace Demo.WindowsForms
                     Directory.CreateDirectory(dir);
                 }
 
-                using (var cn = new SQLiteConnection())
-                {
+                using var cn = new SQLiteConnection();
 #if !MONO
-                    cn.ConnectionString = string.Format("Data Source=\"{0}\";FailIfMissing=False;", file);
+                cn.ConnectionString = string.Format("Data Source=\"{0}\";FailIfMissing=False;", file);
 #else
                cn.ConnectionString = string.Format("Version=3,URI=file://{0},FailIfMissing=False", file);
 #endif
-                    cn.Open();
+                cn.Open();
+                {
+                    using (var tr = cn.BeginTransaction())
                     {
-                        using (DbTransaction tr = cn.BeginTransaction())
+                        try
                         {
-                            try
+                            using (DbCommand cmd = cn.CreateCommand())
                             {
-                                using (DbCommand cmd = cn.CreateCommand())
-                                {
-                                    cmd.Transaction = tr;
-                                    cmd.CommandText = Properties.Resources.IpCacheCreateDb;
-                                    cmd.ExecuteNonQuery();
-                                }
-                                tr.Commit();
+                                cmd.Transaction = tr;
+                                cmd.CommandText = Properties.Resources.IpCacheCreateDb;
+                                cmd.ExecuteNonQuery();
                             }
-                            catch (Exception exx)
-                            {
-                                Console.WriteLine("CreateEmptyDB: " + exx.ToString());
-                                Debug.WriteLine("CreateEmptyDB: " + exx.ToString());
-
-                                tr.Rollback();
-                                ret = false;
-                            }
+                            tr.Commit();
                         }
-                        cn.Close();
+                        catch (Exception exx)
+                        {
+                            Console.WriteLine("CreateEmptyDB: " + exx.ToString());
+                            Debug.WriteLine("CreateEmptyDB: " + exx.ToString());
+
+                            tr.Rollback();
+                            ret = false;
+                        }
                     }
+                    cn.Close();
                 }
             }
             catch (Exception ex)
@@ -123,53 +118,49 @@ namespace Demo.WindowsForms
             bool ret = true;
             try
             {
-                using (var cn = new SQLiteConnection())
-                {
+                using var cn = new SQLiteConnection();
 #if !MONO
-                    cn.ConnectionString = string.Format("Data Source=\"{0}\";", _db);
+                cn.ConnectionString = string.Format("Data Source=\"{0}\";", _db);
 #else
                cn.ConnectionString = string.Format("Version=3,URI=file://{0},FailIfMissing=True,Default Timeout=33", db);
 #endif
 
-                    cn.Open();
+                cn.Open();
+                {
                     {
+                        using var tr = cn.BeginTransaction();
+                        try
                         {
-                            using (DbTransaction tr = cn.BeginTransaction())
+                            using (DbCommand cmd = cn.CreateCommand())
                             {
-                                try
-                                {
-                                    using (DbCommand cmd = cn.CreateCommand())
-                                    {
-                                        cmd.Transaction = tr;
+                                cmd.Transaction = tr;
 
-                                        cmd.CommandText = "INSERT INTO Cache(Ip, CountryName, RegionName, City, Latitude, Longitude, Time) VALUES(@p1, @p2, @p3, @p4, @p5, @p6, @p7)";
+                                cmd.CommandText = "INSERT INTO Cache(Ip, CountryName, RegionName, City, Latitude, Longitude, Time) VALUES(@p1, @p2, @p3, @p4, @p5, @p6, @p7)";
 
-                                        cmd.Parameters.Add(new SQLiteParameter("@p1", ip));
-                                        cmd.Parameters.Add(new SQLiteParameter("@p2", data.CountryName));
-                                        cmd.Parameters.Add(new SQLiteParameter("@p3", data.RegionName));
-                                        cmd.Parameters.Add(new SQLiteParameter("@p4", data.City));
-                                        cmd.Parameters.Add(new SQLiteParameter("@p5", data.Latitude));
-                                        cmd.Parameters.Add(new SQLiteParameter("@p6", data.Longitude));
-                                        cmd.Parameters.Add(new SQLiteParameter("@p7", data.CacheTime));
+                                cmd.Parameters.Add(new SQLiteParameter("@p1", ip));
+                                cmd.Parameters.Add(new SQLiteParameter("@p2", data.CountryName));
+                                cmd.Parameters.Add(new SQLiteParameter("@p3", data.RegionName));
+                                cmd.Parameters.Add(new SQLiteParameter("@p4", data.City));
+                                cmd.Parameters.Add(new SQLiteParameter("@p5", data.Latitude));
+                                cmd.Parameters.Add(new SQLiteParameter("@p6", data.Longitude));
+                                cmd.Parameters.Add(new SQLiteParameter("@p7", data.CacheTime));
 
-                                        cmd.ExecuteNonQuery();
-                                    }
-                                    tr.Commit();
-                                }
-                                catch (Exception ex)
-                                {
-                                    Console.WriteLine("PutDataToCache: " + ex.ToString());
-
-                                    Debug.WriteLine("PutDataToCache: " + ex.ToString());
-
-                                    tr.Rollback();
-                                    ret = false;
-                                }
+                                cmd.ExecuteNonQuery();
                             }
+                            tr.Commit();
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine("PutDataToCache: " + ex.ToString());
+
+                            Debug.WriteLine("PutDataToCache: " + ex.ToString());
+
+                            tr.Rollback();
+                            ret = false;
                         }
                     }
-                    cn.Close();
                 }
+                cn.Close();
             }
             catch (Exception ex)
             {
@@ -187,48 +178,42 @@ namespace Demo.WindowsForms
             IpInfo ret = null;
             try
             {
-                using (var cn = new SQLiteConnection())
-                {
-                    #if !MONO
-                        cn.ConnectionString = string.Format("Data Source=\"{0}\";", _db);
-                    #else
+                using var cn = new SQLiteConnection();
+#if !MONO
+                cn.ConnectionString = string.Format("Data Source=\"{0}\";", _db);
+#else
                         cn.ConnectionString = string.Format("Version=3,URI=file://{0},Default Timeout=33", db);
-                    #endif
+#endif
 
-                    cn.Open();
+                cn.Open();
+                {
+                    using var com = cn.CreateCommand();
+                    com.CommandText = "SELECT * FROM Cache WHERE Ip = '" + ip + "'";
+
+                    using var rd = com.ExecuteReader();
+                    if (rd.Read())
                     {
-                        using (DbCommand com = cn.CreateCommand())
+                        var val = new IpInfo();
                         {
-                            com.CommandText = "SELECT * FROM Cache WHERE Ip = '" + ip + "'";
-
-                            using (var rd = com.ExecuteReader())
-                            {
-                                if (rd.Read())
-                                {
-                                    var val = new IpInfo();
-                                    {
-                                        val.Ip = ip;
-                                        val.CountryName = rd["CountryName"] as string;
-                                        val.RegionName = rd["RegionName"] as string;
-                                        val.City = rd["City"] as string;
-                                        val.Latitude = (double)rd["Latitude"];
-                                        val.Longitude = (double)rd["Longitude"];
-                                        val.CacheTime = (DateTime)rd["Time"];
-                                    }
-                                    ret = val;
-                                }
-                                rd.Close();
-                            }
+                            val.Ip = ip;
+                            val.CountryName = rd["CountryName"] as string;
+                            val.RegionName = rd["RegionName"] as string;
+                            val.City = rd["City"] as string;
+                            val.Latitude = (double)rd["Latitude"];
+                            val.Longitude = (double)rd["Longitude"];
+                            val.CacheTime = (DateTime)rd["Time"];
                         }
+                        ret = val;
                     }
-                    cn.Close();
+                    rd.Close();
                 }
+                cn.Close();
             }
             catch (Exception ex)
             {
-                #if MONO
+#if MONO
                     Console.WriteLine("GetDataFromCache: " + ex.ToString());
-                #endif
+#endif
                 Debug.WriteLine("GetDataFromCache: " + ex.ToString());
                 ret = null;
             }
