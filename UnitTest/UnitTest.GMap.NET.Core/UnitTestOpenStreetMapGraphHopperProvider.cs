@@ -9,6 +9,7 @@ public class UnitTestOpenStreetMapGraphHopperProvider
     readonly string ApiKey = "c2aa79b0-4ee1-4ca3-86e6-f6a013de26d2";
 
     [TestMethod]
+    [TestCategory("Integration")]
     public void TestGetPoint()
     {
         var mapProvider = GMapProviders.OpenStreetMapGraphHopper;
@@ -21,6 +22,7 @@ public class UnitTestOpenStreetMapGraphHopperProvider
     }
 
     [TestMethod]
+    [TestCategory("Integration")]
     public void TestGetPoints()
     {
         var mapProvider = GMapProviders.OpenStreetMapGraphHopper;
@@ -35,6 +37,7 @@ public class UnitTestOpenStreetMapGraphHopperProvider
     }
 
     [TestMethod]
+    [TestCategory("Integration")]
     public void TestGetPlacemark()
     {
         var mapProvider = GMapProviders.OpenStreetMapGraphHopper;
@@ -49,6 +52,7 @@ public class UnitTestOpenStreetMapGraphHopperProvider
     }
 
     [TestMethod]
+    [TestCategory("Integration")]
     public void TestGetPlacemarks()
     {
         var mapProvider = GMapProviders.OpenStreetMapGraphHopper;
@@ -63,6 +67,7 @@ public class UnitTestOpenStreetMapGraphHopperProvider
     }
 
     [TestMethod]
+    [TestCategory("Integration")]
     public void TestGetRoute()
     {
         var mapProvider = GMapProviders.OpenStreetMapGraphHopper;

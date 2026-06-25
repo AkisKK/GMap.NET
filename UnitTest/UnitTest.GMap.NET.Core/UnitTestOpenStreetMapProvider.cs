@@ -7,6 +7,7 @@ namespace UnitTest.GMap.NET.Core;
 public class UnitTestOpenStreetMapProvider
 {
     [TestMethod]
+    [TestCategory("Integration")]
     public void TestGetPoint()
     {
         var mapProvider = GMapProviders.OpenStreetMap;
@@ -18,6 +19,7 @@ public class UnitTestOpenStreetMapProvider
     }
 
     [TestMethod]
+    [TestCategory("Integration")]
     public void TestGetPoints()
     {
         var mapProvider = GMapProviders.OpenStreetMap;
@@ -31,6 +33,7 @@ public class UnitTestOpenStreetMapProvider
     }
 
     [TestMethod]
+    [TestCategory("Integration")]
     public void TestGetPoints2()
     {
         var mapProvider = GMapProviders.OpenStreetMap;
@@ -48,6 +51,7 @@ public class UnitTestOpenStreetMapProvider
     }
 
     [TestMethod]
+    [TestCategory("Integration")]
     public void TestGetPlacemark()
     {
         var mapProvider = GMapProviders.OpenStreetMap;
@@ -61,6 +65,7 @@ public class UnitTestOpenStreetMapProvider
     }
 
     [TestMethod]
+    [TestCategory("Integration")]
     public void TestGetPlacemarks()
     {
         var mapProvider = GMapProviders.OpenStreetMap;
@@ -74,6 +79,7 @@ public class UnitTestOpenStreetMapProvider
     }
 
     [TestMethod]
+    [TestCategory("Integration")]
     public void TestGetRoute()
     {
         var mapProvider = GMapProviders.OpenStreetMap;

@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Net;
+using System.Net.Http;
 using System.Text;
 using GMap.NET;
 using GMap.NET.MapProviders;
@@ -241,26 +242,17 @@ namespace Demo.WindowsForms
 
             string xml;
             {
-                var request = (HttpWebRequest)WebRequest.Create(url);
+                using var request = new HttpRequestMessage(HttpMethod.Get, url);
+                request.Headers.Add("User-Agent", GMapProvider.UserAgent);
+                request.Headers.Add("Accept", "*/*");
 
-                request.UserAgent = GMapProvider.UserAgent;
-                request.Timeout = HttpClientFactory.TimeoutMs;
-                request.ReadWriteTimeout = HttpClientFactory.TimeoutMs * 6;
-                request.Accept = "*/*";
-                request.KeepAlive = true;
+                var httpClient = HttpClientFactory.CreateClient();
+                using var response = httpClient.Send(request);
+                response.EnsureSuccessStatusCode();
 
-                using (var response = request.GetResponse() as HttpWebResponse)
-                {
-                    using (var responseStream = response.GetResponseStream())
-                    {
-                        using (var read = new StreamReader(responseStream, Encoding.UTF8))
-                        {
-                            xml = read.ReadToEnd();
-                        }
-                    }
-
-                    response.Close();
-                }
+                using var responseStream = response.Content.ReadAsStream();
+                using var read = new StreamReader(responseStream, Encoding.UTF8);
+                xml = read.ReadToEnd();
             }
 
             // 54.690688; 25.2116; 1263522; 1; 48.152; 2011-10-14 14:41:29
@@ -478,47 +470,18 @@ namespace Demo.WindowsForms
 
         static string GetFlightRadarContentUsingHttp(string url)
         {
-            string ret;
+            using var request = new HttpRequestMessage(HttpMethod.Get, url);
+            request.Headers.Add("User-Agent", GMapProvider.UserAgent);
+            request.Headers.Add("Accept", "*/*");
+            request.Headers.Add("Referer", "http://www.flightradar24.com/");
 
-            var request = (HttpWebRequest)WebRequest.Create(url);
+            var httpClient = HttpClientFactory.CreateClient();
+            using var response = httpClient.Send(request);
+            response.EnsureSuccessStatusCode();
 
-            request.UserAgent = GMapProvider.UserAgent;
-            request.Timeout = HttpClientFactory.TimeoutMs;
-            request.ReadWriteTimeout = HttpClientFactory.TimeoutMs * 6;
-            request.Accept = "*/*";
-            request.Referer = "http://www.flightradar24.com/";
-            request.KeepAlive = true;
-            //request.Headers.Add("Cookie", string.Format(System.Globalization.CultureInfo.InvariantCulture, "map_lat={0}; map_lon={1}; map_zoom={2}; " + (!string.IsNullOrEmpty(sid) ? "PHPSESSID=" + sid + ";" : string.Empty) + "__utma=109878426.303091014.1316587318.1316587318.1316587318.1; __utmb=109878426.2.10.1316587318; __utmz=109878426.1316587318.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none)", p.Lat, p.Lng, zoom));
-
-            using (var response = request.GetResponse() as HttpWebResponse)
-            {
-                //if(string.IsNullOrEmpty(sid))
-                //{
-                //   var c = response.Headers["Set-Cookie"];
-                //   //Debug.WriteLine(c);
-                //   if(c.Contains("PHPSESSID"))
-                //   {
-                //      c = c.Split('=')[1].Split(';')[0];
-                //      ret = c;
-                //   }
-                //}
-
-                using (var responseStream = response.GetResponseStream())
-                {
-                    using (var read = new StreamReader(responseStream, Encoding.UTF8))
-                    {
-                        string tmp = read.ReadToEnd();
-                        //if(!string.IsNullOrEmpty(sid))
-                        {
-                            ret = tmp;
-                        }
-                    }
-                }
-
-                response.Close();
-            }
-
-            return ret;
+            using var responseStream = response.Content.ReadAsStream();
+            using var read = new StreamReader(responseStream, Encoding.UTF8);
+            return read.ReadToEnd();
         }
     }
 }

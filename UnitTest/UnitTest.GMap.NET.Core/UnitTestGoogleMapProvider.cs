@@ -9,6 +9,7 @@ public class UnitTestGoogleMapProvider
     readonly string ApiKey = "AIzaSyDn8qjiDcnGHOriIrmCnbHs8RK4h_WoGpg";
 
     [TestMethod]
+    [TestCategory("Integration")]
     public void TestGetPoint()
     {
         var mapProvider = GMapProviders.GoogleMap;
@@ -21,6 +22,7 @@ public class UnitTestGoogleMapProvider
     }
 
     [TestMethod]
+    [TestCategory("Integration")]
     public void TestGetPoints()
     {
         var mapProvider = GMapProviders.GoogleMap;
@@ -33,6 +35,7 @@ public class UnitTestGoogleMapProvider
     }
 
     [TestMethod]
+    [TestCategory("Integration")]
     public void TestGetRoute()
     {
         var mapProvider = GMapProviders.GoogleMap;
